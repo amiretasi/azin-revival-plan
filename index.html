@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         html { scroll-behavior: smooth; }
-        body { font-family: 'Vazirmatn', sans-serif; background-color: #f7fafc; }
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f7fafc; overflow-x: hidden; }
         .chart-container { position: relative; width: 100%; height: 400px; }
         .small-chart-container { position: relative; width: 100%; height: 300px; }
         table { width: 100%; border-collapse: collapse; }
@@ -39,6 +39,15 @@
         .swot-card ul { list-style-type: '✔  '; padding-right: 1.5rem; } .swot-card li { margin-bottom: 0.5rem; }
         .results-card { transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out; }
         .results-card:hover { transform: scale(1.03); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        /* Animation Styles */
+        .animate-on-scroll { opacity: 0; transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+        .fade-in-up { transform: translateY(30px); }
+        .fade-in-down { transform: translateY(-30px); }
+        .fade-in { transform: scale(0.95); }
+        .slide-in-right { transform: translateX(-50px); }
+        
+        .is-visible { opacity: 1; transform: none; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -52,7 +61,7 @@
     <nav class="sticky top-0 bg-white/95 backdrop-blur-sm shadow-md z-50">
         <div class="container mx-auto px-4">
             <div class="flex justify-center items-center h-16">
-                <ul class="flex space-x-8 space-x-reverse text-sm font-semibold text-gray-600">
+                <ul class="flex space-x-4 md:space-x-8 space-x-reverse text-xs md:text-sm font-semibold text-gray-600">
                     <li><a href="#executive_summary" class="hover:text-[#005082] transition-colors duration-300">خلاصه وضعیت</a></li>
                     <li><a href="#financial_analysis" class="hover:text-[#005082] transition-colors duration-300">تحلیل مالی</a></li>
                     <li><a href="#cogs_hr_analysis" class="hover:text-[#005082] transition-colors duration-300">بحران عملیاتی</a></li>
@@ -68,22 +77,22 @@
     <main class="container mx-auto p-4 md:p-8">
         
         <section id="executive_summary" class="mb-12 pt-16 -mt-16">
-            <h2 class="text-2xl font-bold text-[#005082] border-r-4 border-[#00A1E4] pr-4 mb-6">خلاصه وضعیت و شاخص‌های کلیدی بحران</h2>
+            <h2 class="text-2xl font-bold text-[#005082] border-r-4 border-[#00A1E4] pr-4 mb-6 animate-on-scroll fade-in">خلاصه وضعیت و شاخص‌های کلیدی بحران</h2>
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 text-center">
-                <div class="kpi-card border-blue-500"><h3 class="text-sm font-semibold text-gray-600">درآمد عملیاتی (۱۴۰۳)</h3><p class="text-3xl font-bold text-blue-600 mt-2">۳۲٬۸۱۳</p><p class="text-xs text-gray-500">میلیارد ریال</p></div>
-                <div class="kpi-card border-orange-500"><h3 class="text-sm font-semibold text-gray-600">بهای تمام شده (۱۴۰۳)</h3><p class="text-3xl font-bold text-orange-600 mt-2">۳۱٬۵۰۳</p><p class="text-xs text-gray-500">۹۶٪ درآمد</p></div>
-                <div class="kpi-card border-red-500"><h3 class="text-sm font-semibold text-gray-600">سود (زیان) ناخالص (۳ ماهه ۱۴۰۴)</h3><p class="text-3xl font-bold negative-value mt-2">(۲٬۰۸۵)</p><p class="text-xs text-gray-500">مارژین منفی ۳۴٪</p></div>
-                <div class="kpi-card border-red-700"><h3 class="text-sm font-semibold text-gray-600">زیان انباشته (۱۴۰۴/۰۳/۳۱)</h3><p class="text-3xl font-bold negative-value mt-2">(۳٬۳۱۸)</p><p class="text-xs text-gray-500">۷۴٪ سرمایه</p></div>
-                <div class="kpi-card border-yellow-500"><h3 class="text-sm font-semibold text-gray-600">دوره وصول مطالبات</h3><p class="text-3xl font-bold text-yellow-600 mt-2">~ ۱۲۰</p><p class="text-xs text-gray-500">روز</p></div>
+                <div class="kpi-card border-blue-500 animate-on-scroll fade-in-down" style="transition-delay: 100ms;"><h3 class="text-sm font-semibold text-gray-600">درآمد عملیاتی (۱۴۰۳)</h3><p class="text-3xl font-bold text-blue-600 mt-2">۳۲٬۸۱۳</p><p class="text-xs text-gray-500">میلیارد ریال</p></div>
+                <div class="kpi-card border-orange-500 animate-on-scroll fade-in-up" style="transition-delay: 200ms;"><h3 class="text-sm font-semibold text-gray-600">بهای تمام شده (۱۴۰۳)</h3><p class="text-3xl font-bold text-orange-600 mt-2">۳۱٬۵۰۳</p><p class="text-xs text-gray-500">۹۶٪ درآمد</p></div>
+                <div class="kpi-card border-red-500 animate-on-scroll fade-in-down" style="transition-delay: 300ms;"><h3 class="text-sm font-semibold text-gray-600">سود (زیان) ناخالص (۳ ماهه ۱۴۰۴)</h3><p class="text-3xl font-bold negative-value mt-2">(۲٬۰۸۵)</p><p class="text-xs text-gray-500">مارژین منفی ۳۴٪</p></div>
+                <div class="kpi-card border-red-700 animate-on-scroll fade-in-up" style="transition-delay: 400ms;"><h3 class="text-sm font-semibold text-gray-600">زیان انباشته (۱۴۰۴/۰۳/۳۱)</h3><p class="text-3xl font-bold negative-value mt-2">(۳٬۳۱۸)</p><p class="text-xs text-gray-500">۷۴٪ سرمایه</p></div>
+                <div class="kpi-card border-yellow-500 animate-on-scroll fade-in-down" style="transition-delay: 500ms;"><h3 class="text-sm font-semibold text-gray-600">دوره وصول مطالبات</h3><p class="text-3xl font-bold text-yellow-600 mt-2">~ ۱۲۰</p><p class="text-xs text-gray-500">روز</p></div>
             </div>
         </section>
 
         <section id="financial_analysis" class="mb-12 bg-white p-6 rounded-lg shadow-lg pt-20 -mt-16">
             <h2 class="text-2xl font-bold text-[#005082] border-r-4 border-[#00A1E4] pr-4 mb-6">بخش اول: کالبدشکافی مالی - روند فصلی بحران</h2>
              <p class="text-gray-600 mb-6 text-justify">نمودار زیر روند فصلی درآمد، هزینه و سود ناخالص را از ابتدای سال ۱۴۰۱ تا سه ماهه اول ۱۴۰۴ نمایش می‌دهد. این داده‌ها به وضوح نشانگر وخیم‌تر شدن وضعیت عملیاتی شرکت هستند، به طوری که از ابتدای سال ۱۴۰۳ شرکت به صورت متناوب وارد محدوده زیان ناخالص فصلی شده است که این روند در سال ۱۴۰۴ تشدید یافته است.</p>
-            <div class="chart-container mb-8"><canvas id="financialTrendChart"></canvas></div>
+            <div class="chart-container mb-8 animate-on-scroll fade-in-up"><canvas id="financialTrendChart"></canvas></div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white p-6 rounded-lg shadow-inner border border-gray-200">
+                <div class="bg-white p-6 rounded-lg shadow-inner border border-gray-200 animate-on-scroll fade-in">
                     <h3 class="text-xl font-semibold mb-4 text-center">تحلیل وضعیت شمولیت ماده ۱۴۱ قانون تجارت</h3>
                     <p class="text-sm text-gray-600 mb-4 text-justify">بر اساس ماده ۱۴۱، اگر زیان انباشته شرکتی از نصف سرمایه ثبت‌شده آن فراتر رود، هیئت مدیره موظف به دعوت از مجمع عمومی فوق‌العاده جهت تصمیم‌گیری برای انحلال یا بقای شرکت است. جدول زیر نشان می‌دهد که زیان سنگین ۳ ماهه اول ۱۴۰۴، شرکت را قاطعانه مشمول این ماده کرده است.</p>
                     <table>
@@ -117,7 +126,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="bg-white p-6 rounded-lg shadow-inner border border-gray-200">
+                <div class="bg-white p-6 rounded-lg shadow-inner border border-gray-200 animate-on-scroll fade-in" style="transition-delay: 200ms;">
                     <h3 class="text-xl font-semibold mb-4 text-center">خلاصه بدهی‌های مالیاتی و تامین اجتماعی</h3>
                      <p class="text-sm text-gray-600 mb-4 text-justify">بدهی‌های معوق به نهادهای دولتی یک ریسک نقدینگی و عملیاتی فوری است. مجموع بدهی شناسایی شده (اصل و جرائم) بالغ بر <span class="bold-text negative-value">۸,۱۱۳ میلیارد ریال</span> است که نیازمند مدیریت و مذاکره فوری جهت تقسیط و جلوگیری از اقدامات اجرایی است.</p>
                      <table>
@@ -169,58 +178,60 @@
         <section id="historical_analysis" class="mb-12 bg-white p-6 rounded-lg shadow-lg pt-20 -mt-16">
             <h2 class="text-2xl font-bold text-[#005082] border-r-4 border-[#00A1E4] pr-4 mb-6">بخش دوم: تحلیل روند سودآوری سالانه (۱۴۰۰-۱۴۰۴)</h2>
             <p class="text-gray-600 mb-4 text-justify">جدول زیر روند سالانه درآمد و سودآوری شرکت را نشان می‌دهد. نکته کلیدی، فرسایش مداوم حاشیه سود ناخالص از ۸.۱٪ در سال ۱۴۰۱ به تنها ۴.۰٪ در سال ۱۴۰۳ است. بودجه سال ۱۴۰۴ با پیش‌بینی حاشیه سود منفی ۷.۶٪، این روند نگران‌کننده را به یک بحران تمام‌عیار تبدیل می‌کند و نشانگر عدم وجود هرگونه برنامه راهبردی برای اصلاح ساختار هزینه و قیمت‌گذاری است.</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>شرح (میلیارد ریال)</th>
-                        <th>عملکرد ۱۴۰۱</th>
-                        <th>عملکرد ۱۴۰۲</th>
-                        <th>عملکرد ۱۴۰۳</th>
-                        <th class="negative-value">بودجه ۱۴۰۴</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>درآمد عملیاتی</td>
-                        <td class="positive-value">۲۰,۹۲۷</td>
-                        <td class="positive-value">۲۰,۹۷۲</td>
-                        <td class="positive-value">۳۲,۸۱۳</td>
-                        <td class="positive-value">۳۸,۲۱۲</td>
-                    </tr>
-                    <tr>
-                        <td>بهای تمام شده</td>
-                        <td class="negative-value">(۱۹,۲۳۸)</td>
-                        <td class="negative-value">(۱۹,۵۴۸)</td>
-                        <td class="negative-value">(۳۱,۵۰۳)</td>
-                        <td class="negative-value">(۴۱,۱۰۲)</td>
-                    </tr>
-                    <tr class="font-bold bg-gray-50">
-                        <td>سود (زیان) ناخالص</td>
-                        <td class="positive-value">۱,۶۸۹</td>
-                        <td class="positive-value">۱,۴۲۴</td>
-                        <td class="positive-value">۱,۳۱۰</td>
-                        <td class="negative-value">(۲,۸۹۰)</td>
-                    </tr>
-                    <tr class="font-bold">
-                        <td>حاشیه سود ناخالص</td>
-                        <td class="positive-value">۸.۱٪</td>
-                        <td class="positive-value">۶.۸٪</td>
-                        <td class="positive-value">۴.۰٪</td>
-                        <td class="negative-value">(۷.۶٪)</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="animate-on-scroll fade-in">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>شرح (میلیارد ریال)</th>
+                            <th>عملکرد ۱۴۰۱</th>
+                            <th>عملکرد ۱۴۰۲</th>
+                            <th>عملکرد ۱۴۰۳</th>
+                            <th class="negative-value">بودجه ۱۴۰۴</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>درآمد عملیاتی</td>
+                            <td class="positive-value">۲۰,۹۲۷</td>
+                            <td class="positive-value">۲۰,۹۷۲</td>
+                            <td class="positive-value">۳۲,۸۱۳</td>
+                            <td class="positive-value">۳۸,۲۱۲</td>
+                        </tr>
+                        <tr>
+                            <td>بهای تمام شده</td>
+                            <td class="negative-value">(۱۹,۲۳۸)</td>
+                            <td class="negative-value">(۱۹,۵۴۸)</td>
+                            <td class="negative-value">(۳۱,۵۰۳)</td>
+                            <td class="negative-value">(۴۱,۱۰۲)</td>
+                        </tr>
+                        <tr class="font-bold bg-gray-50">
+                            <td>سود (زیان) ناخالص</td>
+                            <td class="positive-value">۱,۶۸۹</td>
+                            <td class="positive-value">۱,۴۲۴</td>
+                            <td class="positive-value">۱,۳۱۰</td>
+                            <td class="negative-value">(۲,۸۹۰)</td>
+                        </tr>
+                        <tr class="font-bold">
+                            <td>حاشیه سود ناخالص</td>
+                            <td class="positive-value">۸.۱٪</td>
+                            <td class="positive-value">۶.۸٪</td>
+                            <td class="positive-value">۴.۰٪</td>
+                            <td class="negative-value">(۷.۶٪)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
         
         <section id="cogs_hr_analysis" class="mb-12 pt-20 -mt-16">
              <h2 class="text-2xl font-bold text-[#005082] border-r-4 border-[#00A1E4] pr-4 mb-6">بخش سوم: تحلیل ریشه‌های بحران عملیاتی</h2>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                 <div class="bg-white p-6 rounded-lg shadow-md">
+                 <div class="bg-white p-6 rounded-lg shadow-md animate-on-scroll fade-in">
                     <h3 class="text-xl font-semibold mb-4 text-center">کالبدشکافی بهای تمام شده (عملکرد ۱۴۰۳)</h3>
                     <div class="small-chart-container"><canvas id="cogsChart"></canvas></div>
                     <p class="mt-4 text-sm text-gray-600 text-justify"><span class="bold-text">ریشه بحران:</span> <span class="bold-text">مواد مستقیم مصرفی با سهم ۶۶٪</span>، قلب هزینه‌های شرکت است. استراتژی فاجعه‌بار بودجه ۱۴۰۴ (افزایش ۲۰٪ هزینه مواد اولیه در کنار عدم تغییر نرخ فروش) عامل اصلی سقوط شرکت به محدوده زیان ناخالص است.</p>
                 </div>
-                <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="bg-white p-6 rounded-lg shadow-md animate-on-scroll fade-in" style="transition-delay: 200ms;">
                     <h3 class="text-xl font-semibold mb-4 text-center">تحلیل هزینه‌های نیروی انسانی (عملکرد ۱۴۰۳)</h3>
                      <div class="small-chart-container"><canvas id="hrCostsChart"></canvas></div>
                      <p class="mt-4 text-sm text-gray-600 text-justify"><span class="bold-text">بهره‌وری پایین:</span> رشد ۶۳٪ هزینه‌های شاغلین در سال ۱۴۰۳ (با ۱۱۳۳ پرسنل شامل ۷۲۲ نفر صف و ۴۱۸ نفر ستاد) درحالی که تولید تنها ۹٪ رشد داشت، بیانگر افت شدید بهره‌وری است. نسبت بالای نیروی ستادی به کل (حدود ۳۷٪)، احتمال وجود <span class="bold-text">نیروی انسانی مازاد</span> و ساختار سازمانی ناکارآمد را تقویت می‌کند.</p>
@@ -231,7 +242,7 @@
         <section id="strategic_models_analysis" class="mb-12 pt-20 -mt-16">
             <h2 class="text-2xl font-bold text-[#005082] border-r-4 border-[#00A1E4] pr-4 mb-6">بخش چهارم: تحلیل استراتژیک (SWOT و چرخه عمر)</h2>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                 <div class="bg-white p-6 rounded-lg shadow-md">
+                 <div class="bg-white p-6 rounded-lg shadow-md animate-on-scroll fade-in">
                     <h3 class="text-xl font-semibold mb-4 text-center">موقعیت شرکت در چرخه عمر سازمانی (Adizes)</h3>
                     <div class="relative w-full h-80">
                         <canvas id="olcChart"></canvas>
@@ -247,7 +258,7 @@
                         </ul>
                      </div>
                 </div>
-                <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="bg-white p-6 rounded-lg shadow-md animate-on-scroll fade-in" style="transition-delay: 200ms;">
                      <h3 class="text-xl font-semibold mb-4 text-center">تحلیل استراتژیک SWOT</h3>
                      <div class="swot-container text-sm">
                          <div class="swot-card swot-strengths"><h4>نقاط قوت</h4><ul><li>تامین‌کننده اصلی گروه سایپا</li><li>زیرساخت تولیدی موجود</li><li>برند شناخته‌شده در صنعت</li></ul></div>
@@ -291,7 +302,7 @@
 
         <section id="revival_plan" class="mb-12 pt-20 -mt-16">
             <h2 class="text-2xl font-bold text-[#005082] border-r-4 border-[#00A1E4] pr-4 mb-6">بخش ششم: برنامه عملیاتی تحول</h2>
-             <div id="budget_analysis" class="mb-8 bg-yellow-50 border-r-4 border-yellow-500 p-6 rounded-lg shadow-md">
+             <div id="budget_analysis" class="mb-8 bg-yellow-50 border-r-4 border-yellow-500 p-6 rounded-lg shadow-md animate-on-scroll fade-in">
                 <h3 class="text-xl font-bold text-yellow-800 mb-3">تحلیل بودجه ۱۴۰۴: سندی برای تأیید بحران، نه یک برنامه راهبردی</h3>
                 <p class="text-gray-700 text-justify">بودجه ارائه شده برای سال ۱۴۰۴، با پیش‌بینی زیان خالص هولناک <span class="bold-text negative-value">۴٬۸۶۹ میلیارد ریالی</span>، یک سند هشداردهنده است. این بودجه بر دو فرض متناقض و ویرانگر بنا شده است: <span class="bold-text">افزایش ۲۰٪ در نرخ مواد اولیه</span> همزمان با <span class="bold-text">ثبات کامل نرخ فروش محصولات</span>. این رویکرد، پذیرش شکست و برنامه‌ریزی برای زیان است. چنین بودجه‌ای فاقد هرگونه منطق استراتژیک برای بهبود بوده و صرفاً یک برون‌یابی از وضعیت فاجعه‌بار فعلی است. لذا، اولین اقدام هیئت مدیره جدید باید کنار گذاشتن این بودجه و تدوین یک برنامه تحول واقعی باشد.</p>
             </div>
@@ -302,25 +313,25 @@
                         <div>
                             <h4 class="font-semibold text-lg text-blue-700 mb-2">اقدامات کلیدی</h4>
                             <div class="space-y-4">
-                                <div class="plan-item">
+                                <div class="plan-item animate-on-scroll slide-in-right">
                                     <span class="font-bold">اصلاح فوری ساختار مالی:</span>
                                     <p class="text-sm text-gray-600 pr-2">شامل تجدید ارزیابی دارایی‌ها برای خروج از شمولیت ماده ۱۴۱ و مذاکره فوری با سازمان امور مالیاتی و تامین اجتماعی جهت استمهال و تقسیط بدهی‌ها.</p>
                                 </div>
-                                <div class="plan-item">
+                                <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 100ms;">
                                     <span class="font-bold">کنترل نقدینگی و انجماد هزینه‌ها:</span>
                                     <p class="text-sm text-gray-600 pr-2">توقف کامل تمام هزینه‌های غیرضروری، پروژه‌های توسعه‌ای غیراستراتژیک و بازنگری تمام قراردادهای خدماتی برای کاهش فوری خروج وجه نقد.</p>
                                 </div>
-                                 <div class="plan-item">
+                                 <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 200ms;">
                                     <span class="font-bold">اصلاح ساختار سازمانی و ممیزی نیروی انسانی:</span>
                                     <p class="text-sm text-gray-600 pr-2">ارزیابی دقیق ساختار فعلی با هدف کاهش لایه‌های مدیریتی، حذف پست‌های موازی و شناسایی نیروی مازاد در بخش ستادی.</p>
                                 </div>
-                                <div class="plan-item">
+                                <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 300ms;">
                                     <span class="font-bold">مطالعه بازار برون‌گروهی:</span>
                                     <p class="text-sm text-gray-600 pr-2">تدوین طرح ورود به بازار یدکی (Aftermarket) و شناسایی فرصت‌های همکاری با سایر خودروسازان به منظور کاهش وابستگی استراتژیک.</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-blue-50 p-4 rounded-md results-card">
+                        <div class="bg-blue-50 p-4 rounded-md results-card animate-on-scroll fade-in">
                              <h4 class="font-semibold text-lg text-blue-800">انتظارات و نتایج کلیدی</h4>
                              <ul class="text-sm space-y-2 mt-2 list-disc list-inside">
                                 <li>خروج از شمولیت ماده ۱۴۱ قانون تجارت.</li>
@@ -337,25 +348,25 @@
                         <div>
                              <h4 class="font-semibold text-lg text-green-700 mb-2">اقدامات کلیدی</h4>
                             <div class="space-y-4">
-                                <div class="plan-item">
+                                <div class="plan-item animate-on-scroll slide-in-right">
                                     <span class="font-bold">اجرای پروژه‌های مهندسی ارزش:</span>
                                     <p class="text-sm text-gray-600 pr-2">تشکیل تیم‌های مهندسی ارزش با هدف کاهش حداقل ۵ درصدی بهای تمام شده محصولات کلیدی از طریق جایگزینی مواد، اصلاح طراحی و بهینه‌سازی فرآیند تولید.</p>
                                 </div>
-                                <div class="plan-item">
+                                <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 100ms;">
                                     <span class="font-bold">ورود به بازار قطعات یدکی (Aftermarket):</span>
                                     <p class="text-sm text-gray-600 pr-2">راه‌اندازی واحد بازاریابی و فروش مستقل برای عرضه مستقیم محصولات در بازار قطعات یدکی که دارای حاشیه سود بالاتری است.</p>
                                 </div>
-                                 <div class="plan-item">
+                                 <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 200ms;">
                                     <span class="font-bold">مذاکره با سایر خودروسازان:</span>
                                     <p class="text-sm text-gray-600 pr-2">آغاز مذاکرات جدی و ارائه پیشنهاد فنی و مالی به حداقل یک خودروساز بزرگ دیگر (مانند ایران خودرو یا کرمان موتور) برای تنوع‌بخشی به سبد مشتریان.</p>
                                 </div>
-                                 <div class="plan-item">
+                                 <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 300ms;">
                                     <span class="font-bold">پیاده‌سازی تولید ناب (Lean):</span>
                                     <p class="text-sm text-gray-600 pr-2">اجرای پروژه‌های اولیه تولید ناب برای شناسایی و حذف اتلاف در فرآیندهای اصلی تولید و کاهش ضایعات مواد اولیه.</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-green-50 p-4 rounded-md results-card">
+                        <div class="bg-green-50 p-4 rounded-md results-card animate-on-scroll fade-in">
                              <h4 class="font-semibold text-lg text-green-800">انتظارات و نتایج کلیدی</h4>
                              <ul class="text-sm space-y-2 mt-2 list-disc list-inside">
                                 <li>کاهش ۵ درصدی بهای تمام شده محصولات کلیدی.</li>
@@ -372,25 +383,25 @@
                         <div>
                              <h4 class="font-semibold text-lg text-purple-700 mb-2">اقدامات کلیدی</h4>
                             <div class="space-y-4">
-                                <div class="plan-item">
+                                <div class="plan-item animate-on-scroll slide-in-right">
                                     <span class="font-bold">سرمایه‌گذاری هوشمند در نوسازی:</span>
                                     <p class="text-sm text-gray-600 pr-2">شناسایی گلوگاه‌های اصلی خطوط تولید و سرمایه‌گذاری هدفمند برای نوسازی ماشین‌آلات کلیدی به منظور افزایش بهره‌وری و کاهش ضایعات.</p>
                                 </div>
-                                <div class="plan-item">
+                                <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 100ms;">
                                     <span class="font-bold">توسعه سبد محصولات با ارزش افزوده بالا:</span>
                                     <p class="text-sm text-gray-600 pr-2">تمرکز واحد تحقیق و توسعه بر روی طراحی و تولید محصولات جدید مانند صندلی‌های برقی، مموری‌دار و مجهز به سیستم‌های ایمنی پیشرفته.</p>
                                 </div>
-                                 <div class="plan-item">
+                                 <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 200ms;">
                                     <span class="font-bold">توسعه بازارهای صادراتی:</span>
                                     <p class="text-sm text-gray-600 pr-2">پس از تثبیت وضعیت داخلی، بازارهای منطقه‌ای (مانند عراق، سوریه و CIS) برای صادرات محصولات با کیفیت و قیمت رقابتی مورد بررسی قرار گیرند.</p>
                                 </div>
-                                 <div class="plan-item">
+                                 <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 300ms;">
                                     <span class="font-bold">ایجاد واحد کسب‌وکار مستقل:</span>
                                     <p class="text-sm text-gray-600 pr-2">تبدیل شرکت از یک خط تولید وابسته به یک واحد کسب‌وکار سودآور و مستقل با استراتژی بازار، محصول و برند مشخص.</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-purple-50 p-4 rounded-md results-card">
+                        <div class="bg-purple-50 p-4 rounded-md results-card animate-on-scroll fade-in">
                              <h4 class="font-semibold text-lg text-purple-800">انتظارات و نتایج کلیدی</h4>
                              <ul class="text-sm space-y-2 mt-2 list-disc list-inside">
                                 <li>دستیابی به سودآوری عملیاتی پایدار.</li>
@@ -402,25 +413,25 @@
                  </div>
             </div>
         </section>
-        
+
         <section id="requirements" class="mb-12 pt-20 -mt-16">
             <h2 class="text-2xl font-bold text-[#005082] border-r-4 border-[#00A1E4] pr-4 mb-6">بخش هفتم: نیازمندی‌های اولیه برای اجرای برنامه تحول</h2>
             <div class="bg-white p-6 rounded-lg shadow-lg">
                  <p class="text-gray-700 text-justify mb-6">اجرای موفقیت‌آمیز این برنامه تحول جامع، مستلزم فراهم آمدن پیش‌نیازهای ساختاری و حمایتی از سوی مدیریت ارشد گروه سایپا است. این الزامات، ستون‌های اصلی پشتیبانی از تیم مدیریتی جدید برای عبور از بحران و حرکت به سمت سودآوری پایدار خواهند بود:</p>
                 <div class="space-y-4">
-                    <div class="plan-item">
+                    <div class="plan-item animate-on-scroll slide-in-right">
                         <span class="font-bold">۱. تغییر ساختار هیئت مدیره:</span>
                         <p class="text-sm text-gray-600 pr-2">برای کمک رسانی و هماهنگی بیشتر با مدیر عامل و اجرای برنامه ها، پیشنهاد می‌شود یک نفر به عنوان عضو موظف به ترکیب هیئت مدیره اضافه شود. بقیه اعضا توسط مدیریت سایپا انتخاب گردند تا همسویی استراتژیک تضمین شود.</p>
                     </div>
-                    <div class="plan-item">
+                    <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 100ms;">
                         <span class="font-bold">۲. اختیار تغییر مدیریت‌ها:</span>
                         <p class="text-sm text-gray-600 pr-2">پس از استقرار هیئت مدیره جدید، باید اختیار کامل برای ارزیابی و در صورت لزوم، تغییر در سطوح مدیریتی به منظور پویا شدن سازمان و افزایش بهره‌وری، تفویض گردد.</p>
                     </div>
-                    <div class="plan-item">
+                    <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 200ms;">
                         <span class="font-bold">۳. تشکیل مجمع فوق العاده:</span>
                         <p class="text-sm text-gray-600 pr-2">پس از بررسی دقیق مشکلات مالی، لازم است مجمع عمومی فوق‌العاده جهت تصمیم‌گیری در خصوص افزایش سرمایه (از محل تجدید ارزیابی یا آورده نقدی) در اسرع وقت تشکیل شود.</p>
                     </div>
-                    <div class="plan-item">
+                    <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 300ms;">
                         <span class="font-bold">۴. کمک به نقدینگی برای عبور از بحران:</span>
                         <p class="text-sm text-gray-600 pr-2">شرکت برای عبور از بحران فعلی، نیازمند حمایت فوری نقدینگی از سوی گروه سایپا، در قالب تسریع در پرداخت مطالبات یا ارائه خط اعتباری، می‌باشد.</p>
                     </div>
@@ -437,9 +448,20 @@
         document.addEventListener('DOMContentLoaded', function () {
             Chart.defaults.font.family = 'Vazirmatn';
 
-            const financialTrendCtx = document.getElementById('financialTrendChart');
-            if (financialTrendCtx) {
-                new Chart(financialTrendCtx.getContext('2d'), {
+            const animatedElements = document.querySelectorAll('.animate-on-scroll');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            animatedElements.forEach(el => observer.observe(el));
+            
+            // Chart Initialization Logic
+            const chartConfigs = {
+                financialTrendChart: {
                     type: 'bar',
                     data: {
                         labels: ['Q1-1401', 'Q2-1401', 'Q3-1401', 'Q4-1401', 'Q1-1402', 'Q2-1402', 'Q3-1402', 'Q4-1402', 'Q1-1403', 'Q2-1403', 'Q3-1403', 'Q4-1403', 'Q1-1404'],
@@ -450,31 +472,19 @@
                         ]
                     },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: false } } }
-                });
-            }
-
-            const cogsCtx = document.getElementById('cogsChart');
-            if (cogsCtx) {
-                new Chart(cogsCtx.getContext('2d'), {
+                },
+                cogsChart: {
                     type: 'doughnut',
                     data: { labels: ['مواد مستقیم', 'سربار کارخانه', 'دستمزد مستقیم'], datasets: [{ label: 'ترکیب بهای ساخت', data: [66, 18, 16], backgroundColor: ['#00A1E4', '#FF9F40', '#4BC0C0'] }] },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-                });
-            }
-
-            const hrCostsCtx = document.getElementById('hrCostsChart');
-            if (hrCostsCtx) {
-                 new Chart(hrCostsCtx.getContext('2d'), {
+                },
+                hrCostsChart: {
                     type: 'doughnut',
                     data: { labels: ['حقوق و دستمزد', 'مزایای پایان خدمت', 'اضافه کار', 'بیمه سهم کارفرما', 'سایر'], datasets: [{ label: 'ترکیب هزینه‌ها', data: [30, 16, 14, 11, 29], backgroundColor: ['#00A1E4', '#0077C0', '#FF6384', '#FF9F40', '#4BC0C0'] }] },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-                });
-            }
-            
-            const olcCanvas = document.getElementById('olcChart');
-            if(olcCanvas) {
-                new Chart(olcCanvas.getContext('2d'), {
-                    type: 'line',
+                },
+                olcChart: {
+                     type: 'line',
                     data: {
                         labels: ['نوزادی', 'رشد', 'بلوغ', 'اشرافیت', 'بوروکراسی', 'مرگ'],
                         datasets: [{
@@ -498,6 +508,21 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
+                        animation: {
+                            x: {
+                                type: 'number',
+                                easing: 'linear',
+                                duration: 2000,
+                                from: NaN, // the point is initially skipped
+                                delay(ctx) {
+                                  if (ctx.type !== 'data' || ctx.xStarted) {
+                                    return 0;
+                                  }
+                                  ctx.xStarted = true;
+                                  return ctx.index * 300;
+                                }
+                            }
+                        },
                         plugins: { 
                             legend: { 
                                 display: true,
@@ -509,8 +534,24 @@
                             y: { display: false, min: 0, max: 6 }
                         }
                     }
+                }
+            };
+
+            const chartObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const canvasId = entry.target.id;
+                        if (chartConfigs[canvasId]) {
+                            new Chart(entry.target.getContext('2d'), chartConfigs[canvasId]);
+                            observer.unobserve(entry.target);
+                        }
+                    }
                 });
-            }
+            }, { threshold: 0.5 });
+            
+            document.querySelectorAll('canvas').forEach(canvas => {
+                chartObserver.observe(canvas);
+            });
         });
     </script>
 </body>
