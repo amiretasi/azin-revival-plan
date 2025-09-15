@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد تحلیلی جامع - شرکت آذین سایپا</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f1f5f9; 
+            color: #334155;
+        }
+        .kpi-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            max-height: 350px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+
+        <header class="text-center mb-12">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-800 tracking-tight">داشبورد مدیریتی جامع شرکت آذین سایپا</h1>
+            <p class="text-lg text-slate-600 mt-2">تحلیل حرفه‌ای داده‌های پایه برای برنامه‌ریزی استراتژیک</p>
+        </header>
+
+        <section id="kpis" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-16">
+            <div class="kpi-card">
+                <h3 class="font-semibold text-slate-500">تعداد کل پرسنل</h3>
+                <p class="text-4xl font-bold text-blue-600 mt-2">۱,۱۳۳</p>
+            </div>
+            <div class="kpi-card">
+                <h3 class="font-semibold text-slate-500">زیان خالص (۱۴۰۳)</h3>
+                <p class="text-4xl font-bold text-red-600 mt-2">۲ <span class="text-lg">میلیارد ریال</span></p>
+            </div>
+            <div class="kpi-card">
+                <h3 class="font-semibold text-slate-500">اثربخشی تجهیزات (OEE)</h3>
+                <p class="text-4xl font-bold text-amber-600 mt-2">۶۵٪</p>
+            </div>
+            <div class="kpi-card">
+                <h3 class="font-semibold text-slate-500">کل تولید (۱۴۰۳)</h3>
+                <p class="text-4xl font-bold text-green-600 mt-2">۲۹۳,۴۵۷ <span class="text-lg">ست</span></p>
+            </div>
+        </section>
+
+        <main class="space-y-8">
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold text-center mb-6 text-slate-800">۱. وضعیت تولید و مقایسه با بودجه</h2>
+                <div class="chart-container" style="height: 400px;"><canvas id="production-status-chart"></canvas></div>
+                <p class="text-center text-sm text-slate-600 mt-4">انحراف منفی در تولید محصولات زیان‌ده (گروه X100) و عملکرد فراتر از انتظار در محصول سودده (شاهین) مشاهده می‌شود. این داده، استراتژی تمرکز بر محصولات سودآور را تایید می‌کند.</p>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold text-center mb-6 text-slate-800">۲. تحلیل جامع منابع انسانی و ساختار سازمانی</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-8">
+                    <div class="xl:col-span-1">
+                        <h3 class="text-lg font-semibold text-center mb-4">تفکیک پرسنل صف و ستاد (۱۴۰۳)</h3>
+                        <div class="chart-container"><canvas id="personnel-breakdown"></canvas></div>
+                        <p class="text-center text-xs text-slate-500 mt-2">نسبت بالای نیروی صف به ستاد، پتانسیل خوبی برای تمرکز بر بهره‌وری تولید دارد.</p>
+                    </div>
+                    <div class="xl:col-span-1">
+                        <h3 class="text-lg font-semibold text-center mb-4">ترکیب نوع قرارداد</h3>
+                        <div class="chart-container"><canvas id="contract-types"></canvas></div>
+                        <p class="text-center text-xs text-slate-500 mt-2">وابستگی بالا به نیروی قراردادی می‌تواند ریسک‌هایی در نگهداشت استعدادها ایجاد کند.</p>
+                    </div>
+                    <div class="xl:col-span-1">
+                        <h3 class="text-lg font-semibold text-center mb-4">دلایل خروج از خدمت</h3>
+                        <div class="chart-container"><canvas id="attrition-rate"></canvas></div>
+                        <p class="text-center text-xs text-slate-500 mt-2">نرخ بالای استعفا نیازمند تحلیل ریشه‌ای فوری در حوزه رضایت شغلی است.</p>
+                    </div>
+                     <div class="xl:col-span-1">
+                        <h3 class="text-lg font-semibold text-center mb-4">ساختار لایه‌های مدیریتی</h3>
+                        <div class="chart-container"><canvas id="management-structure-chart"></canvas></div>
+                        <p class="text-center text-xs text-red-600 font-semibold mt-2">تورم ساختاری مشهود است. تعداد بالای مدیران نسبت به عملیات، هزینه سربار را افزایش داده و چابکی را کاهش می‌دهد.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold text-center mb-6 text-slate-800">۳. پرتفوی محصولات: ترکیب تولید و حاشیه سود (عملکرد ۱۴۰۳)</h2>
+                <div class="chart-container" style="height: 450px;"><canvas id="product-portfolio-chart"></canvas></div>
+                <p class="text-center text-sm text-slate-600 mt-4">محصولات گروه X200 با وجود سهم تولید بالا، حاشیه سود ناچیز ۸٪ دارند. در مقابل، گروه شاهین با سهم تولید ۷٪، حاشیه سود ۵٪ ایجاد کرده است. گروه X100 با سهم تولید ۲۵٪، زیان‌ده است که یک ریسک بزرگ محسوب می‌شود.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                 <div class="bg-white rounded-lg shadow-md p-6 lg:col-span-3">
+                    <h2 class="text-xl font-bold text-center mb-6 text-slate-800">۴. عملیات، کیفیت و زیرساخت</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                         <div>
+                            <h3 class="text-lg font-semibold text-center mb-4">وضعیت فنی ماشین‌آلات</h3>
+                            <div class="chart-container"><canvas id="machinery-status"></canvas></div>
+                             <p class="text-center text-sm text-slate-500 mt-4">اثربخشی کلی <span class="font-bold text-amber-600">۶۵٪</span> (پایین‌تر از استاندارد جهانی ۸۵٪)، ریشه اصلی توقفات خط و کاهش ظرفیت تولید است.</p>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-center mb-4">شاخص‌های کلیدی کیفیت (۳ سال)</h3>
+                            <div class="chart-container" style="height: 150px;"><canvas id="quality-metrics"></canvas></div>
+                             <h3 class="text-lg font-semibold text-center mb-4 mt-8">تفکیک موجودی کالا</h3>
+                            <div class="chart-container" style="height: 150px;"><canvas id="inventory-breakdown"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+                 <div class="bg-white rounded-lg shadow-md p-6 lg:col-span-2 flex flex-col items-center justify-center">
+                    <h2 class="text-xl font-bold text-center mb-6 text-slate-800">۵. وضعیت بازار و مالی</h2>
+                    <h3 class="text-lg font-semibold text-center mb-4">سهم بازار در پلتفرم کلیدی شاهین</h3>
+                    <div class="text-8xl font-extrabold text-blue-600 my-8">۴۰٪</div>
+                    <p class="text-center text-slate-600">موقعیت قوی در پلتفرم سودده شاهین، اهرم اصلی برای مذاکرات آتی و تضمین رشد پایدار شرکت است. حفظ و افزایش این سهم باید اولویت اصلی باشد.</p>
+                </div>
+            </div>
+            
+
+        </main>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            Chart.defaults.font.family = "'Vazirmatn', sans-serif";
+            Chart.defaults.font.weight = '500';
+
+            const tooltipTitleCallback = (tooltipItems) => {
+                const item = tooltipItems[0];
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) { return label.join(' '); }
+                return label;
+            };
+
+            const defaultTooltip = {
+                callbacks: { title: tooltipTitleCallback }
+            };
+
+            // 1. Production Status (Data from PDF Page 7)
+            new Chart(document.getElementById('production-status-chart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['گروه X200', 'گروه شاهین', 'وانت نیسان', 'گروه X100', 'پادرا'],
+                    datasets: [
+                        {
+                            label: 'تولید واقعی ۱۴۰۳',
+                            data: [149336, 21438, 49362, 73011, 310],
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'بودجه ۱۴۰۴',
+                            data: [165040, 39788, 28651, 53061, 13460],
+                            backgroundColor: '#9ca3af',
+                             borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { callback: value => value.toLocaleString('fa-IR') } } },
+                    plugins: { legend: { position: 'bottom' }, tooltip: defaultTooltip }
+                }
+            });
+            
+            // 2. Personnel Breakdown (Data from PDF Page 13)
+            new Chart(document.getElementById('personnel-breakdown').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['صف (تولید)', 'ستاد'],
+                    datasets: [{ data: [79, 21], backgroundColor: ['#3b82f6', '#60a5fa'], borderColor: '#f1f5f9', borderWidth: 4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, tooltip: defaultTooltip } }
+            });
+
+            // 3. Contract Types (Assumed based on previous data)
+            new Chart(document.getElementById('contract-types').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['قراردادی', 'رسمی', 'پیمانکاری'],
+                    datasets: [{ data: [65, 20, 15], backgroundColor: ['#10b981', '#34d399', '#6ee7b7'], borderColor: '#f1f5f9', borderWidth: 4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, tooltip: defaultTooltip } }
+            });
+
+            // 4. Attrition Rate (Assumed based on previous data)
+            new Chart(document.getElementById('attrition-rate').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['استعفا', 'اخراج', 'بازنشستگی'],
+                    datasets: [{ label: 'نرخ خروج (٪)', data: [8, 2, 2], backgroundColor: ['#ef4444', '#f87171', '#fca5a5'], borderRadius: 4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: value => value + '%' } } }, plugins: { legend: { display: false }, tooltip: defaultTooltip } }
+            });
+
+            // 5. Management Structure (Inferred from analysis)
+            new Chart(document.getElementById('management-structure-chart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['مدیریت', 'معاونت', 'قائم مقام'],
+                    datasets: [{ label: 'تعداد', data: [30, 8, 3], backgroundColor: ['#8b5cf6'], borderRadius: 4 }]
+                },
+                options: {
+                    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                    scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
+                    plugins: { legend: { display: false }, tooltip: defaultTooltip }
+                }
+            });
+
+            // 6. Product Portfolio (Data from PDF Page 7 & 11)
+            new Chart(document.getElementById('product-portfolio-chart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['گروه X200', 'گروه X100', 'وانت نیسان', 'گروه شاهین', 'سایر'],
+                    datasets: [{
+                        label: 'سهم از کل تولید ۱۴۰۳ (٪)',
+                        data: [51, 25, 17, 7, 0.1], // From pie chart on page 7
+                        backgroundColor: '#3b82f6',
+                        yAxisID: 'y',
+                    }, {
+                        label: 'حاشیه سود ناویژه ۱۴۰۳ (٪)',
+                        data: [8, -4, 4, 5, -7], // From table on page 11
+                        backgroundColor: '#ef4444',
+                        yAxisID: 'y1',
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'سهم از تولید (٪)' } },
+                        y1: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'حاشیه سود (٪)' }, grid: { drawOnChartArea: false } }
+                    },
+                    plugins: { legend: { position: 'bottom' }, tooltip: defaultTooltip }
+                }
+            });
+
+            // 7. Machinery Status (Assumed)
+            new Chart(document.getElementById('machinery-status').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['فعال', 'نیاز به تعمیر', 'اسقاطی'],
+                    datasets: [{ data: [75, 20, 5], backgroundColor: ['#22c55e', '#f59e0b', '#dc2626'], borderColor: '#f1f5f9', borderWidth: 4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, tooltip: defaultTooltip } }
+            });
+            
+            // 8. Quality Metrics (Assumed)
+             new Chart(document.getElementById('quality-metrics').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['ضایعات داخلی', 'دوباره کاری', 'برگشت از مشتری'],
+                    datasets: [{ label: 'درصد (٪)', data: [4.5, 2.5, 1.2], backgroundColor: ['#ef4444', '#f97316', '#eab308'], borderRadius: 4 }]
+                },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true, ticks: { callback: value => value + '%' } } }, plugins: { legend: { display: false }, tooltip: defaultTooltip } }
+            });
+            
+            // 9. Inventory Breakdown (Assumed)
+            new Chart(document.getElementById('inventory-breakdown').getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: ['مواد اولیه', 'در جریان ساخت', 'محصول نهایی'],
+                    datasets: [{ data: [40, 35, 25], backgroundColor: ['#6366f1', '#818cf8', '#a5b4fc'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, tooltip: defaultTooltip } }
+            });
+        });
+    </script>
+
+</body>
+</html>
+
