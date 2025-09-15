@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نقشه راه استراتژیک مدیرعامل</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 2.5rem;
+            padding-right: 3rem;
+        }
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+        .timeline-dot {
+            position: absolute;
+            right: -0.75rem;
+            top: 0.15rem;
+            height: 1.75rem;
+            width: 1.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            background-color: #0d9488;
+            border-radius: 9999px;
+            border: 4px solid #f8fafc;
+            z-index: 10;
+        }
+        .timeline-line {
+            position: absolute;
+            right: 0;
+            top: 0.25rem;
+            bottom: -0.25rem;
+            width: 3px;
+            background-color: #e2e8f0;
+        }
+        .action-item {
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            border-right: 5px solid #f59e0b;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .action-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .collapsible-header {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+            background-color: #fafafa;
+            border-top: 1px solid #e2e8f0;
+        }
+        .collapsible-content.open {
+           max-height: 2000px; /* Increased height to prevent cutoff */
+        }
+        .indicator {
+            transition: transform 0.3s ease;
+            font-weight: bold;
+            font-size: 1.5rem;
+            padding-right: 0.5rem;
+        }
+        .open > .indicator {
+             transform: rotate(45deg);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+
+        <header class="text-center mb-16">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">نقشه راه تحول (Turnaround Roadmap)</h1>
+            <p class="text-lg text-slate-600 mt-3">اقدامات گام به گام مدیرعامل برای عارضه‌یابی و اجرای برنامه تحول</p>
+        </header>
+        
+        <main class="max-w-4xl mx-auto">
+            <div id="timeline-container" class="relative">
+                <div class="timeline-line"></div>
+                
+                <!-- Phase 0: Week 1 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot">۰</div>
+                    <h2 class="font-bold text-2xl text-slate-800 mb-3">فاز صفر: هفته اول</h2>
+                    <h3 class="font-semibold text-xl text-teal-700 mb-6">جمع‌آوری داده‌های پایه (Baseline Data Acquisition)</h3>
+                    <div class="action-item">
+                        <div class="collapsible-header" data-target="data-collection-details">
+                            <h4 class="font-bold text-slate-800">تجمیع داده‌های خام از ۵ حوزه کلیدی</h4>
+                            <span class="indicator text-teal-600">+</span>
+                        </div>
+                        <div id="data-collection-details" class="collapsible-content">
+                            <p class="text-sm text-slate-600 p-4">این مرحله بر اساس چک‌لیست اولیه انجام می‌شود. برای مشاهده جزئیات هر بخش، روی آن کلیک کنید.</p>
+                            <div id="data-checklists" class="p-4 pt-0 space-y-2">
+                                <!-- Checklists will be inserted here by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- Phase 1: Week 2 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot">۱</div>
+                    <h2 class="font-bold text-2xl text-slate-800 mb-3">فاز اول: هفته دوم</h2>
+                    <h3 class="font-semibold text-xl text-teal-700 mb-6">مصاحبه‌های تشخیصی و اعتبارسنجی (Diagnostic Interviews & Validation)</h3>
+                    <div class="space-y-4">
+                        <div class="action-item">
+                            <div class="collapsible-header" data-target="interviews-details">
+                                <h4 class="font-bold text-slate-800">انجام مصاحبه‌های ساختاریافته با مدیران کلیدی</h4>
+                                <span class="indicator text-amber-600">+</span>
+                            </div>
+                             <div id="interviews-details" class="collapsible-content">
+                                 <ul class="list-disc pr-10 py-4 text-sm text-slate-700 space-y-2">
+                                    <li><strong>هدف:</strong> درک چالش‌ها، موانع و فرصت‌ها از دیدگاه مدیران عملیاتی و ستادی.</li>
+                                    <li><strong>شرکت‌کنندگان:</strong> مدیران عامل، مالی، تولید، زنجیره تامین، فروش و منابع انسانی.</li>
+                                    <li><strong>سوالات کلیدی:</strong> "بزرگترین مانع رشد ما چیست؟"، "اگر جای من بودید، اولین چیزی که تغییر می‌دادید چه بود؟"، "کدام فرآیند ما ناکارآمدتر است؟"</li>
+                                    <li><strong>خروجی:</strong> یک سند خلاصه از دیدگاه‌های مشترک و متضاد مدیران برای طرح در جلسات اعتبارسنجی.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="action-item">
+                            <div class="collapsible-header" data-target="validation-details">
+                                <h4 class="font-bold text-slate-800">برگزاری جلسات اعتبارسنجی داده</h4>
+                                 <span class="indicator text-amber-600">+</span>
+                            </div>
+                            <div id="validation-details" class="collapsible-content">
+                                 <ul class="list-disc pr-10 py-4 text-sm text-slate-700 space-y-2">
+                                    <li><strong>دستور جلسه:</strong> ارائه یافته‌های اولیه از داده‌ها و نتایج مصاحبه‌ها.</li>
+                                    <li><strong>شرکت‌کنندگان:</strong> مدیران مسئول هر حوزه اطلاعاتی.</li>
+                                    <li><strong>هدف:</strong> تایید صحت داده‌ها، شناسایی مغایرت‌ها و رسیدن به درک مشترک از وضعیت موجود (Single Source of Truth).</li>
+                                    <li><strong>خروجی:</strong> صورتجلسه تایید داده‌ها و لیستی از سوالات کلیدی برای تحلیل‌های عمیق‌تر.</li>
+                                </ul>
+                            </div>
+                        </div>
+                         <div class="action-item">
+                            <div class="collapsible-header" data-target="quickwins-details">
+                                <h4 class="font-bold text-slate-800">شناسایی اولیه نقاط بحرانی و "بردهای سریع" (Quick Wins)</h4>
+                                <span class="indicator text-amber-600">+</span>
+                            </div>
+                             <div id="quickwins-details" class="collapsible-content">
+                                 <ul class="list-disc pr-10 py-4 text-sm text-slate-700 space-y-2">
+                                    <li><strong>متدولوژی:</strong> استفاده از ماتریس تاثیر/تلاش (Impact/Effort Matrix) برای اولویت‌بندی.</li>
+                                    <li><strong>معیار "برد سریع":</strong> قابل اجرا در کمتر از ۳۰ روز، کم‌هزینه، تاثیر بالا بر نقدینگی یا روحیه کارکنان.</li>
+                                    <li><strong>مثال:</strong> مذاکره مجدد با یکی از بزرگترین بستانکاران برای افزایش مهلت پرداخت، اجرای یک کمپین متمرکز برای وصول مطالبات بالای ۹۰ روز.</li>
+                                    <li><strong>خروجی:</strong> لیستی از ۲ تا ۳ پروژه "برد سریع" برای اجرا فوری.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 2: Weeks 3-4 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot">۲</div>
+                    <h2 class="font-bold text-2xl text-slate-800 mb-3">فاز دوم: هفته سوم و چهارم</h2>
+                    <h3 class="font-semibold text-xl text-teal-700 mb-6">تحلیل عمیق و تشکیل کارگروه (Deep-Dive & Task Force)</h3>
+                    <div class="space-y-4">
+                        <div class="action-item">
+                            <div class="collapsible-header" data-target="taskforce-details">
+                                <h4 class="font-bold text-slate-800">تشکیل کارگروه ویژه تحول (Turnaround Task Force)</h4>
+                                <span class="indicator text-amber-600">+</span>
+                            </div>
+                            <div id="taskforce-details" class="collapsible-content">
+                                 <ul class="list-disc pr-10 py-4 text-sm text-slate-700 space-y-2">
+                                    <li><strong>ترکیب:</strong> نمایندگان ارشد از واحدهای مالی (تحلیلگر)، عملیات (مهندس فرآیند) و فروش/بازاریابی.</li>
+                                    <li><strong>اختیارات:</strong> دسترسی کامل به تمام داده‌های شرکت و اختیار برای درخواست گزارش‌های جدید.</li>
+                                    <li><strong>ماموریت:</strong> تحلیل عمیق نقاط بحرانی شناسایی‌شده، تدوین فرضیه‌ها و مدل‌سازی اثرات آنها.</li>
+                                    <li><strong>ساختار گزارش‌دهی:</strong> گزارش مستقیم به مدیرعامل به صورت هفتگی.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="action-item">
+                             <div class="collapsible-header" data-target="hypothesis-details">
+                                <h4 class="font-bold text-slate-800">تدوین فرضیه‌های تحول</h4>
+                                <span class="indicator text-amber-600">+</span>
+                            </div>
+                             <div id="hypothesis-details" class="collapsible-content">
+                                 <ul class="list-disc pr-10 py-4 text-sm text-slate-700 space-y-2">
+                                    <li><strong>ساختار فرضیه:</strong> "اگر ما [اقدام X] را انجام دهیم، [متریک Y] به میزان [مقدار Z] تغییر خواهد کرد."</li>
+                                    <li><strong>مبنای داده:</strong> هر فرضیه باید مستند به داده‌های معتبر فاز قبل باشد.</li>
+                                    <li><strong>مثال:</strong> "اگر خط تولید محصول زیان‌ده 'ج' را متوقف کنیم، حاشیه سود ناخالص کل شرکت ۲٪ افزایش خواهد یافت."</li>
+                                </ul>
+                            </div>
+                        </div>
+                         <div class="action-item">
+                            <div class="collapsible-header" data-target="modeling-details">
+                                <h4 class="font-bold text-slate-800">مدل‌سازی اثرات مالی و عملیاتی</h4>
+                                <span class="indicator text-amber-600">+</span>
+                            </div>
+                            <div id="modeling-details" class="collapsible-content">
+                                 <ul class="list-disc pr-10 py-4 text-sm text-slate-700 space-y-2">
+                                    <li><strong>ابزارها:</strong> مدل‌سازی پیشرفته در اکسل یا نرم‌افزارهای مشابه.</li>
+                                    <li><strong>متریک‌های کلیدی:</strong> تمرکز بر سود قبل از بهره و مالیات (EBIT)، جریان نقدینگی آزاد و بازگشت سرمایه (ROI).</li>
+                                    <li><strong>تحلیل سناریو:</strong> برای هر فرضیه، سه سناریوی بدبینانه، پایه و خوشبینانه مدل شود.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Phase 3: Month 2 -->
+                 <div class="timeline-item">
+                    <div class="timeline-dot">۳</div>
+                    <h2 class="font-bold text-2xl text-slate-800 mb-3">فاز سوم: ماه دوم</h2>
+                    <h3 class="font-semibold text-xl text-teal-700 mb-6">توسعه استراتژی و برنامه‌ریزی عملیاتی</h3>
+                    <div class="space-y-4">
+                         <div class="action-item">
+                            <div class="collapsible-header" data-target="strategy-workshop-details">
+                                <h4 class="font-bold text-slate-800">برگزاری کارگاه تدوین استراتژی</h4>
+                                <span class="indicator text-amber-600">+</span>
+                            </div>
+                            <div id="strategy-workshop-details" class="collapsible-content">
+                                 <ul class="list-disc pr-10 py-4 text-sm text-slate-700 space-y-2">
+                                    <li><strong>دستور جلسه:</strong> مرور نتایج تحلیل‌ها، اولویت‌بندی فرضیه‌ها، تصمیم‌گیری در مورد ۳ تا ۵ ابتکار استراتژیک برای ۹۰ روز آینده.</li>
+                                    <li><strong>خروجی:</strong> یک سند "برنامه ۹۰ روزه" که به تایید هیئت مدیره رسیده است.</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="action-item">
+                            <div class="collapsible-header" data-target="smart-details">
+                                <h4 class="font-bold text-slate-800">تعریف پروژه‌های مشخص (SMART Initiatives)</h4>
+                                <span class="indicator text-amber-600">+</span>
+                            </div>
+                             <div id="smart-details" class="collapsible-content">
+                                 <ul class="list-disc pr-10 py-4 text-sm text-slate-700 space-y-2">
+                                    <li><strong>قالب تعریف پروژه:</strong> هر پروژه باید یک سند یک صفحه‌ای شامل اهداف (SMART)، مالک پروژه، تیم، بودجه، زمان‌بندی و KPIهای موفقیت داشته باشد.</li>
+                                    <li><strong>مالکیت:</strong> هر پروژه باید یک "مالک" مشخص از میان مدیران ارشد داشته باشد که مسئول مستقیم پاسخگویی است.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 4: Month 3 Onwards -->
+                <div class="timeline-item">
+                    <div class="timeline-dot">۴</div>
+                    <h2 class="font-bold text-2xl text-slate-800 mb-3">فاز چهارم: ماه سوم به بعد</h2>
+                    <h3 class="font-semibold text-xl text-teal-700 mb-6">اجرا، نظارت و مدیریت عملکرد</h3>
+                     <div class="space-y-4">
+                        <div class="action-item">
+                            <div class="collapsible-header" data-target="warroom-details">
+                                <h4 class="font-bold text-slate-800">راه‌اندازی "اتاق جنگ" تحول (War Room)</h4>
+                                <span class="indicator text-amber-600">+</span>
+                            </div>
+                            <div id="warroom-details" class="collapsible-content">
+                                 <ul class="list-disc pr-10 py-4 text-sm text-slate-700 space-y-2">
+                                    <li><strong>زمان‌بندی:</strong> جلسات هفتگی، دوشنبه‌ها ساعت ۸ صبح، حداکثر ۶۰ دقیقه.</li>
+                                    <li><strong>داشبورد مدیریتی:</strong> نمایش وضعیت پروژه‌ها (سبز، زرد، قرمز)، پیشرفت KPIها در مقابل اهداف و لیست موانع اصلی.</li>
+                                    <li><strong>قانون جلسه:</strong> در این جلسه مشکل جدیدی مطرح نمی‌شود، فقط در مورد موانع شناسایی شده تصمیم‌گیری می‌شود.</li>
+                                </ul>
+                            </div>
+                        </div>
+                         <div class="action-item">
+                             <div class="collapsible-header" data-target="communication-details">
+                                <h4 class="font-bold text-slate-800">برقراری ارتباط شفاف با تمام سازمان</h4>
+                                <span class="indicator text-amber-600">+</span>
+                            </div>
+                             <div id="communication-details" class="collapsible-content">
+                                 <ul class="list-disc pr-10 py-4 text-sm text-slate-700 space-y-2">
+                                    <li><strong>کانال‌ها:</strong> جلسات عمومی ماهانه (Town Hall)، ایمیل هفتگی از طرف مدیرعامل، به‌روزرسانی در تابلو اعلانات.</li>
+                                    <li><strong>پیام کلیدی:</strong> "ما در این مسیر با هم هستیم. این‌ها دستاوردهای ماست و این‌ها چالش‌های پیش روی ماست."</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="text-center mt-16 py-6 border-t border-slate-200">
+            <p class="text-slate-500">موفقیت در تحول، نتیجه‌ی انضباط در اجرا و تمرکز بر نتایج است.</p>
+        </footer>
+
+    </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const dataChecklists = {
+            "منابع انسانی و ساختار سازمانی": [
+                "لیست کامل پرسنل (تفکیک صف/ستاد، نوع قرارداد، سابقه و...)",
+                "نمودار سازمانی دقیق و واقعی",
+                "لیست حقوق و دستمزد به تفکیک اجزا و واحدها",
+                "نرخ خروج از خدمت (۳ سال اخیر) به تفکیک دلایل",
+                "قراردادهای پیمانکاری نیروی انسانی"
+            ],
+            "دارایی‌های ثابت و زیرساخت": [
+                "لیست اموال و دارایی‌های ثابت با اسناد مالکیت",
+                "لیست کامل ماشین‌آلات خطوط تولید (با وضعیت فنی و OEE)",
+                "لیست تجهیزات پشتیبانی (لیفتراک، کمپرسور و...)",
+                "نقشه‌های تأسیساتی (برق، آب، گاز)"
+            ],
+            "عملیات و زنجیره تامین": [
+                "لیست کامل موجودی کالا (با آنالیز ABC و گزارش سنی)",
+                "لیست ۲۰ تامین‌کننده اصلی (با حجم خرید و ارزیابی عملکرد)",
+                "داده‌های کنترل کیفیت (نرخ ضایعات، دوباره‌کاری، برگشتی)",
+                "مقایسه برنامه تولید (MPS) با تولید واقعی (۶ ماه اخیر)",
+                "گزارش توقفات خط تولید به تفکیک دلایل (۱ سال اخیر)"
+            ],
+            "مالی و قراردادها": [
+                "ساختار کامل بهای تمام شده (COGS) به تفکیک محصول",
+                "آنالیز سودآوری به تفکیک محصول",
+                "لیست کامل مطالبات و بدهی‌ها (با گزارش سنی دقیق)",
+                "لیست ۱۰ بدهکار و بستانکار بزرگ",
+                "لیست کامل قراردادهای فروش (به‌ویژه قرارداد اصلی)",
+                "لیست کامل تسهیلات بانکی و تعهدات مالی"
+            ],
+            "مشتری و بازار": [
+                "برآورد سهم بازار به تفکیک پلتفرم خودرو",
+                "لیست شکایات مشتریان (۲ سال اخیر)",
+                "گزارش‌های تحلیل رقبا (کیفیت، قیمت، سهم بازار)",
+                "داده‌های مربوط به پتانسیل بازار قطعات یدکی (Aftermarket)"
+            ]
+        };
+
+        const checklistContainer = document.getElementById('data-checklists');
+        for (const [title, items] of Object.entries(dataChecklists)) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'border border-gray-200 rounded';
+
+            const header = document.createElement('div');
+            header.className = 'collapsible-header p-3 bg-white hover:bg-slate-50';
+            header.dataset.target = title.replace(/\s/g, '-');
+            header.innerHTML = `<h5 class="font-semibold text-sm">${title}</h5><span class="indicator text-teal-600 !text-lg !font-semibold">+</span>`;
+
+            const content = document.createElement('div');
+            content.id = title.replace(/\s/g, '-');
+            content.className = 'collapsible-content';
+            
+            const list = document.createElement('ul');
+            list.className = 'list-disc pr-10 py-4 text-sm text-slate-700 space-y-2';
+            items.forEach(itemText => {
+                const li = document.createElement('li');
+                li.textContent = itemText;
+                list.appendChild(li);
+            });
+            content.appendChild(list);
+
+            wrapper.appendChild(header);
+            wrapper.appendChild(content);
+            checklistContainer.appendChild(wrapper);
+        }
+
+        document.querySelectorAll('.collapsible-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const content = document.getElementById(header.dataset.target);
+                const indicator = header.querySelector('.indicator');
+                
+                header.classList.toggle('open');
+                content.classList.toggle('open');
+
+                if (content.classList.contains('open')) {
+                    indicator.textContent = '−';
+                } else {
+                    indicator.textContent = '+';
+                }
+            });
+        });
+    });
+    </script>
+
+</body>
+</html>
+
+
