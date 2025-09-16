@@ -3,562 +3,559 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اینفوگرافیک مقالات اقتصادی - امیررضا اعطاسی</title>
+    <title>تحلیل استراتژیک و برنامه احیای شرکت سایپا آذین (خاذین)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;800&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Brilliant Blues & Amber -->
-    <!-- Application Structure Plan: The SPA is structured as a narrative data story. It begins with high-level KPIs for a quick overview. It then presents the detailed data in a full table for transparency, followed by visual analysis through charts. It concludes with a timeline for temporal analysis. This top-down approach is highly intuitive for users. -->
-    <!-- Visualization & Content Choices: 
-        - KPIs: Goal: Inform -> Method: Big Number Cards -> Justification: High-impact summary. Method: HTML/Tailwind.
-        - Full Article List: Goal: Organize -> Method: HTML Table -> Justification: Provides complete raw data for reference. Method: HTML/Tailwind.
-        - Publications Breakdown: Goal: Compare -> Method: Bar Chart -> Justification: Best for comparing quantities across many distinct categories. Library: Chart.js/Canvas (NO SVG).
-        - Thematic Analysis: Goal: Compare -> Method: Bar Chart -> Justification: Shows frequency of key topics. Library: Chart.js/Canvas (NO SVG).
-        - Monthly Production: Goal: Change -> Method: Line Chart -> Justification: Shows publication trends over time. Library: Chart.js/Canvas (NO SVG).
-        - Category Split: Goal: Inform -> Method: Donut Chart -> Justification: Perfect for showing part-to-whole proportions of topics. Library: Chart.js/Canvas (NO SVG).
-        - Publication Timeline: Goal: Change -> Method: Vertical Timeline -> Justification: Shows publication frequency and clustering over time effectively. Method: HTML/CSS/Tailwind (NO SVG/Mermaid). -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Vazirmatn', sans-serif;
-            background-color: #f8fafc;
-            color: #334155;
-        }
-        .kpi-card {
-            background-color: white;
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            text-align: center;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            opacity: 0;
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out, box-shadow 0.3s ease;
-        }
-        .kpi-card:nth-child(odd) {
-            transform: translateY(-30px);
-        }
-        .kpi-card:nth-child(even) {
-            transform: translateY(30px);
-        }
-        .kpi-card.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .kpi-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-        }
-        .chart-container-small {
-            position: relative;
-            width: 100%;
-            height: 320px;
-        }
-        .timeline-item {
-            position: relative;
-            padding-bottom: 2rem;
-            padding-right: 2.5rem;
-        }
-        .timeline-item:last-child {
-            padding-bottom: 0;
-        }
-        .timeline-dot {
-            position: absolute;
-            right: -0.5rem;
-            top: 0.25rem;
-            height: 1.25rem;
-            width: 1.25rem;
-            background-color: #0d9488;
-            border-radius: 9999px;
-            border: 4px solid #f8fafc;
-        }
-        .timeline-line {
-            position: absolute;
-            right: 0;
-            top: 0.25rem;
-            bottom: -0.25rem;
-            width: 2px;
-            background-color: #e2e8f0;
-        }
-        .timeline-item ul li {
-            opacity: 0;
-            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-        }
-        .timeline-item ul li[dir="rtl"] {
-            transform: translateX(40px);
-        }
-        .timeline-item ul li[dir="ltr"] {
-            transform: translateX(-40px);
-        }
-        .timeline-item ul li.visible {
-            opacity: 1;
-            transform: translateX(0);
-        }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f7fafc; overflow-x: hidden; }
+        .chart-container { position: relative; width: 100%; height: 400px; }
+        .small-chart-container { position: relative; width: 100%; height: 300px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #e2e8f0; }
+        th { background-color: #f8fafc; font-weight: 600; }
+        tr:last-child td { border-bottom: none; }
+        .negative-value { color: #e53e3e; font-weight: 600; }
+        .positive-value { color: #22c55e; font-weight: 600; }
+        .neutral-value { color: #4a5568; }
+        .kpi-card { background-color: white; padding: 1rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-left: 5px solid; }
+        .plan-phase { background-color: white; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); border-top: 4px solid; }
+        .plan-phase h3 { display: flex; align-items: center; font-size: 1.25rem; font-weight: 700; }
+        .plan-item { position: relative; padding-right: 2rem; margin-top: 1.25rem; }
+        .plan-item::before { content: '✔'; position: absolute; right: 0; top: 0.25rem; font-weight: bold; color: #22c55e; }
+        .bold-text { font-weight: 700; }
+        .swot-container { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 1.5rem; }
+        .swot-card { background-color: #fff; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 1.5rem; border-left: 5px solid; transition: transform 0.2s; }
+        .swot-card:hover { transform: translateY(-5px); }
+        .swot-card h4 { font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; }
+        .swot-card h4::before { content: ''; display: inline-block; width: 1.5rem; height: 1.5rem; margin-left: 0.75rem; background-size: contain; background-repeat: no-repeat; background-position: center; }
+        .swot-strengths { border-color: #22c55e; } .swot-strengths h4 { color: #16a34a; } .swot-strengths h4::before { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2322c55e"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg>'); }
+        .swot-weaknesses { border-color: #ef4444; } .swot-weaknesses h4 { color: #dc2626; } .swot-weaknesses h4::before { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23ef4444"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"></path></svg>'); }
+        .opportunities { border-color: #3b82f6; } .opportunities h4 { color: #2563eb; } .opportunities h4::before { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%233b82f6"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"></path></svg>'); }
+        .threats { border-color: #f97316; } .threats h4 { color: #ea580c; } .threats h4::before { background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23f97316"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"></path></svg>'); }
+        .swot-card ul { list-style-type: '✔  '; padding-right: 1.5rem; } .swot-card li { margin-bottom: 0.5rem; }
+        .results-card { transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out; }
+        .results-card:hover { transform: scale(1.03); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        
+        /* Animation Styles */
+        .animate-on-scroll { opacity: 0; transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+        .fade-in-up { transform: translateY(30px); }
+        .fade-in-down { transform: translateY(-30px); }
+        .fade-in { transform: scale(0.95); }
+        .slide-in-right { transform: translateX(-50px); }
+        
+        .is-visible { opacity: 1; transform: none; }
     </style>
 </head>
-<body class="antialiased">
-
-    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
-
-        <header class="text-center mb-12">
-            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">اینفوگرافیک پورتفولیو مقالات</h1>
-            <p class="text-lg text-slate-600 mt-2">تحلیل آماری فعالیت های اقتصادی و انتشار مقاله امیررضا اعطاسی تحلیل گر اقتصادی</p>
-        </header>
-
-        <section id="kpis" class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-16">
-            <div class="kpi-card">
-                <h3 class="font-semibold text-slate-500">کل مقالات</h3>
-                <p id="total-articles" class="text-4xl font-bold text-teal-600 mt-2">0</p>
+<body class="bg-gray-50 text-gray-800">
+    <header class="bg-[#005082] text-white p-6 shadow-lg">
+        <div class="container mx-auto text-center">
+            <h1 class="text-3xl font-bold">گزارش تحلیلی-استراتژیک شرکت سایپا آذین (خاذین)</h1>
+            <p class="text-lg mt-2">برنامه احیا و بازسازی جهت ارائه به مدیرعامل محترم گروه خودروسازی سایپا</p>
+        </div>
+    </header>
+    
+    <nav class="sticky top-0 bg-white/95 backdrop-blur-sm shadow-md z-50">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-center items-center h-16">
+                <ul class="flex space-x-4 md:space-x-8 space-x-reverse text-xs md:text-sm font-semibold text-gray-600">
+                    <li><a href="#executive_summary" class="hover:text-[#005082] transition-colors duration-300">خلاصه وضعیت</a></li>
+                    <li><a href="#financial_analysis" class="hover:text-[#005082] transition-colors duration-300">تحلیل مالی</a></li>
+                    <li><a href="#cogs_hr_analysis" class="hover:text-[#005082] transition-colors duration-300">بحران عملیاتی</a></li>
+                    <li><a href="#strategic_models_analysis" class="hover:text-[#005082] transition-colors duration-300">تحلیل استراتژیک</a></li>
+                    <li><a href="#strategic_diagnosis" class="hover:text-[#005082] transition-colors duration-300">تشخیص بحران</a></li>
+                    <li><a href="#revival_plan" class="hover:text-[#005082] transition-colors duration-300">برنامه تحول</a></li>
+                    <li><a href="#requirements" class="hover:text-[#005082] transition-colors duration-300">نیازمندی‌ها</a></li>
+                    <li><a href="roadmap.html" class="hover:text-[#005082] transition-colors duration-300">نقشه راه</a></li>
+                    <li><a href="dashbord.html" class="hover:text-[#005082] transition-colors duration-300">داشبورد اولیه</a></li>
+                </ul>
             </div>
-            <div class="kpi-card">
-                <h3 class="font-semibold text-slate-500">تعداد رسانه‌ها</h3>
-                <p id="total-publications" class="text-4xl font-bold text-teal-600 mt-2">0</p>
-            </div>
-            <div class="kpi-card">
-                <h3 class="font-semibold text-slate-500">مقالات فارسی</h3>
-                <p id="persian-articles" class="text-4xl font-bold text-teal-600 mt-2">0</p>
-            </div>
-            <div class="kpi-card">
-                <h3 class="font-semibold text-slate-500">مقالات انگلیسی</h3>
-                <p id="english-articles" class="text-4xl font-bold text-teal-600 mt-2">0</p>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 md:p-8">
+        
+        <section id="executive_summary" class="mb-12 pt-16 -mt-16">
+            <h2 class="text-2xl font-bold text-[#005082] border-r-4 border-[#00A1E4] pr-4 mb-6 animate-on-scroll fade-in">خلاصه وضعیت و شاخص‌های کلیدی بحران</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 text-center">
+                <div class="kpi-card border-blue-500 animate-on-scroll fade-in-down" style="transition-delay: 100ms;"><h3 class="text-sm font-semibold text-gray-600">درآمد عملیاتی (۱۴۰۳)</h3><p class="text-3xl font-bold text-blue-600 mt-2">۳۲٬۸۱۳</p><p class="text-xs text-gray-500">میلیارد ریال</p></div>
+                <div class="kpi-card border-orange-500 animate-on-scroll fade-in-up" style="transition-delay: 200ms;"><h3 class="text-sm font-semibold text-gray-600">بهای تمام شده (۱۴۰۳)</h3><p class="text-3xl font-bold text-orange-600 mt-2">۳۱٬۵۰۳</p><p class="text-xs text-gray-500">۹۶٪ درآمد</p></div>
+                <div class="kpi-card border-red-500 animate-on-scroll fade-in-down" style="transition-delay: 300ms;"><h3 class="text-sm font-semibold text-gray-600">سود (زیان) ناخالص (۳ ماهه ۱۴۰۴)</h3><p class="text-3xl font-bold negative-value mt-2">(۲٬۰۸۵)</p><p class="text-xs text-gray-500">مارژین منفی ۳۴٪</p></div>
+                <div class="kpi-card border-red-700 animate-on-scroll fade-in-up" style="transition-delay: 400ms;"><h3 class="text-sm font-semibold text-gray-600">زیان انباشته (۱۴۰۴/۰۳/۳۱)</h3><p class="text-3xl font-bold negative-value mt-2">(۳٬۳۱۸)</p><p class="text-xs text-gray-500">۷۴٪ سرمایه</p></div>
+                <div class="kpi-card border-yellow-500 animate-on-scroll fade-in-down" style="transition-delay: 500ms;"><h3 class="text-sm font-semibold text-gray-600">دوره وصول مطالبات</h3><p class="text-3xl font-bold text-yellow-600 mt-2">~ ۱۲۰</p><p class="text-xs text-gray-500">روز</p></div>
             </div>
         </section>
 
-        <div class="bg-white rounded-xl shadow-md p-6 md:p-8 mb-16">
-            <h2 class="text-2xl font-bold text-center mb-8 text-slate-900">لیست کامل مقالات منتشر شده</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-right text-slate-500">
-                    <thead class="text-xs text-slate-700 uppercase bg-slate-50">
+        <section id="financial_analysis" class="mb-12 bg-white p-6 rounded-lg shadow-lg pt-20 -mt-16">
+            <h2 class="text-2xl font-bold text-[#005082] border-r-4 border-[#00A1E4] pr-4 mb-6">بخش اول: کالبدشکافی مالی - روند فصلی بحران</h2>
+             <p class="text-gray-600 mb-6 text-justify">نمودار زیر روند فصلی درآمد، هزینه و سود ناخالص را از ابتدای سال ۱۴۰۱ تا سه ماهه اول ۱۴۰۴ نمایش می‌دهد. این داده‌ها به وضوح نشانگر وخیم‌تر شدن وضعیت عملیاتی شرکت هستند، به طوری که از ابتدای سال ۱۴۰۳ شرکت به صورت متناوب وارد محدوده زیان ناخالص فصلی شده است که این روند در سال ۱۴۰۴ تشدید یافته است.</p>
+            <div class="chart-container mb-8 animate-on-scroll fade-in-up"><canvas id="financialTrendChart"></canvas></div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-lg shadow-inner border border-gray-200 animate-on-scroll fade-in">
+                    <h3 class="text-xl font-semibold mb-4 text-center">تحلیل وضعیت شمولیت ماده ۱۴۱ قانون تجارت</h3>
+                    <p class="text-sm text-gray-600 mb-4 text-justify">بر اساس ماده ۱۴۱، اگر زیان انباشته شرکتی از نصف سرمایه ثبت‌شده آن فراتر رود، هیئت مدیره موظف به دعوت از مجمع عمومی فوق‌العاده جهت تصمیم‌گیری برای انحلال یا بقای شرکت است. جدول زیر نشان می‌دهد که زیان سنگین ۳ ماهه اول ۱۴۰۴، شرکت را قاطعانه مشمول این ماده کرده است.</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>شاخص (میلیارد ریال)</th>
+                                <th>پایان ۱۴۰۲</th>
+                                <th>پایان ۱۴۰۳</th>
+                                <th class="negative-value">۱۴۰۴/۰۳/۳۱</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>سرمایه ثبت شده</td>
+                                <td>۴,۴۵۶</td>
+                                <td>۴,۴۵۶</td>
+                                <td>۴,۴۵۶</td>
+                            </tr>
+                            <tr>
+                                <td>زیان انباشته</td>
+                                <td class="negative-value">(۸۸۸)</td>
+                                <td class="negative-value">(۸۸۶)</td>
+                                <td class="negative-value">(۳,۳۱۸)</td>
+                            </tr>
+                            <tr class="font-bold bg-gray-50">
+                                <td>نسبت زیان به سرمایه</td>
+                                <td class="positive-value">۱۹.۹٪</td>
+                                <td class="positive-value">۱۹.۹٪</td>
+                                <td class="negative-value">۷۴.۵٪</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-inner border border-gray-200 animate-on-scroll fade-in" style="transition-delay: 200ms;">
+                    <h3 class="text-xl font-semibold mb-4 text-center">خلاصه بدهی‌های مالیاتی و تامین اجتماعی</h3>
+                     <p class="text-sm text-gray-600 mb-4 text-justify">بدهی‌های معوق به نهادهای دولتی یک ریسک نقدینگی و عملیاتی فوری است. مجموع بدهی شناسایی شده (اصل و جرائم) بالغ بر <span class="bold-text negative-value">۸,۱۱۳ میلیارد ریال</span> است که نیازمند مدیریت و مذاکره فوری جهت تقسیط و جلوگیری از اقدامات اجرایی است.</p>
+                     <table>
+                        <thead>
+                            <tr>
+                                <th>عنوان بدهی (میلیارد ریال)</th>
+                                <th>اصل بدهی</th>
+                                <th>جرائم</th>
+                                <th class="negative-value">جمع کل</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                             <tr>
+                                <td>مالیات ارزش افزوده</td>
+                                <td>۱,۷۸۷</td>
+                                <td class="negative-value">۳,۳۲۵</td>
+                                <td class="negative-value">۵,۱۱۲</td>
+                            </tr>
+                             <tr>
+                                <td>مالیات حقوق</td>
+                                <td>۳۴۴</td>
+                                <td class="negative-value">۲۳۹</td>
+                                <td class="negative-value">۵۸۳</td>
+                            </tr>
+                            <tr>
+                                <td>مالیات عملکرد و ماده ۱۶۹</td>
+                                <td>۶۷۷</td>
+                                <td class="negative-value">۸۷۶</td>
+                                <td class="negative-value">۱,۵۵۳</td>
+                            </tr>
+                             <tr>
+                                <td>تامین اجتماعی</td>
+                                <td>۸۵۶</td>
+                                <td class="negative-value">۱۰</td>
+                                <td class="negative-value">۸۶۵</td>
+                            </tr>
+                             <tr class="font-bold bg-gray-50">
+                                <td>جمع کل</td>
+                                <td>۳,۶۶۴</td>
+                                <td class="negative-value">۴,۴۵۰</td>
+                                <td class="negative-value">۸,۱۱۴</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        
+        <section id="historical_analysis" class="mb-12 bg-white p-6 rounded-lg shadow-lg pt-20 -mt-16">
+            <h2 class="text-2xl font-bold text-[#005082] border-r-4 border-[#00A1E4] pr-4 mb-6">بخش دوم: تحلیل روند سودآوری سالانه (۱۴۰۰-۱۴۰۴)</h2>
+            <p class="text-gray-600 mb-4 text-justify">جدول زیر روند سالانه درآمد و سودآوری شرکت را نشان می‌دهد. نکته کلیدی، فرسایش مداوم حاشیه سود ناخالص از ۸.۱٪ در سال ۱۴۰۱ به تنها ۴.۰٪ در سال ۱۴۰۳ است. بودجه سال ۱۴۰۴ با پیش‌بینی حاشیه سود منفی ۷.۶٪، این روند نگران‌کننده را به یک بحران تمام‌عیار تبدیل می‌کند و نشانگر عدم وجود هرگونه برنامه راهبردی برای اصلاح ساختار هزینه و قیمت‌گذاری است.</p>
+            <div class="animate-on-scroll fade-in">
+                <table>
+                    <thead>
                         <tr>
-                            <th scope="col" class="px-6 py-3">ردیف</th>
-                            <th scope="col" class="px-6 py-3 w-2/5">عنوان مقاله</th>
-                            <th scope="col" class="px-6 py-3">رسانه</th>
-                            <th scope="col" class="px-6 py-3">تاریخ</th>
-                            <th scope="col" class="px-6 py-3">حوزه</th>
+                            <th>شرح (میلیارد ریال)</th>
+                            <th>عملکرد ۱۴۰۱</th>
+                            <th>عملکرد ۱۴۰۲</th>
+                            <th>عملکرد ۱۴۰۳</th>
+                            <th class="negative-value">بودجه ۱۴۰۴</th>
                         </tr>
                     </thead>
-                    <tbody id="articles-table-body">
+                    <tbody>
+                        <tr>
+                            <td>درآمد عملیاتی</td>
+                            <td class="positive-value">۲۰,۹۲۷</td>
+                            <td class="positive-value">۲۰,۹۷۲</td>
+                            <td class="positive-value">۳۲,۸۱۳</td>
+                            <td class="positive-value">۳۸,۲۱۲</td>
+                        </tr>
+                        <tr>
+                            <td>بهای تمام شده</td>
+                            <td class="negative-value">(۱۹,۲۳۸)</td>
+                            <td class="negative-value">(۱۹,۵۴۸)</td>
+                            <td class="negative-value">(۳۱,۵۰۳)</td>
+                            <td class="negative-value">(۴۱,۱۰۲)</td>
+                        </tr>
+                        <tr class="font-bold bg-gray-50">
+                            <td>سود (زیان) ناخالص</td>
+                            <td class="positive-value">۱,۶۸۹</td>
+                            <td class="positive-value">۱,۴۲۴</td>
+                            <td class="positive-value">۱,۳۱۰</td>
+                            <td class="negative-value">(۲,۸۹۰)</td>
+                        </tr>
+                        <tr class="font-bold">
+                            <td>حاشیه سود ناخالص</td>
+                            <td class="positive-value">۸.۱٪</td>
+                            <td class="positive-value">۶.۸٪</td>
+                            <td class="positive-value">۴.۰٪</td>
+                            <td class="negative-value">(۷.۶٪)</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
-        </div>
+        </section>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 mb-16">
-            <div class="bg-white rounded-xl shadow-md p-6 md:p-8">
-                <h3 class="text-lg font-semibold text-center mb-4">فراوانی انتشار در رسانه‌ها</h3>
-                <div class="chart-container-small">
-                    <canvas id="publicationsChart"></canvas>
+        <section id="cogs_hr_analysis" class="mb-12 pt-20 -mt-16">
+             <h2 class="text-2xl font-bold text-[#005082] border-r-4 border-[#00A1E4] pr-4 mb-6">بخش سوم: تحلیل ریشه‌های بحران عملیاتی</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                 <div class="bg-white p-6 rounded-lg shadow-md animate-on-scroll fade-in">
+                    <h3 class="text-xl font-semibold mb-4 text-center">کالبدشکافی بهای تمام شده (عملکرد ۱۴۰۳)</h3>
+                    <div class="small-chart-container"><canvas id="cogsChart"></canvas></div>
+                    <p class="mt-4 text-sm text-gray-600 text-justify"><span class="bold-text">ریشه بحران:</span> <span class="bold-text">مواد مستقیم مصرفی با سهم ۶۶٪</span>، قلب هزینه‌های شرکت است. استراتژی فاجعه‌بار بودجه ۱۴۰۴ (افزایش ۲۰٪ هزینه مواد اولیه در کنار عدم تغییر نرخ فروش) عامل اصلی سقوط شرکت به محدوده زیان ناخالص است.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md animate-on-scroll fade-in" style="transition-delay: 200ms;">
+                    <h3 class="text-xl font-semibold mb-4 text-center">تحلیل هزینه‌های نیروی انسانی (عملکرد ۱۴۰۳)</h3>
+                     <div class="small-chart-container"><canvas id="hrCostsChart"></canvas></div>
+                     <p class="mt-4 text-sm text-gray-600 text-justify"><span class="bold-text">بهره‌وری پایین:</span> رشد ۶۳٪ هزینه‌های شاغلین در سال ۱۴۰۳ (با ۱۱۳۳ پرسنل شامل ۷۲۲ نفر صف و ۴۱۸ نفر ستاد) درحالی که تولید تنها ۹٪ رشد داشت، بیانگر افت شدید بهره‌وری است. نسبت بالای نیروی ستادی به کل (حدود ۳۷٪)، احتمال وجود <span class="bold-text">نیروی انسانی مازاد</span> و ساختار سازمانی ناکارآمد را تقویت می‌کند.</p>
                 </div>
             </div>
-            <div class="bg-white rounded-xl shadow-md p-6 md:p-8">
-                <h3 class="text-lg font-semibold text-center mb-4">تحلیل موضوعات کلیدی مقالات</h3>
-                <div class="chart-container-small">
-                    <canvas id="thematicAnalysisChart"></canvas>
+        </section>
+
+        <section id="strategic_models_analysis" class="mb-12 pt-20 -mt-16">
+            <h2 class="text-2xl font-bold text-[#005082] border-r-4 border-[#00A1E4] pr-4 mb-6">بخش چهارم: تحلیل استراتژیک (SWOT و چرخه عمر)</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                 <div class="bg-white p-6 rounded-lg shadow-md animate-on-scroll fade-in">
+                    <h3 class="text-xl font-semibold mb-4 text-center">موقعیت شرکت در چرخه عمر سازمانی (Adizes)</h3>
+                    <div class="relative w-full h-80">
+                        <canvas id="olcChart"></canvas>
+                    </div>
+                     <div class="mt-4 text-sm text-gray-600 text-justify">
+                        <h5 class="font-bold text-red-700">تشخیص وضعیت: ورود به فاز افول و بوروکراسی</h5>
+                        <ul class="list-disc list-inside mt-2 space-y-2 pr-4">
+                            <li>کاهش شدید سودآوری و ورود به زیان‌دهی عملیاتی.</li>
+                            <li>تمرکز بر رویه‌های داخلی به جای پاسخ به نیازهای بازار.</li>
+                            <li>ساختار سازمانی سنگین با نیروی ستادی مازاد.</li>
+                            <li>مقاومت در برابر تغییر و عدم نوآوری در محصول و فرآیند.</li>
+                            <li>کندی در تصمیم‌گیری‌ها و افزایش پیچیدگی‌های اداری.</li>
+                        </ul>
+                     </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md animate-on-scroll fade-in" style="transition-delay: 200ms;">
+                     <h3 class="text-xl font-semibold mb-4 text-center">تحلیل استراتژیک SWOT</h3>
+                     <div class="swot-container text-sm">
+                         <div class="swot-card swot-strengths"><h4>نقاط قوت</h4><ul><li>تامین‌کننده اصلی گروه سایپا</li><li>زیرساخت تولیدی موجود</li><li>برند شناخته‌شده در صنعت</li></ul></div>
+                         <div class="swot-card swot-weaknesses"><h4>نقاط ضعف</h4><ul><li>وابستگی حیاتی به سایپا</li><li>فرسودگی خطوط تولید</li><li>ضعف در طراحی و R&D</li><li>ساختار هزینه ناکارآمد</li><li>بوروکراسی و نیروی مازاد</li></ul></div>
+                         <div class="swot-card opportunities"><h4>فرصت‌ها</h4><ul><li>بازار بزرگ قطعات یدکی</li><li>قرارداد با خودروسازان دیگر</li><li>مهندسی ارزش برای کاهش هزینه</li><li>پتانسیل صادرات منطقه‌ای</li></ul></div>
+                         <div class="swot-card threats"><h4>تهدیدها</h4><ul><li>رکود در شرکت مادر (سایپا)</li><li>تورم شدید نهاده‌های تولید</li><li>قیمت‌گذاری دستوری</li><li>رقبای جدید و چابک</li></ul></div>
+                     </div>
                 </div>
             </div>
-            <div class="bg-white rounded-xl shadow-md p-6 md:p-8">
-                <h3 class="text-lg font-semibold text-center mb-4">تعداد مقالات در هر ماه</h3>
-                <div class="chart-container-small">
-                    <canvas id="monthlyProductionChart"></canvas>
+        </section>
+
+        <section id="strategic_diagnosis" class="mb-12 bg-white p-6 rounded-lg shadow-lg pt-20 -mt-16">
+            <h2 class="text-2xl font-bold text-[#005082] border-r-4 border-[#00A1E4] pr-4 mb-6">بخش پنجم: تشخیص استراتژیک و ریشه‌های بحران</h2>
+            <p class="text-gray-700 text-justify mb-8">بحران فعلی شرکت سایپا آذین، نتیجه انباشت مشکلات ساختاری در سه حوزه کلیدی است. این مشکلات به صورت زنجیروار یکدیگر را تشدید کرده و شرکت را در یک "مارپیچ مرگ" قرار داده‌اند که بدون مداخله قاطع، منجر به توقف کامل فعالیت خواهد شد. ریشه‌های بحران به شرح زیر است:</p>
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-xl font-semibold text-red-700 mb-3">۱. فروپاشی ساختار مالی</h3>
+                    <ul class="text-sm space-y-2 pr-5">
+                        <li class="plan-item"><span class="font-bold">سقوط به محدوده زیان ناخالص:</span> استراتژی بودجه‌ای مبنی بر پذیرش افزایش ۲۰٪ هزینه مواد اولیه در کنار عدم تغییر نرخ فروش، سود ناخالص شرکت را از بین برده و عملیات اصلی آن را زیان‌ده کرده است.</li>
+                        <li class="plan-item"><span class="font-bold">مشمولیت قطعی ماده ۱۴۱ قانون تجارت:</span> زیان انباشته به بیش از ۷۴٪ سرمایه ثبت‌شده رسیده است که بقای شرکت را از نظر قانونی با تهدید جدی مواجه می‌کند.</li>
+                        <li class="plan-item"><span class="font-bold">بدهی‌های کمرشکن دولتی:</span> انباشت بیش از ۸ هزار میلیارد ریال بدهی مالیاتی و بیمه، شرکت را در معرض ریسک توقیف اموال و حساب‌های بانکی قرار داده و توان هرگونه مانور مالی را از آن سلب کرده است.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-orange-700 mb-3">۲. ناکارآمدی شدید عملیاتی</h3>
+                    <ul class="text-sm space-y-2 pr-5">
+                        <li class="plan-item"><span class="font-bold">بهره‌وری پایین نیروی انسانی:</span> با وجود کاهش تولید، هزینه‌های پرسنلی به دلیل ساختار سازمانی متورم و نسبت بالای نیروی ستادی به صف (۲۱٪)، همچنان بالاست که نشان‌دهنده ناکارآمدی و نیروی مازاد است.</li>
+                        <li class="plan-item"><span class="font-bold">وابستگی مرگبار به یک مشتری:</span> تمرکز بیش از ۹۵٪ فروش به گروه سایپا، شرکت را به یک خط تولید صرف برای شرکت مادر تبدیل کرده و هرگونه قدرت چانه‌زنی برای تعدیل نرخ را از بین برده است.</li>
+                        <li class="plan-item"><span class="font-bold">فرسودگی تکنولوژی و خطوط تولید:</span> عدم سرمایه‌گذاری در نوسازی و تحقیق و توسعه، توان رقابت‌پذیری شرکت در کیفیت و قیمت تمام‌شده را به شدت کاهش داده است.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-yellow-700 mb-3">۳. بن‌بست استراتژیک و بوروکراسی</h3>
+                    <ul class="text-sm space-y-2 pr-5">
+                        <li class="plan-item"><span class="font-bold">ورود به مرحله افول سازمانی:</span> شرکت مرحله بلوغ را رد کرده و در فاز "بوروکراسی و افول" قرار دارد. مقاومت در برابر تغییر، تمرکز بر رویه‌های داخلی به جای نتایج بازار، و عدم نوآوری از مشخصه‌های اصلی این مرحله است.</li>
+                        <li class="plan-item"><span class="font-bold">فقدان استراتژی بقا:</span> بودجه سال ۱۴۰۴ که زیان خالص سنگینی را پیش‌بینی می‌کند، یک برنامه استراتژیک برای خروج از بحران نیست، بلکه صرفاً سندی برای تایید وضعیت موجود و پذیرش شکست است.</li>
+                    </ul>
                 </div>
             </div>
-            <div class="bg-white rounded-xl shadow-md p-6 md:p-8">
-                <h3 class="text-lg font-semibold text-center mb-4">تفکیک حوزه‌های موضوعی</h3>
-                 <div class="chart-container-small flex items-center justify-center">
-                    <canvas id="categorySplitChart"></canvas>
+        </section>
+
+        <section id="revival_plan" class="mb-12 pt-20 -mt-16">
+            <h2 class="text-2xl font-bold text-[#005082] border-r-4 border-[#00A1E4] pr-4 mb-6">بخش ششم: برنامه عملیاتی تحول</h2>
+             <div id="budget_analysis" class="mb-8 bg-yellow-50 border-r-4 border-yellow-500 p-6 rounded-lg shadow-md animate-on-scroll fade-in">
+                <h3 class="text-xl font-bold text-yellow-800 mb-3">تحلیل بودجه ۱۴۰۴: سندی برای تأیید بحران، نه یک برنامه راهبردی</h3>
+                <p class="text-gray-700 text-justify">بودجه ارائه شده برای سال ۱۴۰۴، با پیش‌بینی زیان خالص هولناک <span class="bold-text negative-value">۴٬۸۶۹ میلیارد ریالی</span>، یک سند هشداردهنده است. این بودجه بر دو فرض متناقض و ویرانگر بنا شده است: <span class="bold-text">افزایش ۲۰٪ در نرخ مواد اولیه</span> همزمان با <span class="bold-text">ثبات کامل نرخ فروش محصولات</span>. این رویکرد، پذیرش شکست و برنامه‌ریزی برای زیان است. چنین بودجه‌ای فاقد هرگونه منطق استراتژیک برای بهبود بوده و صرفاً یک برون‌یابی از وضعیت فاجعه‌بار فعلی است. لذا، اولین اقدام هیئت مدیره جدید باید کنار گذاشتن این بودجه و تدوین یک برنامه تحول واقعی باشد.</p>
+            </div>
+            <div class="space-y-8">
+                 <div class="plan-phase border-blue-500 p-6">
+                     <h3 class="text-blue-800">فاز اول: مدیریت بحران و تثبیت (۳ ماهه سوم ۱۴۰۴)</h3>
+                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+                        <div>
+                            <h4 class="font-semibold text-lg text-blue-700 mb-2">اقدامات کلیدی</h4>
+                            <div class="space-y-4">
+                                <div class="plan-item animate-on-scroll slide-in-right">
+                                    <span class="font-bold">اصلاح فوری ساختار مالی:</span>
+                                    <p class="text-sm text-gray-600 pr-2">شامل تجدید ارزیابی دارایی‌ها برای خروج از شمولیت ماده ۱۴۱ و مذاکره فوری با سازمان امور مالیاتی و تامین اجتماعی جهت استمهال و تقسیط بدهی‌ها.</p>
+                                </div>
+                                <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 100ms;">
+                                    <span class="font-bold">کنترل نقدینگی و انجماد هزینه‌ها:</span>
+                                    <p class="text-sm text-gray-600 pr-2">توقف کامل تمام هزینه‌های غیرضروری، پروژه‌های توسعه‌ای غیراستراتژیک و بازنگری تمام قراردادهای خدماتی برای کاهش فوری خروج وجه نقد.</p>
+                                </div>
+                                 <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 200ms;">
+                                    <span class="font-bold">اصلاح ساختار سازمانی و ممیزی نیروی انسانی:</span>
+                                    <p class="text-sm text-gray-600 pr-2">ارزیابی دقیق ساختار فعلی با هدف کاهش لایه‌های مدیریتی، حذف پست‌های موازی و شناسایی نیروی مازاد در بخش ستادی.</p>
+                                </div>
+                                <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 300ms;">
+                                    <span class="font-bold">مطالعه بازار برون‌گروهی:</span>
+                                    <p class="text-sm text-gray-600 pr-2">تدوین طرح ورود به بازار یدکی (Aftermarket) و شناسایی فرصت‌های همکاری با سایر خودروسازان به منظور کاهش وابستگی استراتژیک.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-md results-card animate-on-scroll fade-in">
+                             <h4 class="font-semibold text-lg text-blue-800">انتظارات و نتایج کلیدی</h4>
+                             <ul class="text-sm space-y-2 mt-2 list-disc list-inside">
+                                <li>خروج از شمولیت ماده ۱۴۱ قانون تجارت.</li>
+                                <li>کاهش نرخ خروج نقدینگی به میزان حداقل ۳۰٪.</li>
+                                <li>توقف رشد زیان انباشته.</li>
+                            </ul>
+                        </div>
+                    </div>
+                 </div>
+
+                 <div class="plan-phase border-green-500 p-6">
+                     <h3 class="text-green-800">فاز دوم: بهینه‌سازی و ایجاد جریان‌های درآمدی جدید (۳ ماهه چهارم ۱۴۰۴)</h3>
+                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+                        <div>
+                             <h4 class="font-semibold text-lg text-green-700 mb-2">اقدامات کلیدی</h4>
+                            <div class="space-y-4">
+                                <div class="plan-item animate-on-scroll slide-in-right">
+                                    <span class="font-bold">اجرای پروژه‌های مهندسی ارزش:</span>
+                                    <p class="text-sm text-gray-600 pr-2">تشکیل تیم‌های مهندسی ارزش با هدف کاهش حداقل ۵ درصدی بهای تمام شده محصولات کلیدی از طریق جایگزینی مواد، اصلاح طراحی و بهینه‌سازی فرآیند تولید.</p>
+                                </div>
+                                <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 100ms;">
+                                    <span class="font-bold">ورود به بازار قطعات یدکی (Aftermarket):</span>
+                                    <p class="text-sm text-gray-600 pr-2">راه‌اندازی واحد بازاریابی و فروش مستقل برای عرضه مستقیم محصولات در بازار قطعات یدکی که دارای حاشیه سود بالاتری است.</p>
+                                </div>
+                                 <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 200ms;">
+                                    <span class="font-bold">مذاکره با سایر خودروسازان:</span>
+                                    <p class="text-sm text-gray-600 pr-2">آغاز مذاکرات جدی و ارائه پیشنهاد فنی و مالی به حداقل یک خودروساز بزرگ دیگر (مانند ایران خودرو یا کرمان موتور) برای تنوع‌بخشی به سبد مشتریان.</p>
+                                </div>
+                                 <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 300ms;">
+                                    <span class="font-bold">پیاده‌سازی تولید ناب (Lean):</span>
+                                    <p class="text-sm text-gray-600 pr-2">اجرای پروژه‌های اولیه تولید ناب برای شناسایی و حذف اتلاف در فرآیندهای اصلی تولید و کاهش ضایعات مواد اولیه.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-md results-card animate-on-scroll fade-in">
+                             <h4 class="font-semibold text-lg text-green-800">انتظارات و نتایج کلیدی</h4>
+                             <ul class="text-sm space-y-2 mt-2 list-disc list-inside">
+                                <li>کاهش ۵ درصدی بهای تمام شده محصولات کلیدی.</li>
+                                <li>ایجاد ۱۰٪ درآمد از منابع غیر سایپایی.</li>
+                                <li>مثبت شدن سرمایه در گردش.</li>
+                            </ul>
+                        </div>
+                    </div>
+                 </div>
+
+                 <div class="plan-phase border-purple-500 p-6">
+                     <h3 class="text-purple-800">فاز سوم: رشد پایدار و موقعیت‌یابی مجدد (برنامه سال ۱۴۰۵)</h3>
+                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+                        <div>
+                             <h4 class="font-semibold text-lg text-purple-700 mb-2">اقدامات کلیدی</h4>
+                            <div class="space-y-4">
+                                <div class="plan-item animate-on-scroll slide-in-right">
+                                    <span class="font-bold">سرمایه‌گذاری هوشمند در نوسازی:</span>
+                                    <p class="text-sm text-gray-600 pr-2">شناسایی گلوگاه‌های اصلی خطوط تولید و سرمایه‌گذاری هدفمند برای نوسازی ماشین‌آلات کلیدی به منظور افزایش بهره‌وری و کاهش ضایعات.</p>
+                                </div>
+                                <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 100ms;">
+                                    <span class="font-bold">توسعه سبد محصولات با ارزش افزوده بالا:</span>
+                                    <p class="text-sm text-gray-600 pr-2">تمرکز واحد تحقیق و توسعه بر روی طراحی و تولید محصولات جدید مانند صندلی‌های برقی، مموری‌دار و مجهز به سیستم‌های ایمنی پیشرفته.</p>
+                                </div>
+                                 <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 200ms;">
+                                    <span class="font-bold">توسعه بازارهای صادراتی:</span>
+                                    <p class="text-sm text-gray-600 pr-2">پس از تثبیت وضعیت داخلی، بازارهای منطقه‌ای (مانند عراق، سوریه و CIS) برای صادرات محصولات با کیفیت و قیمت رقابتی مورد بررسی قرار گیرند.</p>
+                                </div>
+                                 <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 300ms;">
+                                    <span class="font-bold">ایجاد واحد کسب‌وکار مستقل:</span>
+                                    <p class="text-sm text-gray-600 pr-2">تبدیل شرکت از یک خط تولید وابسته به یک واحد کسب‌وکار سودآور و مستقل با استراتژی بازار، محصول و برند مشخص.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-purple-50 p-4 rounded-md results-card animate-on-scroll fade-in">
+                             <h4 class="font-semibold text-lg text-purple-800">انتظارات و نتایج کلیدی</h4>
+                             <ul class="text-sm space-y-2 mt-2 list-disc list-inside">
+                                <li>دستیابی به سودآوری عملیاتی پایدار.</li>
+                                <li>کاهش وابستگی به گروه سایپا به کمتر از ۸۰٪.</li>
+                                <li>تبدیل شدن به یک واحد کسب‌وکار مستقل و سودآور.</li>
+                            </ul>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+        </section>
+
+        <section id="requirements" class="mb-12 pt-20 -mt-16">
+            <h2 class="text-2xl font-bold text-[#005082] border-r-4 border-[#00A1E4] pr-4 mb-6">بخش هفتم: نیازمندی‌های اولیه برای اجرای برنامه تحول</h2>
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                 <p class="text-gray-700 text-justify mb-6">اجرای موفقیت‌آمیز این برنامه تحول جامع، مستلزم فراهم آمدن پیش‌نیازهای ساختاری و حمایتی از سوی مدیریت ارشد گروه سایپا است. این الزامات، ستون‌های اصلی پشتیبانی از تیم مدیریتی جدید برای عبور از بحران و حرکت به سمت سودآوری پایدار خواهند بود:</p>
+                <div class="space-y-4">
+                    <div class="plan-item animate-on-scroll slide-in-right">
+                        <span class="font-bold">۱. تغییر ساختار هیئت مدیره:</span>
+                        <p class="text-sm text-gray-600 pr-2">برای کمک رسانی و هماهنگی بیشتر با مدیر عامل و اجرای برنامه ها، پیشنهاد می‌شود یک نفر به عنوان عضو موظف به ترکیب هیئت مدیره اضافه شود. بقیه اعضا توسط مدیریت سایپا انتخاب گردند تا همسویی استراتژیک تضمین شود.</p>
+                    </div>
+                    <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 100ms;">
+                        <span class="font-bold">۲. اختیار تغییر مدیریت‌ها:</span>
+                        <p class="text-sm text-gray-600 pr-2">پس از استقرار هیئت مدیره جدید، باید اختیار کامل برای ارزیابی و در صورت لزوم، تغییر در سطوح مدیریتی به منظور پویا شدن سازمان و افزایش بهره‌وری، تفویض گردد.</p>
+                    </div>
+                    <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 200ms;">
+                        <span class="font-bold">۳. تشکیل مجمع فوق العاده:</span>
+                        <p class="text-sm text-gray-600 pr-2">پس از بررسی دقیق مشکلات مالی، لازم است مجمع عمومی فوق‌العاده جهت تصمیم‌گیری در خصوص افزایش سرمایه (از محل تجدید ارزیابی یا آورده نقدی) در اسرع وقت تشکیل شود.</p>
+                    </div>
+                    <div class="plan-item animate-on-scroll slide-in-right" style="transition-delay: 300ms;">
+                        <span class="font-bold">۴. کمک به نقدینگی برای عبور از بحران:</span>
+                        <p class="text-sm text-gray-600 pr-2">شرکت برای عبور از بحران فعلی، نیازمند حمایت فوری نقدینگی از سوی گروه سایپا، در قالب تسریع در پرداخت مطالبات یا ارائه خط اعتباری، می‌باشد.</p>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-md p-6 md:p-8 mb-16">
-            <h2 class="text-2xl font-bold text-center mb-8 text-slate-900">خط زمانی انتشار مقالات</h2>
-            <div id="timeline-container" class="relative max-w-3xl mx-auto">
-            </div>
-        </div>
-        
-    </div>
-    
-    <footer class="text-center mt-8 py-6 border-t border-slate-200">
-        <p class="text-slate-500">تهیه شده توسط امیررضا اعطاسی</p>
+        </section>
+
+    </main>
+    <footer class="bg-[#333333] text-white text-center p-4 mt-8">
+        <p>گزارش و برنامه اولیه تهیه شده از صورت های مالی و بودجه مصوب 1404</p>
     </footer>
 
     <script>
-        const articlesData = [
-            { id: 1, title: 'قیمت نفت در دستان ایران', publication: 'دنیای اقتصاد', date: '1404/04/04', language: 'فارسی', link: 'https://donya-e-eqtesad.com/fa/tiny/news-4190944' },
-            { id: 2, title: 'مهندسی توفان نفتی خاورمیانه', publication: 'دنیای اقتصاد', date: '1404/04/08', language: 'فارسی', link: 'https://donya-e-eqtesad.com/fa/tiny/news-4191872' },
-            { id: 3, title: 'طلای جهانی در بزنگاه بحران خاورمیانه', publication: 'روزنامه شرق', date: '1404/04/11', language: 'فارسی', link: 'https://www.sharghdaily.com/fa/tiny/news-1026385' },
-            { id: 4, title: 'ویروس اقتصاد ایران', publication: 'دنیای اقتصاد', date: '1404/04/28', language: 'فارسی', link: 'https://donya-e-eqtesad.com/fa/tiny/news-4197077' },
-            { id: 5, title: 'Global Gold at the Crossroads of Crisis', publication: 'Tehran Times', date: '2025/07/12', language: 'انگلیسی', link: 'https://www.tehrantimes.com/news/515477/Global-Gold-at-the-Crossroads-of-Crisis' },
-            { id: 6, title: 'Global Gold at the Crossroads of Crisis', publication: 'Pakistan Today', date: '2025/07/14', language: 'انگلیسی', link: 'https://www.pakistantoday.com.pk/2025/07/14/global-gold-at-the-crossroads-of-crisis/' },
-            { id: 7, title: 'Iran’s Inflation: Rooted in Institutional Failure', publication: 'Asia Sentinel', date: '2025/07/15', language: 'انگلیسی', link: 'http://asiasentinel.com/iran-inflation-institutional-failure' },
-            { id: 8, title: 'Iran’s Nuclear Inflation: Structural Determinants…', publication: 'Pakistan Today', date: '2025/07/18', language: 'انگلیسی', link: 'https://www.pakistantoday.com.pk/2025/07/18/irans-nuclear-inflation/' },
-            { id: 9, title: 'Costly Afghan immigration tests Iran’s neighborly hospitality', publication: 'Asia Times', date: '2025/07/24', language: 'انگلیسی', link: 'https://asiatimes.com/2025/07/costly-afghan-immigration-tests-irans-neighborly-hospitality/', category: 'اقتصادی / اجتماعی' },
-            { id: 10, title: 'ایران، میزبانِ پرهزینه', publication: 'روزنامه شرق', date: '1404/05/07', language: 'فارسی', link: 'https://www.sharghdaily.com/fa/tiny/news-1035212', category: 'اقتصادی / اجتماعی' },
-            { id: 11, title: 'بازگشت بزرگ افغان‌ها؛ زلزله جمعیتی و اثرات آن', publication: 'سپهر ایرانیان', date: '1404/05/15', language: 'فارسی', status: 'چاپ شده', category: 'اقتصادی / اجتماعی' },
-            { id: 12, title: 'اقتصاد آمریکا زیر تیغ ترامپ', publication: 'روزنامه شرق', date: '1404/05/20', language: 'فارسی', link: 'https://www.sharghdaily.com/fa/tiny/news-1039609', category: 'سیاسی/بین‌الملل' },
-            { id: 13, title: 'Afghanistan’s Reverse Exodus', publication: 'Asia Sentinel', date: '2025/08/11', language: 'انگلیسی', link: 'https://www.asiasentinel.com/p/afghanistan-reverse-exodus-tragedy', category: 'اقتصادی / اجتماعی' },
-            { id: 14, title: 'The Paradox of Iran’s Economic Survival', publication: 'Asia Sentinel', date: '2025/08/15', language: 'انگلیسی', link: 'https://www.asiasentinel.com/p/paradox-iran-economic-survival' },
-            { id: 15, title: 'بازار سهام در انتظار محرک قوی', publication: 'مدار اقتصادی', date: '1404/05/26', language: 'فارسی', link: 'https://www.ecc.news/fa/news/230732/bazar-sham-dr-antzar-mhrk-qwy-4-aml-jdhabyt-bazar-srmayh' },
-            { id: 16, title: '«مکانیسم ماشه» ابزاری برای ایجاد نااطمینانی در اقتصاد ایران', publication: 'مهر', date: '1404/05/27', language: 'فارسی', link: 'https://www.mehrnews.com/x38NFC' },
-            { id: 17, title: 'ذخایر طلای بانک مرکزی عامل مقاومت در برابر موج‌های هیجانی', publication: 'ایبِنا', date: '1404/05/27', language: 'فارسی', link: 'https://www.ibena.ir/000k2E' },
-            { id: 18, title: 'تاریکیِ تابستان، سوزِ زمستان', publication: 'اعتماد', date: '1404/05/27', language: 'فارسی', link: 'https://www.etemadnewspaper.ir/fa/main/detail/237041', category: 'اقتصادی' },
-            { id: 19, title: 'Why Iran can’t keep the lights on', publication: 'Asia Times', date: '2025/08/19', language: 'انگلیسی', link: 'https://asiatimes.com/2025/08/why-iran-cant-keep-the-lights-on/', category: 'اقتصادی' },
-            { id: 20, title: 'The Quiet Crisis of Return', publication: 'Asia Sentinel', date: '2025/08/20', language: 'انگلیسی', link: 'https://www.asiasentinel.com/p/quiet-crisis-return', category: 'اجتماعی' },
-            { id: 21, title: 'زنان افغان و بازگشت معکوس', publication: 'روزنامه شرق', date: '1404/05/30', language: 'فارسی', link: 'https://www.sharghdaily.com/fa/tiny/news-1043222' },
-            { id: 22, title: 'Trump Doctrine 2.0: A Half-Year Economic Autopsy', publication: 'Asia Times', date: '2025/08/25', language: 'انگلیسی', link: 'https://asiatimes.com/2025/08/trump-doctrine-2-0-a-half-year-economic-autopsy/', category: 'سیاسی/بین‌الملل' },
-            { id: 23, title: 'پیامدهای اقتصادی قطع صادرات برای چین', publication: 'دنیای اقتصاد', date: '1404/06/04', language: 'فارسی', link: 'https://donya-e-eqtesad.com/fa/tiny/news-4207526' },
-            { id: 24, title: 'Asia’s energy future: Green revolution or carbon catastrophe?', publication: 'Asia Times', date: '2025/08/26', language: 'انگلیسی', link: 'https://asiatimes.com/2025/08/asias-energy-future-green-revolution-or-carbon-catastrophe/' },
-            { id: 25, title: 'Rising risk to China’s covert Iran oil lifeline', publication: 'Asia Times', date: '2025/08/28', language: 'انگلیسی', link: 'https://asiatimes.com/2025/08/rising-risk-to-chinas-covert-iran-oil-lifeline/' },
-            { id: 26, title: 'تصميمات ناكارآمد، زمين تشنه', publication: 'اعتماد', date: '1404/06/12', language: 'فارسی', link: 'https://www.etemaad.ir/fa/main/detail/237637/%D8%AA%D8%B5%D9%85%DB%8C%D9%85%D8%A7%D8%AA-%D9%86%D8%A7%D9%83%D8%A7%D8%B1%D8%A2%D9%85%D8%AF-%D8%B2%D9%85%DB%8C%D9%86-%D8%AA%D8%B4%D9%86%D9%87-', category: 'اقتصادی' },
-            { id: 27, title: 'تحلیل ریسک در نقطه عطف', publication: 'روزنامه شرق', date: '1404/06/13', language: 'فارسی', link: 'https://www.sharghdaily.com/fa/tiny/news-1047285', category: 'اقتصادی'},
-            { id: 28, title: 'Iran’s SCO entry turning into a road to nowhere', publication: 'Asia Times', date: '2025/09/04', language: 'انگلیسی', link: 'https://asiatimes.com/2025/09/irans-sco-entry-turning-into-a-road-to-nowhere/'},
-            { id: 29, title: 'Iran’s Snapback: A Systemic Shockwave', publication: 'Asia Sentinel', date: '2025/09/03', language: 'انگلیسی', link: 'https://www.asiasentinel.com/p/iran-snapback-systemic-shockwave'},
-            { id: 30, title: 'سفره کوچک جامعه مقاوم', publication: 'اعتماد', date: '1404/06/17', language: 'فارسی', link: 'https://www.etemadnewspaper.ir/fa/main/detail/237853/%D8%B3%D9%81%D8%B1%D9%87-%DA%A9%D9%88%DA%86%DA%A9-%D8%AC%D8%A7%D9%85%D8%B9%D9%87-%D9%85%D9%82%D8%A7%D9%88%D9%85', category: 'اقتصادی / اجتماعی'},
-            { id: 31, title: 'ارزیابی نهایی اقتصاد ایران در شانگهای', publication: 'روزنامه شرق', date: '1404/06/17', language: 'فارسی', link: 'https://www.sharghdaily.com/fa/tiny/news-1048394'},
-            { id: 32, title: 'اثرات مهاجرت معکوس افغان‌ها بر پروژه‌های عمرانی ایران', publication: 'پیام آبادگران', date: '1404/06/15', language: 'فارسی', link: 'http://payamabadgaran.ir/%D9%85%D8%A7%D9%87%D9%86%D8%A7%D9%85%D9%87-%D9%BE%DB%8C%D8%A7%D9%85-%D8%A2%D8%A8%D8%A7%D8%AF%DA%AF%D8%B1%D8%A7%D9%86-%D8%B4%D9%85%D8%A7%D8%B1%D9%87-425/', category: 'اقتصادی / اجتماعی' },
-            { id: 33, title: 'تحلیل استراتژیک سرمایه گذاری در ایران پس از مکانیسم ماشه', publication: 'سپهر ایرانیان', date: '1404/06/23', language: 'فارسی', link: '#', category: 'اقتصادی' },
-            { id: 34, title: 'شاخص دلار بر لبه پرتگاه', publication: 'اکو اقتصاد', date: '1404/06/23', language: 'فارسی', link: 'https://ecoeghtesad.ir/News?id=129386', category: 'سیاسی/بین‌الملل' },
-            { id: 35, title: 'وحشت از رکود در آمریکا؛ چرا حرکت بعدی فدرال رزرو یک قمار پرریسک برای سرمایه‌گذاران جهانی است؟', publication: 'اقتصاد آنلاین', date: '1404/06/23', language: 'فارسی', link: 'https://www.eghtesadonline.com/008kgZ', category: 'سیاسی/بین‌الملل' },
-            { id: 36, title: 'نفرين نفت ايران', publication: 'اعتماد', date: '1404/06/24', language: 'فارسی', link: 'https://www.etemadnewspaper.ir/fa/main/detail/238026/%D9%86%DB%8C%D9%85-%D9%82%D8%B1%D9%86-%D9%85%D8%A8%D8%A7%D8%B1%D8%B2%D9%87-%D8%A8%D8%B1%D8%A7%DB%8C-%D8%AD%D8%A7%D9%83%D9%85%DB%8C%D8%AA-%D8%A7%D9%82%D8%AA%D8%B5%D8%A7%D8%AF%DB%8C', category: 'اقتصادی' },
-            { id: 37, title: 'King Dollar at the precipice: Why currency’s reign is in jeopardy', publication: 'Asia Times', date: '2025/09/16', language: 'انگلیسی', link: 'https://asiatimes.com/2025/09/king-dollar-at-the-precipice-why-currencys-reign-is-in-jeopardy/', category: 'سیاسی/بین‌الملل' }
-        ];
+        document.addEventListener('DOMContentLoaded', function () {
+            Chart.defaults.font.family = 'Vazirmatn';
 
-        const categoryKeywords = {
-            'اقتصادی': /اقتصاد|نفت|طلا|تورم|سهام|پولی|صادرات|بازار|سرمایه|ارزی|دلار|Economic|Inflation|Gold|oil|energy/i,
-            'سیاسی/بین‌الملل': /شانگهای|ابرقدرت‌|ترامپ|خاورمیانه|هسته‌ای|چین|آمریکا|رکود|فدرال رزرو|SCO|Doctrine|political|روابط|Snapback|ماشه|currency/i,
-            'اجتماعی': /افغان|مهاجرت|زنان|معیشت|جامعه|immigration|Afghan|Society|جمعیت/i
-        };
-
-        function getArticleCategory(title) {
-            // Check for multi-category first
-            const isEconomic = categoryKeywords['اقتصادی'].test(title);
-            const isSocial = categoryKeywords['اجتماعی'].test(title);
-            if (isEconomic && isSocial) return 'اقتصادی / اجتماعی';
-
-            for (const category in categoryKeywords) {
-                if (categoryKeywords[category].test(title)) {
-                    return category;
-                }
-            }
-            return 'سایر';
-        }
-
-        function jalaliToGregorian(jalaliDateStr) {
-            const [j_y, j_m, j_d] = jalaliDateStr.split('/').map(Number);
-            const j_days_in_month = [0, 31, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 29];
-            
-            let days = j_d;
-            for (let i = 1; i < j_m; i++) {
-                days += j_days_in_month[i];
-            }
-            
-            const g_start_date = new Date('2025-03-21T00:00:00Z');
-            g_start_date.setDate(g_start_date.getDate() + days - 1);
-            
-            return g_start_date;
-        }
-
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const kpiCards = document.querySelectorAll('#kpis .kpi-card');
-            kpiCards.forEach((card, index) => {
-                setTimeout(() => {
-                    card.classList.add('visible');
-                }, 150 * (index + 1));
-            });
-            
-            Chart.defaults.font.family = "'Vazirmatn', sans-serif";
-            Chart.defaults.font.weight = '500';
-
-            articlesData.forEach(article => {
-                const dateStr = article.date;
-                if (dateStr.startsWith('1404')) {
-                    article.sortableDate = jalaliToGregorian(dateStr);
-                } else {
-                    article.sortableDate = new Date(dateStr.replace(/\//g, '-'));
-                }
-                 // Assign category if not manually overridden
-                if (!article.category) {
-                    article.category = getArticleCategory(article.title);
-                }
-            });
-            articlesData.sort((a, b) => b.sortableDate - a.sortableDate);
-
-            document.getElementById('total-articles').textContent = articlesData.length;
-            const publications = [...new Set(articlesData.map(a => a.publication))];
-            document.getElementById('total-publications').textContent = publications.length;
-            const persianCount = articlesData.filter(a => a.language === 'فارسی').length;
-            const englishCount = articlesData.filter(a => a.language === 'انگلیسی').length;
-            document.getElementById('persian-articles').textContent = persianCount;
-            document.getElementById('english-articles').textContent = englishCount;
-
-            const tableBody = document.getElementById('articles-table-body');
-            tableBody.innerHTML = '';
-
-            articlesData.forEach((article, index) => {
-                const titleLink = article.link && article.link !== '#'
-                    ? `<a href="${article.link}" target="_blank" rel="noopener noreferrer" class="hover:text-teal-600">${article.title}</a>` 
-                    : article.title;
-
-                const tableRow = `
-                    <tr class="bg-white border-b hover:bg-slate-50">
-                        <td class="px-6 py-4 font-medium text-slate-900">${articlesData.length - index}</td>
-                        <td class="px-6 py-4">${titleLink}</td>
-                        <td class="px-6 py-4">${article.publication}</td>
-                        <td class="px-6 py-4">${article.date}</td>
-                        <td class="px-6 py-4">${article.category}</td>
-                    </tr>
-                `;
-                tableBody.innerHTML += tableRow;
-            });
-
-            createTimeline();
-            createCharts();
-            setupScrollAnimations();
-        });
-        
-        function setupScrollAnimations() {
-            const observerOptions = {
-                root: null,
-                rootMargin: '0px',
-                threshold: 0.1
-            };
-
-            const observer = new IntersectionObserver((entries, observer) => {
+            const animatedElements = document.querySelectorAll('.animate-on-scroll');
+            const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                        observer.unobserve(entry.target);
+                        entry.target.classList.add('is-visible');
                     }
                 });
-            }, observerOptions);
+            }, { threshold: 0.1 });
 
-            const targets = document.querySelectorAll('.timeline-item ul li');
-            targets.forEach(target => {
-                observer.observe(target);
-            });
-        }
-
-        function createTimeline() {
-            const timelineContainer = document.getElementById('timeline-container');
-            timelineContainer.innerHTML = '';
+            animatedElements.forEach(el => observer.observe(el));
             
-            const getMonthYearKey = (dateStr) => {
-                 if (dateStr.startsWith('1404')) {
-                    const parts = dateStr.split('/');
-                    return `${parts[0]}-${parts[1].padStart(2, '0')}`;
-                } else {
-                    const date = new Date(dateStr.replace(/\//g, '-'));
-                    const year = date.getFullYear();
-                    const month = date.getMonth() + 1;
-                    if(year === 2025 && month === 7) return '1404-04';
-                    if(year === 2025 && month === 8) return '1404-05';
-                    if(year === 2025 && month === 9) return '1404-06';
-                    return `${year}-${String(month).padStart(2, '0')}`;
+            // Chart Initialization Logic
+            const chartConfigs = {
+                financialTrendChart: {
+                    type: 'bar',
+                    data: {
+                        labels: ['Q1-1401', 'Q2-1401', 'Q3-1401', 'Q4-1401', 'Q1-1402', 'Q2-1402', 'Q3-1402', 'Q4-1402', 'Q1-1403', 'Q2-1403', 'Q3-1403', 'Q4-1403', 'Q1-1404'],
+                        datasets: [
+                            { type: 'bar', label: 'درآمد عملیاتی', data: [5500, 9000, 7500, 8500, 6000, 8500, 8000, 8472, 6351, 9649, 9000, 7813, 6116], backgroundColor: 'rgba(0, 161, 228, 0.6)', borderColor: '#00A1E4', order: 2 },
+                            { type: 'bar', label: 'بهای تمام شده', data: [4300, 7700, 6000, 8000, 5300, 8700, 7800, 7748, 6963, 9537, 8700, 6303, 8201], backgroundColor: 'rgba(255, 138, 128, 0.6)', borderColor: '#FF8A80', order: 2 },
+                            { type: 'line', label: 'سود (زیان) ناخالص', data: [1200, 1300, 1500, 500, 700, -200, 200, 724, -612, 112, 300, 1510, -2085], borderColor: '#E53E3E', backgroundColor: '#E53E3E', fill: false, tension: 0.2, borderWidth: 3, order: 1 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: false } } }
+                },
+                cogsChart: {
+                    type: 'doughnut',
+                    data: { labels: ['مواد مستقیم', 'سربار کارخانه', 'دستمزد مستقیم'], datasets: [{ label: 'ترکیب بهای ساخت', data: [66, 18, 16], backgroundColor: ['#00A1E4', '#FF9F40', '#4BC0C0'] }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                },
+                hrCostsChart: {
+                    type: 'doughnut',
+                    data: { labels: ['حقوق و دستمزد', 'مزایای پایان خدمت', 'اضافه کار', 'بیمه سهم کارفرما', 'سایر'], datasets: [{ label: 'ترکیب هزینه‌ها', data: [30, 16, 14, 11, 29], backgroundColor: ['#00A1E4', '#0077C0', '#FF6384', '#FF9F40', '#4BC0C0'] }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                },
+                olcChart: {
+                     type: 'line',
+                    data: {
+                        labels: ['نوزادی', 'رشد', 'بلوغ', 'اشرافیت', 'بوروکراسی', 'مرگ'],
+                        datasets: [{
+                            label: 'چرخه عمر',
+                            data: [1, 3, 5, 4, 2, 0.5],
+                            borderColor: '#00A1E4',
+                            tension: 0.4,
+                            fill: false,
+                            pointRadius: 6,
+                            pointBackgroundColor: '#00A1E4'
+                        }, {
+                            label: 'موقعیت فعلی',
+                            data: [null, null, null, null, 2, null],
+                            backgroundColor: '#dc2626',
+                            borderColor: '#dc2626',
+                            pointRadius: 10,
+                            pointHoverRadius: 12,
+                            pointStyle: 'rectRot'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            x: {
+                                type: 'number',
+                                easing: 'linear',
+                                duration: 2000,
+                                from: NaN, // the point is initially skipped
+                                delay(ctx) {
+                                  if (ctx.type !== 'data' || ctx.xStarted) {
+                                    return 0;
+                                  }
+                                  ctx.xStarted = true;
+                                  return ctx.index * 300;
+                                }
+                            }
+                        },
+                        plugins: { 
+                            legend: { 
+                                display: true,
+                                position: 'bottom'
+                             } 
+                        },
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: { display: false, min: 0, max: 6 }
+                        }
+                    }
                 }
             };
+
+            const chartObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const canvasId = entry.target.id;
+                        if (chartConfigs[canvasId]) {
+                            new Chart(entry.target.getContext('2d'), chartConfigs[canvasId]);
+                            observer.unobserve(entry.target);
+                        }
+                    }
+                });
+            }, { threshold: 0.5 });
             
-            const articlesByMonth = articlesData.reduce((acc, article) => {
-                const monthYearKey = getMonthYearKey(article.date);
-                if (!acc[monthYearKey]) {
-                    acc[monthYearKey] = [];
-                }
-                acc[monthYearKey].push(article);
-                return acc;
-            }, {});
-
-            const sortedMonths = Object.keys(articlesByMonth).sort().reverse();
-            
-            let timelineHTML = '<div class="timeline-line"></div>';
-
-            sortedMonths.forEach(monthKey => {
-                const monthArticles = articlesByMonth[monthKey];
-                const displayMonth = monthKey.replace('1404-04', 'تیر ۱۴۰۴').replace('1404-05', 'مرداد ۱۴۰۴').replace('1404-06', 'شهریور ۱۴۰۴');
-                
-                let articlesHTML = monthArticles.map(article => {
-                    const titleLink = article.link && article.link !== '#'
-                        ? `<a href="${article.link || '#'}" target="_blank" class="hover:text-teal-600">${article.title}</a>`
-                        : article.title;
-                    const alignmentClass = article.language === 'فارسی' ? 'text-right' : 'text-left';
-                    const direction = article.language === 'فارسی' ? 'rtl' : 'ltr';
-                    
-                    return `<li class="${alignmentClass}" dir="${direction}">${titleLink} <span class="text-xs text-slate-400">(${article.publication})</span></li>`;
-                }).join('');
-
-                timelineHTML += `
-                    <div class="timeline-item">
-                        <div class="timeline-dot"></div>
-                        <h3 class="font-bold text-lg text-slate-800">${displayMonth}</h3>
-                        <p class="text-amber-600 font-semibold my-2">${monthArticles.length} مقاله منتشر شده</p>
-                        <ul class="mt-2 list-disc list-inside space-y-2 text-slate-600">
-                           ${articlesHTML}
-                        </ul>
-                    </div>
-                `;
+            document.querySelectorAll('canvas').forEach(canvas => {
+                chartObserver.observe(canvas);
             });
-            timelineContainer.innerHTML += timelineHTML;
-        }
-
-        function createCharts() {
-             const tooltipTitleCallback = (tooltipItems) => {
-                const item = tooltipItems[0];
-                let label = item.chart.data.labels[item.dataIndex];
-                if (Array.isArray(label)) {
-                    return label.join(' ');
-                }
-                return label;
-            };
-
-            const chartColors = ['#14b8a6', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6', '#ec4899', '#64748b'];
-            const chartColorsLight = ['#a7f3d0', '#fde68a', '#bfdbfe', '#fecaca', '#ddd6fe', '#fbcfe8'];
-
-            // Chart 1: Publications Frequency
-            const pubCounts = articlesData.reduce((acc, article) => {
-                acc[article.publication] = (acc[article.publication] || 0) + 1;
-                return acc;
-            }, {});
-            const sortedPubs = Object.entries(pubCounts).sort(([, a], [, b]) => b - a);
-
-            const pubCtx = document.getElementById('publicationsChart').getContext('2d');
-            new Chart(pubCtx, {
-                type: 'bar',
-                data: {
-                    labels: sortedPubs.map(p => p[0].length > 16 ? p[0].split(' ') : p[0]),
-                    datasets: [{
-                        label: 'تعداد مقالات',
-                        data: sortedPubs.map(p => p[1]),
-                        backgroundColor: chartColors[0],
-                        borderRadius: 4,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    indexAxis: 'y',
-                    scales: { 
-                        x: { beginAtZero: true, ticks: { precision: 0 } },
-                    },
-                    plugins: { 
-                        legend: { display: false }, 
-                        tooltip: { callbacks: { title: tooltipTitleCallback } } 
-                    }
-                }
-            });
-
-            // Chart 2: Thematic Analysis
-            const themes = { 'ایران': 'ایران', 'اقتصاد': 'اقتصاد', 'تورم': 'تورم', 'افغانستان': 'افغان', 'نفت': 'نفت', 'طلا': 'طلا', 'چین': 'چین', 'آمریکا': 'آمریکا|Trump', 'بحران': 'بحران' };
-            const themeCounts = Object.keys(themes).reduce((acc, key) => {
-                const regex = new RegExp(themes[key], 'i');
-                acc[key] = articlesData.filter(a => regex.test(a.title)).length;
-                return acc;
-            }, {});
-             const sortedThemes = Object.entries(themeCounts).filter(([, count]) => count > 0).sort(([, a], [, b]) => b - a);
-
-            const thematicCtx = document.getElementById('thematicAnalysisChart').getContext('2d');
-            new Chart(thematicCtx, {
-                type: 'bar',
-                data: {
-                    labels: sortedThemes.map(t => t[0]),
-                    datasets: [{
-                        label: 'تکرار موضوع',
-                        data: sortedThemes.map(t => t[1]),
-                        backgroundColor: chartColors[1],
-                        borderRadius: 4,
-                    }]
-                },
-                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { 
-                        y: { beginAtZero: true, ticks: { precision: 0 } },
-                    },
-                    plugins: { 
-                        legend: { display: false }, 
-                        tooltip: { callbacks: { title: tooltipTitleCallback } } 
-                    }
-                }
-            });
-
-            // Chart 3: Monthly Production
-            const articlesByMonth = articlesData.reduce((acc, article) => {
-                const dateStr = article.date;
-                let monthYearKey;
-                if (dateStr.startsWith('1404')) {
-                    const parts = dateStr.split('/');
-                    monthYearKey = `${parts[0]}-${parts[1].padStart(2, '0')}`;
-                } else {
-                    const date = new Date(dateStr.replace(/(\d{4})\/(\d{2})\/(\d{2})/, '$1-$2-$3'));
-                    const year = date.getFullYear();
-                    const month = date.getMonth() + 1;
-                     if(year === 2025 && month === 7) monthYearKey = '1404-04';
-                     else if(year === 2025 && month === 8) monthYearKey = '1404-05';
-                     else if(year === 2025 && month === 9) monthYearKey = '1404-06';
-                }
-                if (monthYearKey) {
-                    acc[monthYearKey] = (acc[monthYearKey] || 0) + 1;
-                }
-                return acc;
-            }, {});
-            const sortedMonths = Object.entries(articlesByMonth).sort(([a], [b]) => a.localeCompare(b));
-
-            const monthlyCtx = document.getElementById('monthlyProductionChart').getContext('2d');
-            new Chart(monthlyCtx, {
-                type: 'line',
-                data: {
-                    labels: sortedMonths.map(([key]) => key.replace('1404-04', 'تیر').replace('1404-05', 'مرداد').replace('1404-06', 'شهریور')),
-                    datasets: [{
-                        label: 'تعداد مقالات',
-                        data: sortedMonths.map(([, val]) => val),
-                        borderColor: chartColors[2],
-                        backgroundColor: chartColorsLight[2],
-                        fill: true,
-                        tension: 0.1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { precision: 0 } }
-                    }
-                }
-            });
-
-            // Chart 4: Category Split
-            const categoryCounts = { 'اقتصادی': 0, 'سیاسی/بین‌الملل': 0, 'اجتماعی': 0, 'اقتصادی / اجتماعی': 0, 'سایر': 0 };
-            articlesData.forEach(article => {
-                if (categoryCounts.hasOwnProperty(article.category)) {
-                    categoryCounts[article.category]++;
-                }
-            });
-            
-            const categoryCtx = document.getElementById('categorySplitChart').getContext('2d');
-            new Chart(categoryCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(categoryCounts).filter(key => categoryCounts[key] > 0),
-                    datasets: [{
-                        data: Object.values(categoryCounts).filter(val => val > 0),
-                        backgroundColor: [chartColors[3], chartColors[4], chartColors[5], chartColors[6], '#9ca3af'],
-                        borderColor: '#f8fafc',
-                        borderWidth: 4,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { position: 'bottom' },
-                        tooltip: { callbacks: { title: tooltipTitleCallback } }
-                    }
-                }
-            });
-        }
+        });
     </script>
-
 </body>
 </html>
 
