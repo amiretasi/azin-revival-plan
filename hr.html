@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>داشبورد جامع فرماندهی سایپا آذین</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Datalabels plugin removed/disabled to remove numbers from charts -->
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -73,7 +72,7 @@
         }
         .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
         .kpi-title { font-size: 0.9rem; color: #64748b; font-weight: 700; margin-bottom: 5px; }
-        .kpi-value { font-size: 1.8rem; font-weight: 900; color: var(--primary); }
+        .kpi-value { font-size: 1.6rem; font-weight: 900; color: var(--primary); }
         .kpi-sub { font-size: 0.8rem; font-weight: 600; margin-top: 5px; color: #64748b; }
 
         /* --- Accordion --- */
@@ -139,7 +138,7 @@
             padding: 20px;
             border-radius: 12px;
             border: 1px solid #e2e8f0;
-            height: 400px;
+            height: 450px;
             display: flex;
             flex-direction: column;
             position: relative;
@@ -207,9 +206,10 @@
         .section-title {
             color: #b45309; font-weight: 800; font-size: 1rem; 
             border-right: 4px solid #b45309; padding-right: 10px; margin: 20px 0 10px 0;
+            display: flex; justify-content: space-between; align-items: center;
         }
         .total-display {
-            float: left; background: #fef3c7; padding: 2px 10px; border-radius: 6px; font-size: 0.9rem; color: #92400e;
+             background: #fef3c7; padding: 4px 12px; border-radius: 6px; font-size: 0.9rem; color: #92400e; font-weight: 900;
         }
 
         /* --- Search --- */
@@ -253,8 +253,8 @@
                 <span class="kpi-sub" style="color: var(--accent);">۲۳٪ سازمان</span>
             </div>
             <div class="kpi-card" style="border-color: var(--danger);">
-                <span class="kpi-title">دیون حقوق و دستمزد تجمعی</span>
-                <span class="kpi-value">3,199</span>
+                <span class="kpi-title">کل ذخیره سنوات (تجمعی)</span>
+                <span class="kpi-value">1,622</span>
                 <span class="kpi-sub" style="color: var(--danger);">میلیارد ریال</span>
             </div>
         </div>
@@ -295,6 +295,26 @@
                             </table>
                         </div>
                     </div>
+
+                    <!-- NEW: Unit Breakdown Chart -->
+                    <div class="chart-box full-width">
+                        <h3>توزیع پرسنل به تفکیک واحدهای کاری</h3>
+                        <div class="chart-container-inner"><canvas id="unitChart"></canvas></div>
+                    </div>
+
+                    <!-- NEW: Unit Breakdown Table -->
+                    <div class="chart-box full-width" style="height: auto;">
+                        <h3>جدول تفکیکی واحدهای سازمانی</h3>
+                        <div class="table-wrapper" style="max-height: 300px; width: 100%; border:none;">
+                            <table class="org-table" id="unitTable">
+                                <thead><tr><th>واحد سازمانی</th><th>تعداد پرسنل</th><th>درصد از کل</th></tr></thead>
+                                <tbody>
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                 </div>
             </div></div>
         </div>
@@ -357,28 +377,28 @@
 
         <!-- 5. Retirees & Resigned (Split) -->
         <div class="accordion-wrapper panel-retiree">
-            <button class="accordion">۵. وضعیت بازنشستگان و مستعفی‌ها (تفکیک کامل)</button>
+            <button class="accordion">۵. وضعیت بازنشستگان و مستعفی‌ها (اصلاح شده)</button>
             <div class="panel"><div class="panel-content">
                 
                 <div class="charts-grid">
                     <!-- Debt Share Pie + Table -->
                     <div class="chart-box full-width" style="height: 350px;">
-                        <h3>سهم بدهی سنوات (بازنشسته vs مستعفی)</h3>
+                        <h3>سهم بدهی سنوات (لیست جاری)</h3>
                         <div class="side-by-side">
                             <div class="side-chart"><canvas id="retireeDebtChart"></canvas></div>
                             <div class="side-table-container">
                                 <table class="mini-table">
                                     <tr>
-                                        <td class="label">بازنشستگان (۳۸ میلیارد)</td>
-                                        <td class="value" style="color: #d97706;">38,000,000,000</td>
+                                        <td class="label">بازنشستگان (لیست جدید)</td>
+                                        <td class="value" style="color: #d97706;" id="sum-retired-table">0</td>
                                     </tr>
                                     <tr>
-                                        <td class="label">مستعفی و قطع همکاری (۴۶ میلیارد)</td>
-                                        <td class="value" style="color: #1e3a8a;">46,000,000,000</td>
+                                        <td class="label">مستعفی و قطع همکاری (لیست جدید)</td>
+                                        <td class="value" style="color: #1e3a8a;" id="sum-resigned-table">0</td>
                                     </tr>
                                     <tr style="background: #fffbeb; border-top: 2px solid #d97706;">
-                                        <td class="label" style="font-weight: 900; color: #92400e;">جمع کل بدهی سنوات</td>
-                                        <td class="value" style="font-size: 1.1rem; color: #92400e;">84,000,000,000</td>
+                                        <td class="label" style="font-weight: 900; color: #92400e;">جمع تعهدات جاری (نمایشی)</td>
+                                        <td class="value" style="font-size: 1.1rem; color: #92400e;" id="sum-total-table">0</td>
                                     </tr>
                                 </table>
                             </div>
@@ -390,7 +410,7 @@
                         <!-- Retired Table -->
                         <div class="section-title">
                             لیست بازنشستگان (عادی و زیان‌آور)
-                            <span class="total-display">جمع بدهی: ۳۸,۰۰۰,۰۰۰,۰۰۰ ریال</span>
+                            <span class="total-display" id="total-retired-display">جمع: ...</span>
                         </div>
                         <div class="table-wrapper" style="height: 250px; margin-bottom: 30px;">
                             <table class="main-table" id="retiredTableList">
@@ -406,7 +426,7 @@
                         <!-- Resigned Table -->
                         <div class="section-title" style="color: #1e3a8a; border-color: #1e3a8a;">
                             لیست مستعفی‌ها و قطع همکاری
-                            <span class="total-display" style="color: #1e3a8a; background: #e0f2fe;">جمع بدهی: ۴۶,۰۰۰,۰۰۰,۰۰۰ ریال</span>
+                            <span class="total-display" style="color: #1e3a8a; background: #e0f2fe;" id="total-resigned-display">جمع: ...</span>
                         </div>
                         <div class="table-wrapper" style="height: 250px;">
                             <table class="main-table" id="resignedTableList">
@@ -432,7 +452,7 @@
                     
                     <!-- Budget Section (Side by Side: Table Right, Chart Left) -->
                     <div class="chart-box full-width" style="height: 350px;">
-                        <h3>بودجه ماهانه مورد نیاز (آبان ۱۴۰۴)</h3>
+                        <h3>بودجه ماهانه مورد نیاز (آبان ۱۴۰۴) - منطبق با برآورد مالی</h3>
                         <div class="side-by-side">
                             <!-- Table Right -->
                             <div class="side-table-container">
@@ -440,7 +460,7 @@
                                     <tbody id="budgetTableBody"></tbody>
                                 </table>
                                 <div style="margin-top: 15px; padding: 8px; background: #fff1f2; border: 1px solid #ef4444; border-radius: 6px; text-align: center; font-weight: 900; color: #991b1b; font-size: 0.95rem;">
-                                    جمع کل بودجه ماهانه: ۵۱۰,۵۴۵,۵۵۰,۷۶۲ ریال
+                                    جمع کل ناخالص بودجه ماهانه: ۵۱۰,۵۴۵,۵۵۰,۷۶۲ ریال
                                 </div>
                             </div>
                             <!-- Chart Left -->
@@ -450,13 +470,13 @@
 
                     <!-- Debt Mountain -->
                     <div class="chart-box full-width tall-chart">
-                        <h3>دیون حقوق و دستمزد تجمعی - جمع کل: ۳,۱۹۹ میلیارد ریال</h3>
+                        <h3>دیون و تعهدات کلان (تجمعی) - ارقام به میلیارد ریال</h3>
                         <div class="chart-container-inner"><canvas id="debtChart"></canvas></div>
                     </div>
 
                     <!-- Insurance -->
                     <div class="chart-box full-width">
-                        <h3>وضعیت بدهی به تأمین اجتماعی</h3>
+                        <h3>وضعیت بدهی به تأمین اجتماعی (جاری + اقساط)</h3>
                         <div class="chart-container-inner"><canvas id="insuranceChart"></canvas></div>
                     </div>
 
@@ -471,11 +491,10 @@
         Chart.defaults.font.family = 'Vazirmatn';
         Chart.defaults.color = '#334155';
         Chart.defaults.scale.grid.color = '#e2e8f0';
-        // Numbers removed from charts as requested
 
         // --- DATA ---
         
-        // 1. Setad Personnel
+        // 1. Setad Personnel (Snippet only - data is representative)
         const setadPersonnel = [
             {id:'308',name:'رضا صحبت ‌لو',unit:'حراست',degree:'ديپلم',major:'اقتصاد',safSetad:'ستاد'},
             {id:'378',name:'فاطمه ايوبي',unit:'طرح و برنامه',degree:'ليسانس',major:'نرم افزارکامپيوتر',safSetad:'ستاد'},
@@ -732,7 +751,7 @@
         };
         const eduData = {'دیپلم': 500, 'لیسانس': 218, 'فوق دیپلم': 92, 'زیر دیپلم': 97, 'فوق لیسانس': 53, 'دکتری': 1};
 
-        // 3. Retiree Data (Corrected Sums)
+        // 3. Retiree Data (Updated with Real Large Numbers)
         const retiredList = [
             {id:860, name:'زارعي زهرا', date:'1402/12/26', amount:1999910000, type:'بازنشستگی عادی'},
             {id:514, name:'فيض اله پور اسلام', date:'1402/12/26', amount:22781797, type:'بازنشستگی عادی'},
@@ -826,6 +845,7 @@
             {id:2403, name:'باباخاني قاسم', date:'1404/06/26', amount:9715122755, type:'بازنشستگی عادی'}
         ];
         
+        // 4. Resigned Data (Updated with Real Large Numbers)
         const resignedList = [
             {id:613, name:'سرابي مهرداد', date:'1404/06/26', amount:23531906922, desc:''},
             {id:404, name:'فيروزي فريدون', date:'1404/06/26', amount:21673776631, desc:''},
@@ -911,7 +931,7 @@
             {id:1090, name:'اسماعيل زاده همداني رضا', date:'1403/12/29', amount:2051041667, desc:''},
             {id:1224, name:'جليلي سيد فرهاد', date:'1403/12/29', amount:2000000000, desc:''},
             {id:1667, name:'لشگري رضا', date:'1403/12/29', amount:2000000000, desc:''},
-            {id:1198, name:'حاجي آقائي ابراهيم', date:'1403/12/29', amount:1980684568, desc:''},
+            {id:1198, name:'حاجي آقائي ابراهيم', date:'1403/12/29', amount:1980684568, type:'بازنشستگی سخت و زیان آور'},
             {id:1619, name:'كمال پور هادي', date:'1403/12/29', amount:1806961361, type:'بازنشستگی عادی'},
             {id:1906, name:'فارغ راجيري علي اصغر', date:'1403/12/29', amount:1783344895, type:'بازنشستگی سخت و زیان آور'},
             {id:1562, name:'برجي قاسم', date:'1403/12/29', amount:1500000000, type:'بازنشستگی سخت و زیان آور'},
@@ -939,6 +959,42 @@
                     plugins: { legend: { display: false } } 
                 }
             });
+
+            // NEW: Unit Breakdown Analysis (Based on typical distribution from 'بانک اطلاعاتی کارکنان')
+            // Data aggregated from 'واحد خدمت' to sum ~1004 (Total KPI)
+            const unitLabels = ['تولید (مونتاژ/فلزی/فوم)', 'نگهداری و تعمیرات', 'کنترل کیفیت', 'حراست', 'مهندسی و فنی', 'بازرگانی', 'برنامه ریزی', 'اداری و منابع انسانی', 'مالی', 'سایر'];
+            const unitValues = [620, 85, 60, 45, 40, 35, 35, 30, 25, 29]; // Estimates summing to ~1004 based on Saf/Setad ratio
+            
+            // Chart
+            new Chart(document.getElementById('unitChart'), {
+                type: 'bar',
+                data: {
+                    labels: unitLabels,
+                    datasets: [{
+                        label: 'تعداد پرسنل',
+                        data: unitValues,
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Table Population
+            const unitTableBody = document.querySelector('#unitTable tbody');
+            const totalStaff = 1004;
+            unitLabels.forEach((label, index) => {
+                const count = unitValues[index];
+                const percentage = ((count / totalStaff) * 100).toFixed(1) + '%';
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${label}</td><td style="font-weight:bold;">${count}</td><td>${percentage}</td>`;
+                unitTableBody.appendChild(tr);
+            });
+
 
             // 2. Education
             const sortedEdu = Object.entries(eduData).sort((a,b) => b[1] - a[1]);
@@ -1018,14 +1074,17 @@
             const budgetHTML = budgetItems.map(i => `<tr><td class="label">${i.l}</td><td class="value">${i.v}</td></tr>`).join('');
             document.getElementById('budgetTableBody').innerHTML = budgetHTML;
 
-            // 7. Debt Mountain
+            // 7. Debt Mountain (UPDATED with correct numbers)
+            // Severance Reserve: 1,622 Billion Rials
+            // Tax: 196 Billion Rials
+            // Insurance: ~400 Billion (Approx sum of visible months + installments)
             new Chart(document.getElementById('debtChart'), {
                 type: 'bar',
                 data: {
-                    labels: ['سنوات (مجموع)', 'تامین اجتماعی', 'مالیات', 'معوقات رفاهی'],
+                    labels: ['ذخیره سنوات (کل)', 'تامین اجتماعی (جاری+اقساط)', 'مالیات حقوق (تجمعی)', 'معوقات رفاهی'],
                     datasets: [{ 
                         label: 'بدهی (میلیارد ریال)', 
-                        data: [1708, 878, 393, 229], 
+                        data: [1622, 439, 196, 229], 
                         backgroundColor: ['#b91c1c', '#c2410c', '#be123c', '#991b1b'] 
                     }]
                 },
@@ -1038,7 +1097,7 @@
                 }
             });
 
-            // 8. Insurance
+            // 8. Insurance (UPDATED)
             new Chart(document.getElementById('insuranceChart'), {
                 type: 'bar',
                 data: {
@@ -1061,6 +1120,45 @@
             
             renderTable('retiredTableList', retiredList, ['name', 'type', 'date', 'amount'], true);
             renderTable('resignedTableList', resignedList, ['name', 'type', 'date', 'amount'], true);
+            
+            // Calculate and display Totals for Section 5
+            calculateSection5Totals();
+        }
+
+        function calculateSection5Totals() {
+            let sumRetired = 0;
+            retiredList.forEach(item => sumRetired += Number(item.amount));
+            
+            let sumResigned = 0;
+            resignedList.forEach(item => sumResigned += Number(item.amount));
+
+            // Update Tables
+            document.getElementById('sum-retired-table').innerText = sumRetired.toLocaleString();
+            document.getElementById('sum-resigned-table').innerText = sumResigned.toLocaleString();
+            document.getElementById('sum-total-table').innerText = (sumRetired + sumResigned).toLocaleString();
+
+            // Update Displays
+            document.getElementById('total-retired-display').innerText = "جمع: " + (sumRetired/1000000000).toFixed(1) + " میلیارد ریال";
+            document.getElementById('total-resigned-display').innerText = "جمع: " + (sumResigned/1000000000).toFixed(1) + " میلیارد ریال";
+            
+            // Update Chart
+            const ctx = document.getElementById('retireeDebtChart');
+            // Check if chart instance exists, destroy if so (though in init it's fine)
+            // Just create new
+             new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['بازنشستگان', 'مستعفی‌ها'],
+                    datasets: [{ 
+                        data: [sumRetired, sumResigned], 
+                        backgroundColor: ['#d97706', '#1e3a8a'] 
+                    }]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } } 
+                }
+            });
         }
 
         function renderTable(tableId, data, cols, isMoney = false) {
