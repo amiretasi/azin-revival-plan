@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحلیل استراتژیک و برنامه احیای شرکت سایپا آذین (خاذین) - نسخه اجرایی</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f0f4f8; overflow-x: hidden; }
+        .chart-container { position: relative; width: 100%; height: 400px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        th, td { padding: 10px 6px; text-align: center; border-bottom: 1px solid #e2e8f0; font-size: 0.8rem; white-space: nowrap; }
+        th { background-color: #f1f5f9; font-weight: 700; color: #334155; border-left: 1px solid #e2e8f0; }
+        td { border-left: 1px dashed #f1f5f9; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: #f8fafc; }
+        .negative-value { color: #dc2626; font-weight: 700; direction: ltr; unicode-bidi: embed; }
+        .positive-value { color: #16a34a; font-weight: 700; }
+        .kpi-card { background-color: white; padding: 1.5rem; border-radius: 1rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease; border-top: 6px solid; }
+        .kpi-card:hover { transform: translateY(-5px); }
+        .animate-on-scroll { opacity: 0; transform: translateY(20px); transition: all 0.6s ease-out; }
+        .is-visible { opacity: 1; transform: translateY(0); }
+        
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.7rem; }
+        .badge-critical { background-color: #fee2e2; color: #991b1b; }
+        .badge-warning { background-color: #fef3c7; color: #92400e; }
+        .badge-success { background-color: #dcfce7; color: #166534; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-[#0f172a] to-[#334155] text-white p-8 shadow-2xl">
+        <div class="container mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-black mb-2 tracking-tight">گزارش وضعیت بحرانی سایپا آذین</h1>
+                    <p class="text-slate-300 text-lg">تحلیل صورت‌های مالی ۶ ماهه ۱۴۰۴ و چالش‌های نقدینگی</p>
+                </div>
+                <div class="mt-4 md:mt-0 bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20">
+                    <div class="text-sm text-slate-300">وضعیت نماد:</div>
+                    <div class="text-2xl font-bold text-red-400">مشمول ماده ۱۴۱</div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Navigation -->
+    <nav class="sticky top-0 bg-white/90 backdrop-blur-md shadow-lg z-50 border-b border-slate-200">
+        <div class="container mx-auto px-4 overflow-x-auto">
+            <div class="flex whitespace-nowrap md:justify-center h-16 items-center space-x-8 space-x-reverse text-sm font-bold text-slate-600">
+                <a href="#dashboard" class="hover:text-blue-700 transition-colors">داشبورد بحران</a>
+                <a href="#financials" class="hover:text-blue-700 transition-colors">تحلیل جامع مالی</a>
+                <a href="#operational_crisis" class="hover:text-blue-700 transition-colors">وضعیت عملیاتی و نقدینگی</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto p-4 md:p-8 space-y-16">
+        
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="animate-on-scroll">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-2 h-10 bg-red-600 rounded-full"></div>
+                <h2 class="text-2xl font-bold text-slate-800">داشبورد مدیریتی (واقعیت ۶ ماهه ۱۴۰۴)</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="kpi-card border-red-600">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-slate-500 font-semibold text-sm">درآمد عملیاتی (۶ ماهه)</h3>
+                            <div class="text-3xl font-black text-slate-800 mt-2">۱۰,۶۵۰</div>
+                            <div class="text-xs text-slate-400 mt-1">میلیارد ریال</div>
+                        </div>
+                        <div class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">۲۴٪ کاهش 📉</div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-4 border-t pt-2">نسبت به ۶ ماهه ۱۴۰۳ (۱۴,۰۵۲)</p>
+                </div>
+
+                <div class="kpi-card border-red-600">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-slate-500 font-semibold text-sm">زیان خالص (۶ ماهه)</h3>
+                            <div class="text-3xl font-black text-red-600 mt-2" dir="ltr">(۳,۵۶۴)</div>
+                            <div class="text-xs text-slate-400 mt-1">میلیارد ریال</div>
+                        </div>
+                        <span class="text-2xl">⚠️</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-4 border-t pt-2">معادل ۸۰٪ سرمایه شرکت فقط در ۶ ماه</p>
+                </div>
+
+                <div class="kpi-card border-orange-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-slate-500 font-semibold text-sm">زیان انباشته</h3>
+                            <div class="text-3xl font-black text-red-600 mt-2" dir="ltr">(۴,۹۷۱)</div>
+                            <div class="text-xs text-slate-400 mt-1">میلیارد ریال</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 w-full bg-slate-200 rounded-full h-2">
+                        <div class="bg-red-600 h-2 rounded-full" style="width: 100%"></div>
+                    </div>
+                    <p class="text-xs text-red-600 font-bold mt-2">۱۱۱٪ سرمایه از دست رفته است!</p>
+                </div>
+
+                <div class="kpi-card border-blue-600">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="text-slate-500 font-semibold text-sm">بدهی مالیاتی و بیمه</h3>
+                            <div class="text-3xl font-black text-slate-800 mt-2">۸,۱۱۳</div>
+                            <div class="text-xs text-slate-400 mt-1">میلیارد ریال</div>
+                        </div>
+                        <div class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">ریسک اجرایی</div>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-4 border-t pt-2">شامل اصل و جرائم معوق</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Financial Analysis -->
+        <section id="financials" class="animate-on-scroll bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-2 h-10 bg-blue-600 rounded-full"></div>
+                <h2 class="text-2xl font-bold text-slate-800">تحلیل جامع مالی (تاریخی و جاری)</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Chart 1: Historical Trend (Annual + Forecast) with Net Loss -->
+                <div>
+                    <h3 class="font-bold text-slate-700 mb-4 text-center">۱. روند تاریخی سالانه (به همراه پیش‌بینی ۱۴۰۴)</h3>
+                    <div class="chart-container">
+                        <canvas id="historicalTrendChart"></canvas>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2 text-center text-red-600 font-bold">افزایش شدید فاصله درآمد و هزینه و سقوط زیان خالص در ۱۴۰۴ کاملاً مشهود است.</p>
+                </div>
+
+                <!-- Chart 2: Gap Analysis (Separated Periods) -->
+                <div>
+                    <h3 class="font-bold text-slate-700 mb-4 text-center">۲. تحلیل مقایسه‌ای تفکیک شده (۶ ماهه و ۱۲ ماهه)</h3>
+                    <div class="chart-container">
+                        <canvas id="gapAnalysisChart"></canvas>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2 text-center">مقایسه دوره‌های همگن نشان می‌دهد که بحران در ۶ ماهه ۱۴۰۴ عمیق‌تر از هر زمان دیگری است.</p>
+                </div>
+            </div>
+
+            <!-- Detailed Table -->
+            <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 mt-8">
+                <h3 class="font-bold text-slate-700 mb-4 border-b pb-2">جدول جامع صورت سود و زیان (میلیارد ریال) - تفکیک دوره‌ها</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="text-xs text-slate-500">
+                            <tr>
+                                <th rowspan="2" class="align-middle bg-slate-100 min-w-[120px]">شرح</th>
+                                <th colspan="4" class="bg-blue-50 text-blue-800 border-b-2 border-blue-200">عملکرد دوره‌های ۶ ماهه</th>
+                                <th colspan="4" class="bg-indigo-50 text-indigo-800 border-b-2 border-indigo-200">عملکرد دوره‌های ۱۲ ماهه (سالانه)</th>
+                            </tr>
+                            <tr>
+                                <th>۱۴۰۱</th>
+                                <th>۱۴۰۲</th>
+                                <th>۱۴۰۳</th>
+                                <th class="bg-red-50 font-bold text-red-700 border-2 border-red-200">۱۴۰۴ (جاری)</th>
+                                <th>۱۴۰۱</th>
+                                <th>۱۴۰۲</th>
+                                <th>۱۴۰۳</th>
+                                <th class="bg-yellow-50 font-bold text-yellow-700 border-2 border-yellow-200">۱۴۰۴ (پیش‌بینی)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="text-right font-semibold">درآمد عملیاتی</td>
+                                <td>9,200</td>
+                                <td>9,400</td>
+                                <td>14,052</td>
+                                <td class="font-black text-base bg-red-50">10,650</td>
+                                <td>20,927</td>
+                                <td>20,972</td>
+                                <td>32,813</td>
+                                <td class="bg-yellow-50 italic">~21,300</td>
+                            </tr>
+                            <tr>
+                                <td class="text-right font-semibold">بهای تمام شده</td>
+                                <td class="negative-value">(8,450)</td>
+                                <td class="negative-value">(8,900)</td>
+                                <td class="negative-value">(15,094)</td>
+                                <td class="negative-value font-bold bg-red-50">(11,611)</td>
+                                <td class="negative-value">(19,238)</td>
+                                <td class="negative-value">(19,548)</td>
+                                <td class="negative-value">(32,737)</td>
+                                <td class="text-slate-400 bg-yellow-50 italic negative-value">~(23,200)</td>
+                            </tr>
+                            <tr class="bg-slate-100">
+                                <td class="text-right font-bold text-slate-800">سود (زیان) ناخالص</td>
+                                <td class="positive-value">750</td>
+                                <td class="positive-value">500</td>
+                                <td class="negative-value">(1,042)</td>
+                                <td class="negative-value font-black bg-red-50">(961)</td>
+                                <td class="positive-value">1,689</td>
+                                <td class="positive-value">1,424</td>
+                                <td class="positive-value">76</td>
+                                <td class="text-slate-400 bg-yellow-50 italic negative-value">~(1,900)</td>
+                            </tr>
+                            <tr>
+                                <td class="text-right font-semibold">سود (زیان) خالص</td>
+                                <td class="positive-value">400</td>
+                                <td class="negative-value">(250)</td>
+                                <td class="negative-value">(1,879)</td>
+                                <td class="negative-value font-black text-base bg-red-50 border-2 border-red-500">(3,564)</td>
+                                <td class="positive-value">850</td>
+                                <td class="negative-value">(1,055)</td>
+                                <td class="negative-value">(3,580)</td>
+                                <td class="text-slate-400 bg-yellow-50 italic negative-value">~(7,100)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Operational & Financial Analysis (Tables Section) -->
+        <section id="operational_crisis" class="animate-on-scroll">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6 border-r-4 border-indigo-600 pr-4">کالبدشکافی وضعیت نقدینگی و عملیات (جداول تحلیلی)</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- 1. Major Creditors Table -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-red-500">
+                    <h3 class="font-bold text-lg text-slate-800 mb-3 flex items-center justify-between">
+                        <span class="flex items-center"><span class="bg-red-100 p-1 rounded ml-2">🛑</span> وضعیت بحرانی تأمین‌کنندگان</span>
+                        <span class="text-xs font-normal text-slate-500">ارقام: میلیون ریال</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-red-50 text-red-800">
+                                <tr>
+                                    <th>نام تأمین‌کننده</th>
+                                    <th>نوع کالا/خدمت</th>
+                                    <th>میزان بدهی</th>
+                                    <th>وضعیت تعامل</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>شرکت گوهربافان</td>
+                                    <td>پارچه و منسوجات</td>
+                                    <td class="font-bold">1,290,533</td>
+                                    <td><span class="status-badge badge-critical">توقف تحویل</span></td>
+                                </tr>
+                                <tr>
+                                    <td>نواندیش صنعت پرنیان</td>
+                                    <td>قطعات فلزی</td>
+                                    <td class="font-bold">444,889</td>
+                                    <td><span class="status-badge badge-warning">خرید نقدی</span></td>
+                                </tr>
+                                <tr>
+                                    <td>صنایع الکترونیک شیراز</td>
+                                    <td>قطعات فلزی/برقی</td>
+                                    <td class="font-bold">317,117</td>
+                                    <td><span class="status-badge badge-warning">محدود</span></td>
+                                </tr>
+                                <tr>
+                                    <td>ورافن</td>
+                                    <td>قطعات فلزی</td>
+                                    <td class="font-bold">290,932</td>
+                                    <td><span class="status-badge badge-warning">خرید نقدی</span></td>
+                                </tr>
+                                <tr>
+                                    <td>ایران قطعه</td>
+                                    <td>مواد فوم</td>
+                                    <td class="font-bold">170,000</td>
+                                    <td><span class="status-badge badge-critical">ریسک توقف</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 2. Receivables Table -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-orange-500">
+                    <h3 class="font-bold text-lg text-slate-800 mb-3 flex items-center justify-between">
+                        <span class="flex items-center"><span class="bg-orange-100 p-1 rounded ml-2">⏳</span> وضعیت حبس نقدینگی (مطالبات)</span>
+                        <span class="text-xs font-normal text-slate-500">ارقام: میلیون ریال</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-orange-50 text-orange-800">
+                                <tr>
+                                    <th>نام مشتری</th>
+                                    <th>مانده طلب</th>
+                                    <th>سهم از کل</th>
+                                    <th>ریسک وصول</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="font-bold text-slate-800">شرکت سازه‌گستر سایپا</td>
+                                    <td class="font-black text-lg">9,732,909</td>
+                                    <td class="font-bold text-orange-600">88%</td>
+                                    <td><span class="status-badge badge-warning">خیلی زیاد (درون‌گروهی)</span></td>
+                                </tr>
+                                <tr>
+                                    <td>شرکت زامیاد</td>
+                                    <td class="font-bold">419,583</td>
+                                    <td>4%</td>
+                                    <td><span class="status-badge badge-success">متوسط</span></td>
+                                </tr>
+                                <tr>
+                                    <td>سایر مشتریان</td>
+                                    <td class="font-bold">881,892</td>
+                                    <td>8%</td>
+                                    <td><span class="status-badge badge-success">کم</span></td>
+                                </tr>
+                                <tr class="bg-slate-100 font-bold">
+                                    <td>جمع کل مطالبات تجاری</td>
+                                    <td>11,034,384</td>
+                                    <td>100%</td>
+                                    <td>-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 3. Government Debts Table -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-red-600">
+                    <h3 class="font-bold text-lg text-slate-800 mb-3 flex items-center justify-between">
+                        <span class="flex items-center"><span class="bg-red-100 p-1 rounded ml-2">⚖️</span> وضعیت ریسک‌های حاکمیتی (دیون)</span>
+                        <span class="text-xs font-normal text-slate-500">ارقام: میلیون ریال</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-100 text-slate-600">
+                                <tr>
+                                    <th>سرفصل بدهی</th>
+                                    <th>اصل بدهی</th>
+                                    <th>جرائم برآوردی</th>
+                                    <th>جمع کل</th>
+                                    <th>وضعیت پرونده</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>مالیات ارزش افزوده (تا ۱۴۰۲)</td>
+                                    <td>1,787,000</td>
+                                    <td class="text-red-500">3,325,000</td>
+                                    <td class="font-black negative-value">5,112,000</td>
+                                    <td><span class="status-badge badge-critical">اجرایی</span></td>
+                                </tr>
+                                <tr>
+                                    <td>مالیات عملکرد و حقوق</td>
+                                    <td>1,020,000</td>
+                                    <td class="text-red-500">533,000</td>
+                                    <td class="font-bold negative-value">1,553,000</td>
+                                    <td><span class="status-badge badge-warning">در جریان رسیدگی</span></td>
+                                </tr>
+                                <tr>
+                                    <td>سازمان تأمین اجتماعی</td>
+                                    <td>855,000</td>
+                                    <td class="text-red-500">10,000</td>
+                                    <td class="font-bold negative-value">865,000</td>
+                                    <td><span class="status-badge badge-critical">اخطار کسر از حساب</span></td>
+                                </tr>
+                                <tr class="bg-red-50">
+                                    <td class="font-bold">جمع کل تعهدات حاکمیتی</td>
+                                    <td class="font-bold">3,662,000</td>
+                                    <td class="font-bold text-red-600">3,868,000</td>
+                                    <td class="font-black text-lg negative-value">7,530,000</td>
+                                    <td>-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 4. Payroll Table -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-blue-500">
+                    <h3 class="font-bold text-lg text-slate-800 mb-3 flex items-center justify-between">
+                        <span class="flex items-center"><span class="bg-blue-100 p-1 rounded ml-2">👥</span> وضعیت سربار حقوق و دستمزد (۶ ماهه)</span>
+                        <span class="text-xs font-normal text-slate-500">ارقام: میلیون ریال</span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-blue-50 text-blue-800">
+                                <tr>
+                                    <th>شرح هزینه</th>
+                                    <th>مبلغ (۶ ماهه ۱۴۰۴)</th>
+                                    <th>سهم از کل دستمزد</th>
+                                    <th>توضیحات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>دستمزد مستقیم (صف)</td>
+                                    <td class="font-bold">1,050,754</td>
+                                    <td class="text-green-600 font-bold">60%</td>
+                                    <td>نیروهای خط تولید</td>
+                                </tr>
+                                <tr>
+                                    <td>دستمزد غیرمستقیم (ستاد)</td>
+                                    <td class="font-bold">703,898</td>
+                                    <td class="text-red-500 font-bold">40%</td>
+                                    <td><span class="status-badge badge-warning">تراکم نیروی مازاد</span></td>
+                                </tr>
+                                <tr class="bg-slate-100 font-bold">
+                                    <td>جمع کل هزینه حقوق</td>
+                                    <td>1,754,652</td>
+                                    <td>100%</td>
+                                    <td>میانگین ماهانه: ~292 م.ر</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-3 text-justify border-t pt-2">
+                        * نسبت ۴۰ درصدی هزینه دستمزد غیرمستقیم (ستادی) نشان‌دهنده ساختار سازمانی متورم است که با توجه به کاهش ۲۴ درصدی درآمد، نیاز به بازنگری فوری دارد.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-800 text-slate-400 py-8 mt-12">
+        <div class="container mx-auto text-center text-sm">
+            <p>تهیه شده بر اساس داده‌های واقعی صورت‌های مالی ۶ ماهه منتهی به ۱۴۰۴/۰۶/۳۱</p>
+            <p class="mt-2">نسخه نهایی جهت ارائه به هیئت مدیره</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Animation Observer
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+            Chart.defaults.font.family = 'Vazirmatn';
+
+            // Chart 1: Historical Trend (Annual 1401-1404 Forecast) with Net Loss
+            const ctx1 = document.getElementById('historicalTrendChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['۱۲ ماهه ۱۴۰۱', '۱۲ ماهه ۱۴۰۲', '۱۲ ماهه ۱۴۰۳', 'پیش‌بینی ۱۴۰۴'],
+                    datasets: [
+                        {
+                            label: 'درآمد عملیاتی',
+                            data: [20927, 20972, 32813, 21300],
+                            backgroundColor: '#2563eb', // Blue
+                            borderRadius: 4,
+                            order: 2
+                        },
+                        {
+                            label: 'بهای تمام شده',
+                            data: [19238, 19548, 32737, 23220],
+                            backgroundColor: '#dc2626', // Red
+                            borderRadius: 4,
+                            order: 3
+                        },
+                        {
+                            type: 'line',
+                            label: 'زیان خالص',
+                            data: [850, -1055, -3580, -7100], // 1404 forecast is doubled 6M
+                            borderColor: '#fbbf24', // Amber/Yellow
+                            borderWidth: 3,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#fbbf24',
+                            pointRadius: 6,
+                            tension: 0.2,
+                            order: 1,
+                            yAxisID: 'y'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        title: { display: true, text: 'روند سالانه و سقوط سودآوری (میلیارد ریال)' },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: { borderDash: [2, 4], color: '#e2e8f0' }
+                        }
+                    }
+                }
+            });
+
+            // Chart 2: Gap Analysis (Separated Groups: 6M vs 12M)
+            const ctx2 = document.getElementById('gapAnalysisChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    // Grouped labels for visual separation
+                    labels: ['۶م ۱۴۰۱', '۶م ۱۴۰۲', '۶م ۱۴۰۳', '۶م ۱۴۰۴', ' ', '۱۲م ۱۴۰۱', '۱۲م ۱۴۰۲', '۱۲م ۱۴۰۳', '۱۲م ۱۴۰۴ (پیش‌بینی)'],
+                    datasets: [
+                        {
+                            label: 'درآمد عملیاتی',
+                            data: [9200, 9400, 14052, 10650, null, 20927, 20972, 32813, 21300],
+                            backgroundColor: function(context) {
+                                return context.dataIndex < 4 ? '#3b82f6' : '#1e3a8a'; // Light blue for 6M, Dark for 12M
+                            },
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'بهای تمام شده',
+                            data: [8450, 8900, 15094, 11611, null, 19238, 19548, 32737, 23220],
+                            backgroundColor: function(context) {
+                                return context.dataIndex < 4 ? '#ef4444' : '#991b1b'; // Light red for 6M, Dark for 12M
+                            },
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { generateLabels: function(chart) {
+                            return [
+                                { text: 'درآمد (۶ ماهه / ۱۲ ماهه)', fillStyle: '#3b82f6' },
+                                { text: 'هزینه (۶ ماهه / ۱۲ ماهه)', fillStyle: '#ef4444' }
+                            ];
+                        }}},
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.raw.toLocaleString();
+                                },
+                                afterLabel: function(context) {
+                                    // Growth Rate Calculation for 6M-1404 vs 6M-1403
+                                    if (context.dataIndex === 3 && context.datasetIndex === 0) { // 6M 1404 Revenue
+                                        let current = context.raw;
+                                        let prev = 14052; 
+                                        let change = ((current - prev) / prev) * 100;
+                                        return `رشد نسبت به ۶ ماهه قبل: ${change.toFixed(1)}% 📉`;
+                                    }
+                                    return null;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: { borderDash: [2, 4], color: '#e2e8f0' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
