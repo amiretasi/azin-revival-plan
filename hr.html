@@ -1258,3 +1258,422 @@
     </script>
 </body>
 </html>
+
+import React, { useState } from 'react';
+import { 
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, ComposedChart 
+} from 'recharts';
+import { 
+  AlertTriangle, TrendingUp, TrendingDown, DollarSign, Wallet, FileText, Ban, CheckCircle, Activity, Landmark, Briefcase 
+} from 'lucide-react';
+
+// --- DATA PROCESSING (Based on 8 Uploaded CSVs) ---
+
+// 1. Sources Breakdown
+const sourcesData = [
+  { name: 'دریافتی از سازه‌گستر (جاری)', value: 3407, fill: '#3b82f6' },
+  { name: 'دریافتی از سازه (حقوق)', value: 2908, fill: '#60a5fa' },
+  { name: 'اوراق گام (غیرنقد)', value: 1250, fill: '#f59e0b' }, // Risk: Non-cash
+  { name: 'دریافت مستقیم سایپا', value: 680, fill: '#10b981' },
+  { name: 'سایر (LC، ضایعات، ...)', value: 562, fill: '#94a3b8' },
+];
+
+// 2. Forecast Data (Updated with specific CSV data)
+const forecastData = [
+  { month: 'آبان', salaries: 410, insurance: 120, loans: 28, operational: 0, total: 558 },
+  { month: 'آذر', salaries: 410, insurance: 120, loans: 30, operational: 328, total: 888 }, // Bonus spike
+  { month: 'دی', salaries: 410, insurance: 120, loans: 0, operational: 142, total: 672 },
+  { month: 'بهمن', salaries: 410, insurance: 120, loans: 0, operational: 0, total: 530 },
+  { month: 'اسفند', salaries: 410, insurance: 120, loans: 0, operational: 210, total: 740 }, // End of year expenses
+];
+
+// 3. Banking Status Data (Derived from "لیست حسابها" & "مانده حساب")
+const bankStatusSummary = [
+  { name: 'حساب‌های مسدود/غیرقابل برداشت', value: 12, fill: '#ef4444' },
+  { name: 'حساب‌های راکد', value: 5, fill: '#f97316' },
+  { name: 'حساب‌های فعال و باز', value: 4, fill: '#10b981' },
+];
+
+const blockedFundsData = [
+  { bank: 'بانک شهر', amount: 21134, status: 'مسدود' },
+  { bank: 'مهر ایران (جاری)', amount: 7613, status: 'مسدود' },
+  { bank: 'رسالت', amount: 1470, status: 'راکد' },
+  { bank: 'مهر ایران (سپرده)', amount: 183, status: 'فعال' }, // Only small amount active
+];
+
+// 4. Bounced Checks (Critical Risk)
+const bouncedChecksData = [
+  { id: 1, beneficiary: 'سازمان امور مالیاتی (ارزش افزوده ۱۴۰۱)', amount: 79250, due: '1404/08/20', bank: 'شهر', status: 'اقدام اجرایی' },
+  { id: 2, beneficiary: 'سازمان امور مالیاتی (ارزش افزوده ۱۴۰۳)', amount: 79250, due: '1404/08/24', bank: 'شهر', status: 'اقدام اجرایی' },
+  { id: 3, beneficiary: 'سازمان امور مالیاتی (عملکرد ۱۴۰۳)', amount: 36505, due: '1404/08/24', bank: 'شهر', status: 'برگشتی' },
+];
+
+// --- COMPONENTS ---
+
+const Card = ({ title, value, subtext, icon: Icon, alertLevel = 'normal' }) => {
+  const schemes = {
+    normal: 'border-r-4 border-blue-500 bg-white',
+    warning: 'border-r-4 border-amber-500 bg-amber-50',
+    critical: 'border-r-4 border-red-600 bg-red-50 text-red-900',
+    success: 'border-r-4 border-emerald-500 bg-emerald-50',
+  };
+
+  return (
+    <div className={`p-6 rounded-xl shadow-sm ${schemes[alertLevel]} flex items-center justify-between transition-all hover:shadow-md`}>
+      <div>
+        <h3 className="text-sm font-bold opacity-70 mb-2">{title}</h3>
+        <div className="text-2xl font-black">{value}</div>
+        {subtext && <div className="text-xs mt-2 font-medium opacity-80">{subtext}</div>}
+      </div>
+      {Icon && <Icon className={`w-10 h-10 opacity-30`} />}
+    </div>
+  );
+};
+
+// --- MAIN DASHBOARD ---
+
+export default function SaipaAzinDashboard() {
+  const [activeTab, setActiveTab] = useState('overview');
+  const formatNumber = (num) => new Intl.NumberFormat('fa-IR').format(num);
+
+  // Tab 1: Executive Summary
+  const OverviewTab = () => (
+    <div className="space-y-6 animate-fade-in">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card 
+          title="بدهی مالیاتی حال شده (اضطراری)" 
+          value="۱۹۵,۰۰۵ م.ر" 
+          subtext="خطر مسدودی کد ملی اعضا" 
+          icon={AlertTriangle} 
+          alertLevel="critical" 
+        />
+        <Card 
+          title="نقدینگی مسدود در بانک‌ها" 
+          value="۳۰,۲۱۷ م.ر" 
+          subtext="عمدتاً بانک شهر و مهر ایران" 
+          icon={Ban} 
+          alertLevel="warning" 
+        />
+        <Card 
+          title="کسری نقدینگی آذر ماه" 
+          value="۸۸۸,۰۰۰ م.ر" 
+          subtext="جهش هزینه: حقوق + پاداش" 
+          icon={TrendingDown} 
+          alertLevel="critical" 
+        />
+        <Card 
+          title="وابستگی به منابع غیرنقد (گام)" 
+          value="۱۴٪" 
+          subtext="ریسک تنزیل و عدم نقدشوندگی" 
+          icon={Activity} 
+          alertLevel="normal" 
+        />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Forecast Chart */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-bold text-slate-800">پیش‌بینی جریان نقدینگی تا پایان سال (میلیارد ریال)</h3>
+            <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">پیک هزینه: آذر و اسفند</span>
+          </div>
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={forecastData}>
+                <defs>
+                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis dataKey="month" tick={{fill: '#64748b'}} />
+                <YAxis tick={{fill: '#64748b'}} />
+                <Tooltip 
+                  formatter={(value) => formatNumber(value)} 
+                  contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'}}
+                />
+                <Area type="monotone" dataKey="total" stroke="#dc2626" strokeWidth={3} fillOpacity={1} fill="url(#colorTotal)" name="مجموع مصارف" />
+                <Line type="monotone" dataKey="salaries" stroke="#3b82f6" strokeWidth={2} name="حقوق پایه" strokeDasharray="5 5" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Sources Chart */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <h3 className="text-lg font-bold text-slate-800 mb-6">ترکیب منابع ورودی (وابستگی به سازه‌گستر)</h3>
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={sourcesData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={70}
+                  outerRadius={90}
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {sourcesData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => formatNumber(value)} />
+                <Legend layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{fontSize: '12px'}} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Tab 2: Banking Crisis
+  const BankingTab = () => (
+    <div className="space-y-6 animate-fade-in">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Account Status Pie */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-1">
+          <h3 className="text-lg font-bold text-slate-800 mb-4 text-center">وضعیت عملیاتی حساب‌ها</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={bankStatusSummary}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                >
+                  {bankStatusSummary.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Pie>
+                <Legend wrapperStyle={{fontSize: '11px', paddingTop: '10px'}} />
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-xs text-center text-red-600 font-bold mt-2">هشدار: بیش از ۷۰٪ حساب‌ها مسدود یا راکد است.</p>
+        </div>
+
+        {/* Blocked Funds Bar Chart */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2">
+          <h3 className="text-lg font-bold text-slate-800 mb-4">توزیع منابع حبس شده در بانک‌ها (میلیون ریال)</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={blockedFundsData} layout="vertical" margin={{ left: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                <XAxis type="number" hide />
+                <YAxis dataKey="bank" type="category" width={100} tick={{fontSize: 12}} />
+                <Tooltip formatter={(value) => formatNumber(value)} cursor={{fill: '#f1f5f9'}} />
+                <Bar dataKey="amount" name="مبلغ مانده" radius={[0, 4, 4, 0]}>
+                  {blockedFundsData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.status === 'مسدود' ? '#ef4444' : entry.status === 'راکد' ? '#f97316' : '#10b981'} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="flex gap-4 justify-center mt-4 text-xs text-slate-500">
+            <div className="flex items-center gap-1"><div className="w-3 h-3 bg-red-500 rounded"></div> مسدود/غیرقابل برداشت</div>
+            <div className="flex items-center gap-1"><div className="w-3 h-3 bg-orange-500 rounded"></div> راکد</div>
+            <div className="flex items-center gap-1"><div className="w-3 h-3 bg-emerald-500 rounded"></div> فعال</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Detailed Table */}
+      <div className="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+        <div className="p-4 bg-slate-100 font-bold text-slate-700 flex items-center gap-2">
+          <Landmark className="w-5 h-5" />
+          ریست وضعیت حساب‌های کلیدی (بانک شهر و مهر ایران)
+        </div>
+        <table className="w-full text-sm text-right">
+          <thead className="bg-slate-50 text-slate-500">
+            <tr>
+              <th className="p-3">نام بانک</th>
+              <th className="p-3">نوع حساب</th>
+              <th className="p-3">آخرین مانده (ریال)</th>
+              <th className="p-3">وضعیت فعلی</th>
+              <th className="p-3">علت/توضیحات</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            <tr className="bg-red-50">
+              <td className="p-3 font-bold">شهر</td>
+              <td className="p-3">جاری (صیادی)</td>
+              <td className="p-3 font-mono text-red-700">21,134,826,062</td>
+              <td className="p-3 font-bold text-red-600">مسدود</td>
+              <td className="p-3">چک‌های برگشتی مالیاتی</td>
+            </tr>
+            <tr className="bg-red-50">
+              <td className="p-3 font-bold">مهر ایران</td>
+              <td className="p-3">جاری</td>
+              <td className="p-3 font-mono text-red-700">7,613,762,609</td>
+              <td className="p-3 font-bold text-red-600">مسدود</td>
+              <td className="p-3">غیرقابل برداشت</td>
+            </tr>
+            <tr className="hover:bg-slate-50">
+              <td className="p-3">قرض الحسنه مهر</td>
+              <td className="p-3">سپرده پس‌انداز</td>
+              <td className="p-3 font-mono text-green-700">183,848,839</td>
+              <td className="p-3 font-bold text-green-600">فعال</td>
+              <td className="p-3">قابل برداشت (مبلغ ناچیز)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  // Tab 3: Liabilities (Tax & Checks)
+  const RisksTab = () => (
+    <div className="space-y-6 animate-fade-in">
+      {/* Bounced Checks Alert */}
+      <div className="bg-red-600 text-white p-6 rounded-2xl shadow-lg flex items-start gap-4">
+        <div className="bg-white/20 p-3 rounded-full"><AlertTriangle className="w-8 h-8" /></div>
+        <div>
+          <h3 className="text-xl font-black">وضعیت قرمز: چک‌های برگشتی مالیاتی</h3>
+          <p className="opacity-90 mt-1 text-sm leading-6">
+            مجموع ۱۹۵ میلیارد ریال چک در وجه سازمان امور مالیاتی (مودیان بزرگ) برگشت خورده است. با توجه به قوانین جدید چک صیادی، تمامی حساب‌های شرکت در سایر بانک‌ها نیز در معرض مسدودی آنی قرار دارند.
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+        <table className="w-full text-sm text-right">
+          <thead className="bg-slate-100 text-slate-600">
+            <tr>
+              <th className="p-4">ردیف</th>
+              <th className="p-4">ذینفع (بستانکار)</th>
+              <th className="p-4">بانک عامل</th>
+              <th className="p-4">تاریخ سررسید</th>
+              <th className="p-4">مبلغ (میلیون ریال)</th>
+              <th className="p-4">وضعیت</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {bouncedChecksData.map((check, index) => (
+              <tr key={check.id} className="hover:bg-red-50 transition-colors">
+                <td className="p-4 text-slate-400">{index + 1}</td>
+                <td className="p-4 font-bold">{check.beneficiary}</td>
+                <td className="p-4">{check.bank}</td>
+                <td className="p-4 font-mono">{check.due}</td>
+                <td className="p-4 font-black text-red-600 text-lg">{formatNumber(check.amount)}</td>
+                <td className="p-4"><span className="bg-red-100 text-red-800 px-3 py-1 rounded-full font-bold text-xs">{check.status}</span></td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot className="bg-slate-50">
+            <tr>
+              <td colSpan="4" className="p-4 font-bold text-left">جمع کل تعهدات معوق:</td>
+              <td className="p-4 font-black text-red-700 text-xl">{formatNumber(195005)}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-4 md:p-8 font-['Vazirmatn']" dir="rtl">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;300;400;500;700;900&display=swap');
+        body { font-family: 'Vazirmatn', sans-serif; }
+        .animate-fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
+
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-end mb-8 border-b-2 border-slate-200 pb-4">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 mb-2 flex items-center gap-3">
+            <Briefcase className="w-8 h-8 text-blue-800" />
+            داشبورد جامع مدیریت منابع و مصارف
+          </h1>
+          <p className="text-slate-500 text-lg">گزارش تحلیلی وضعیت نقدینگی، ریسک‌های بانکی و تعهدات - شرکت سایپا آذین</p>
+        </div>
+        <div className="text-left mt-4 md:mt-0">
+          <div className="text-sm font-bold text-slate-700">تاریخ گزارش: ۱۴۰۴/۰۹/۰۸</div>
+          <div className="text-xs text-slate-400 mt-1">تهیه شده جهت استحضار هیئت مدیره</div>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="flex flex-wrap gap-2 mb-8 p-1 bg-white rounded-xl shadow-sm border border-slate-200 w-fit">
+        {[
+          { id: 'overview', label: 'نمای کلی و پیش‌بینی', icon: Activity },
+          { id: 'banking', label: 'وضعیت حساب‌ها و منابع', icon: Landmark },
+          { id: 'risks', label: 'چک‌های برگشتی (اضطراری)', icon: AlertTriangle },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-bold transition-all ${
+              activeTab === tab.id 
+                ? 'bg-slate-800 text-white shadow-md' 
+                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
+            }`}
+          >
+            <tab.icon className="w-4 h-4" />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Content Render */}
+      {activeTab === 'overview' && <OverviewTab />}
+      {activeTab === 'banking' && <BankingTab />}
+      {activeTab === 'risks' && <RisksTab />}
+
+      {/* Executive Summary (Strategic Action Plan) */}
+      <div className="mt-12 bg-white border-l-4 border-blue-800 rounded-r-xl shadow-lg p-8">
+        <h3 className="text-2xl font-black text-slate-800 mb-6 border-b border-slate-100 pb-4">جمع‌بندی مدیریتی و پیشنهاد اقدام</h3>
+        
+        <div className="space-y-6 text-slate-700 leading-8 text-justify">
+          <p>
+            با بررسی دقیق صورت‌های مالی، وضعیت نقدینگی و تعهدات شرکت در آذرماه ۱۴۰۴، موارد زیر به عنوان <strong>ریسک‌های حیاتی</strong> و اقدامات اصلاحی پیشنهاد می‌گردد:
+          </p>
+          
+          <div className="grid md:grid-cols-2 gap-8">
+            <div>
+              <h4 className="font-bold text-red-700 mb-2 flex items-center gap-2">۱. بحران مالیاتی (Priority #1)</h4>
+              <p className="text-sm">
+                وجود ۱۹.۵ میلیارد تومان چک برگشتی نزد سازمان امور مالیاتی با سررسید آبان‌ماه، ریسک آنی توقیف اموال و مسدودی کد ملی اعضای هیئت مدیره را ایجاد کرده است. با توجه به مسدودی حساب بانک شهر، امکان کارسازی از این محل وجود ندارد.
+                <br/><strong>اقدام:</strong> تهاتر فوری این بدهی با مطالبات از سایپا یا اخذ مجوز پرداخت اقساطی جدید ضروری است.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-bold text-orange-700 mb-2 flex items-center gap-2">۲. قفل نقدینگی (Liquidity Trap)</h4>
+              <p className="text-sm">
+                بیش از ۷۰٪ حساب‌های بانکی شرکت (از جمله حساب‌های جاری بانک شهر و مهر ایران) مسدود یا غیرقابل برداشت هستند. مبلغ ۳ میلیارد تومان نقدینگی در این حساب‌ها حبس شده است که عملاً چرخه پرداخت‌های خرد را مختل کرده است.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-blue-700 mb-2 flex items-center gap-2">۳. کسری پایان سال</h4>
+              <p className="text-sm">
+                پیش‌بینی جریان نقدینگی نشان می‌دهد در آذرماه (به دلیل همزمانی حقوق و پاداش‌ها) با کسری نقدینگی حدود ۸۸ میلیارد تومانی مواجه خواهیم بود. اتکا به "اوراق گام" (۱۴٪ منابع) پاسخگوی هزینه‌های حقوق و دستمزد نخواهد بود.
+              </p>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-emerald-700 mb-2 flex items-center gap-2">۴. راهکار پیشنهادی</h4>
+              <ul className="list-disc list-inside text-sm space-y-1">
+                <li>تغییر مدل دریافت از سازه‌گستر: افزایش سهم "نقد" به جای اوراق برای ماه‌های آذر و اسفند.</li>
+                <li>پیگیری حقوقی رفع مسدودی حساب بانک شهر جهت آزادسازی ۲.۱ میلیارد تومان منابع حبس شده.</li>
+                <li>اولویت‌بندی پرداخت‌ها: توقف پرداخت به پیمانکاران غیرضروری تا عبور از پیک هزینه آذر.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
