@@ -127,6 +127,7 @@
         .panel-financial .panel-content { background-color: #fff1f2; border-color: #fecaca; }
         .panel-retiree .accordion { border-right: 6px solid var(--accent); }
         .panel-retiree .panel-content { background-color: #fffbeb; border-color: #fde68a; }
+        .panel-fleet .accordion { border-right: 6px solid #0f172a; } /* Navy for Fleet */
 
         /* --- Charts Grid --- */
         .charts-grid {
@@ -204,6 +205,9 @@
         .badge-setad { background: #ffedd5; color: #9a3412; }
         .badge-male { background: #e0f2fe; color: #0369a1; }
         .badge-female { background: #fce7f3; color: #be185d; }
+        .badge-active { background: #dcfce7; color: #166534; }
+        .badge-inactive { background: #fee2e2; color: #991b1b; }
+        .badge-repair { background: #ffedd5; color: #9a3412; }
         
         /* --- Section Titles --- */
         .section-title {
@@ -322,7 +326,7 @@
             </div></div>
         </div>
 
-        <!-- 2 & 3 Merged: Human Capital (Education & Majors) -->
+        <!-- 2. Human Capital (Education & Majors) -->
         <div class="accordion-wrapper">
             <button class="accordion">۲. تحلیل سرمایه انسانی (تحصیلات و رشته)</button>
             <div class="panel"><div class="panel-content">
@@ -348,7 +352,7 @@
             </div></div>
         </div>
 
-        <!-- 4. Personnel Database -->
+        <!-- 3. Personnel Database -->
         <div class="accordion-wrapper">
             <button class="accordion">۳. بانک اطلاعاتی پرسنل</button>
             <div class="panel"><div class="panel-content">
@@ -373,10 +377,42 @@
                 <div style="margin-top: 5px; font-size: 0.8rem; color: #64748b;">تعداد رکورد: <span id="setad-count">0</span></div>
             </div></div>
         </div>
+        
+        <!-- 4. Fleet Management (New Section) -->
+        <div class="accordion-wrapper panel-fleet">
+            <button class="accordion">۴. وضعیت ناوگان خودرویی شرکت</button>
+            <div class="panel"><div class="panel-content">
+                <div class="charts-grid">
+                    <div class="chart-box full-width" style="height: auto; min-height: 400px;">
+                        <h3>لیست خودروهای در اختیار و عمومی (آبان ۱۴۰۴)</h3>
+                         <div class="table-wrapper" style="border:none; max-height: 600px;">
+                            <table class="main-table" id="fleetTable">
+                                <thead>
+                                    <tr>
+                                        <th>ردیف</th>
+                                        <th>تحویل گیرنده</th>
+                                        <th>سمت / واحد</th>
+                                        <th>نوع خودرو</th>
+                                        <th>سال</th>
+                                        <th>پلاک</th>
+                                        <th>نوع کاربری</th>
+                                        <th>وضعیت فنی</th>
+                                        <th>وضعیت کلی</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div></div>
+        </div>
 
-        <!-- 5. Retirees & Resigned (Split) -->
+        <!-- 5. Retirees & Resigned (Split) - Renumbered -->
         <div class="accordion-wrapper panel-retiree">
-            <button class="accordion">۴. وضعیت بازنشستگان و مستعفی‌ها (اصلاح شده)</button>
+            <button class="accordion">۵. وضعیت بازنشستگان و مستعفی‌ها (اصلاح شده)</button>
             <div class="panel"><div class="panel-content">
                 
                 <div class="charts-grid">
@@ -443,9 +479,9 @@
             </div></div>
         </div>
 
-        <!-- 6. Financial Analysis -->
+        <!-- 6. Financial Analysis - Renumbered -->
         <div class="accordion-wrapper panel-financial">
-            <button class="accordion">۵. آنالیز مالی (حقوق، بودجه و بدهی)</button>
+            <button class="accordion">۶. آنالیز مالی (حقوق، بودجه و بدهی)</button>
             <div class="panel"><div class="panel-content">
                 <div class="charts-grid">
                     
@@ -978,6 +1014,20 @@
             {id:514, name:'فيض اله پور اسلام', date:'1402/12/26', amount:22781797, desc:''}
         ];
 
+        // 5. Car Fleet Data
+        const carList = [
+            {row: 1, receiver: 'مدیریت عامل', position: 'مدیریت', car: 'سراتو', year: '1394', plate: '73ی597 ایران33', usage: 'عمومی/ماموریت', tech: 'سالم', status: 'فعال', statusColor: 'active', techColor: 'active'},
+            {row: 2, receiver: 'دفتر مدیریت', position: 'دفتر', car: 'شاهین', year: '1401', plate: '45ه642 ایران33', usage: 'عمومی/ماموریت', tech: 'سالم', status: 'فعال', statusColor: 'active', techColor: 'active'},
+            {row: 3, receiver: 'دفتر مدیریت', position: 'دفتر', car: 'شاهین', year: '1401', plate: '65م385 ایران33', usage: 'عمومی/ماموریت', tech: 'سالم', status: 'فعال', statusColor: 'active', techColor: 'active'},
+            {row: 4, receiver: 'غلامرضا عبداله خانی', position: 'مدیر حراست', car: 'شاهین CVT', year: '1402', plate: '88ق584 ایران33', usage: 'در اختیار', tech: 'سالم', status: 'فعال', statusColor: 'active', techColor: 'active'},
+            {row: 5, receiver: 'علی علیزاده دولت آباد', position: 'مدیر اداری', car: 'ساندرو استپ وی', year: '1396', plate: '64ی756 ایران33', usage: 'در اختیار', tech: 'سالم', status: 'فعال', statusColor: 'active', techColor: 'active'},
+            {row: 6, receiver: 'دفتر مدیریت', position: 'دفتر', car: 'رنو ال 90', year: '1390', plate: '65م322 ایران33', usage: 'عمومی/ماموریت', tech: 'نیاز به تعمیر', status: 'غیر فعال', statusColor: 'inactive', techColor: 'repair'},
+            {row: 7, receiver: 'دفتر مدیریت', position: 'دفتر', car: 'ریو', year: '1390', plate: '57و773 ایران33', usage: 'عمومی/ماموریت', tech: 'نیاز به تعمیر', status: 'غیر فعال', statusColor: 'inactive', techColor: 'repair'},
+            {row: 8, receiver: 'امین حسن زاده', position: 'امانی در اختیار', car: 'فیدیلیتی', year: '1400', plate: '45د519 ایران33', usage: 'در اختیار', tech: 'سالم', status: 'فعال', statusColor: 'active', techColor: 'active'},
+            {row: 9, receiver: 'سید حسن نصیری', position: 'هیئت مدیره', car: 'شاهین CVT', year: '1402', plate: '85ط587 ایران33', usage: 'در اختیار', tech: 'سالم', status: 'فعال', statusColor: 'active', techColor: 'active'},
+            {row: 10, receiver: 'امین حسن زاده', position: 'امانی در اختیار', car: 'چانگان', year: '1395', plate: '---', usage: 'در اختیار', tech: 'سالم', status: 'فعال', statusColor: 'active', techColor: 'active'}
+        ];
+
         // --- INIT ---
         function initDashboard() {
             
@@ -994,12 +1044,10 @@
                 }
             });
 
-            // NEW: Unit Breakdown Analysis (Based on typical distribution from 'بانک اطلاعاتی کارکنان')
-            // Data aggregated from 'واحد خدمت' to sum ~1004 (Total KPI)
+            // Unit Breakdown Chart
             const unitLabels = ['تولید (مونتاژ/فلزی/فوم)', 'نگهداری و تعمیرات', 'کنترل کیفیت', 'حراست', 'مهندسی و فنی', 'بازرگانی', 'برنامه ریزی', 'اداری و منابع انسانی', 'مالی', 'سایر'];
-            const unitValues = [620, 85, 60, 45, 40, 35, 35, 30, 25, 29]; // Estimates summing to ~1004 based on Saf/Setad ratio
+            const unitValues = [620, 85, 60, 45, 40, 35, 35, 30, 25, 29]; 
             
-            // Chart
             new Chart(document.getElementById('unitChart'), {
                 type: 'bar',
                 data: {
@@ -1018,7 +1066,7 @@
                 }
             });
 
-            // Table Population
+            // Table Population Unit
             const unitTableBody = document.querySelector('#unitTable tbody');
             const totalStaff = 1004;
             unitLabels.forEach((label, index) => {
@@ -1155,6 +1203,25 @@
             renderTable('retiredTableList', retiredList, ['name', 'type', 'date', 'amount'], true);
             renderTable('resignedTableList', resignedList, ['name', 'type', 'date', 'amount'], true);
             
+            // Render Fleet Table
+            const fleetTbody = document.querySelector('#fleetTable tbody');
+            fleetTbody.innerHTML = '';
+            carList.forEach(car => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${car.row}</td>
+                    <td><b>${car.receiver}</b></td>
+                    <td>${car.position}</td>
+                    <td>${car.car}</td>
+                    <td>${car.year}</td>
+                    <td style="direction:ltr;">${car.plate}</td>
+                    <td>${car.usage}</td>
+                    <td><span class="badge badge-${car.techColor}">${car.tech}</span></td>
+                    <td><span class="badge badge-${car.statusColor}">${car.status}</span></td>
+                `;
+                fleetTbody.appendChild(tr);
+            });
+
             // Calculate and display Totals for Section 5
             calculateSection5Totals();
         }
@@ -1162,7 +1229,6 @@
         function calculateSection5Totals() {
             let sumRetired = 0;
             retiredList.forEach(item => {
-                // Ensure amount is treated as number, remove commas if present
                 let val = item.amount;
                 if (typeof val === 'string') val = val.replace(/,/g, '');
                 sumRetired += Number(val);
@@ -1186,8 +1252,6 @@
             
             // Update Chart
             const ctx = document.getElementById('retireeDebtChart');
-            // Check if chart instance exists, destroy if so (though in init it's fine)
-            // Just create new
              new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -1258,4 +1322,3 @@
     </script>
 </body>
 </html>
-
