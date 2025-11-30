@@ -3,393 +3,547 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد جامع سایپا آذین - نسخه نهایی</title>
+    <title>تحلیل بحران نقدینگی زنجیره تأمین | Supply Chain Liquidity Crisis</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js Datalabels Plugin (Added for labels on bars) -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom Palette & Fonts -->
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;300;400;500;700;900&display=swap');
-        body { font-family: 'Vazirmatn', sans-serif; background-color: #f1f5f9; }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #e2e8f0; }
-        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
-        /* Charts need LTR */
-        .recharts-wrapper { direction: ltr; } 
-        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; opacity: 0; transform: translateY(10px); }
-        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap');
+        
+        :root {
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --accent-cyan: #0891b2;
+            --accent-pink: #db2777;
+            --accent-amber: #d97706;
+            --accent-red: #dc2626;
+        }
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: var(--bg-card);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Table Styling */
+        .table-wrapper {
+            overflow-x: auto; /* Enable horizontal scroll */
+            width: 100%;
+            border-radius: 0.75rem;
+        }
+
+        .custom-table {
+            width: 100%;
+            min-width: 1200px;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        .custom-table th {
+            background-color: #f1f5f9;
+            color: var(--text-main);
+            font-weight: 800;
+            text-align: right;
+            padding: 16px 12px;
+            border-bottom: 2px solid #cbd5e1;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            white-space: nowrap;
+            cursor: pointer;
+            user-select: none;
+        }
+        .custom-table th:hover {
+            background-color: #e2e8f0;
+        }
+        .custom-table td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            color: var(--text-sub);
+            white-space: nowrap;
+        }
+        .custom-table tr:hover {
+            background-color: #f0f9ff;
+        }
+        
+        /* Financial Columns */
+        .amount-col {
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            direction: ltr;
+            text-align: right;
+            font-size: 1.05rem;
+        }
+        .negative-val { color: #dc2626; } /* Red for debts */
+        .positive-val { color: #0f172a; } 
+        .alloc-val { color: #0891b2; font-weight: 900; font-size: 1.1rem; background-color: #ecfeff; } 
+
+        .sort-icon { margin-right: 5px; font-size: 0.8em; color: #94a3b8; }
+        .sort-active { color: #0891b2; }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .badge-metal { background-color: #fee2e2; color: #b91c1c; }
+        .badge-tadarokat { background-color: #dbeafe; color: #1e40af; }
+        .badge-nonmetal { background-color: #e2e8f0; color: #475569; }
+        
+        .unit-header {
+            font-size: 0.7rem;
+            color: #64748b;
+            font-weight: normal;
+            display: block;
+            margin-top: 4px;
+        }
+        
+        /* Scrollbar Styling for Webkit */
+        .table-wrapper::-webkit-scrollbar {
+            height: 14px;
+        }
+        .table-wrapper::-webkit-scrollbar-track {
+            background: #f1f5f9; 
+            border-radius: 0 0 10px 10px;
+        }
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 10px;
+            border: 3px solid #f1f5f9;
+        }
+        .table-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
     </style>
 </head>
-<body>
-    <div id="root"></div>
+<body class="antialiased">
 
-    <script type="module">
-        import React, { useState } from 'https://esm.sh/react@18.2.0';
-        import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
-        import { 
-            BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, 
-            CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area, LabelList, ComposedChart 
-        } from 'https://esm.sh/recharts@2.12.7?deps=react@18.2.0,react-dom@18.2.0';
-        import { 
-            AlertTriangle, TrendingUp, TrendingDown, Ban, Activity, Landmark, Briefcase, FileText, Users, Truck, Wallet, ShieldAlert 
-        } from 'https://esm.sh/lucide-react@0.294.0?deps=react@18.2.0,react-dom@18.2.0';
+    <!-- Header -->
+    <header class="w-full py-8 px-6 bg-white border-b border-slate-200 shadow-sm mb-8">
+        <div class="max-w-7xl mx-auto text-center">
+            <h1 class="text-3xl md:text-5xl font-black mb-3 text-slate-900">
+                گزارش جامع <span class="text-cyan-600">تخصیص نقدینگی</span>
+            </h1>
+            <div class="flex justify-center gap-4">
+                <p class="text-slate-500 font-bold bg-slate-100 inline-block px-4 py-1 rounded-full text-sm border border-slate-200">
+                    مبنای ارقام: <span class="text-slate-900">میلیون ریال</span>
+                </p>
+                <p class="text-slate-500 font-bold bg-slate-100 inline-block px-4 py-1 rounded-full text-sm border border-slate-200">
+                    گرد شده (بدون اعشار)
+                </p>
+            </div>
+        </div>
+    </header>
 
-        // --- 1. DATASETS ---
+    <!-- Main Content -->
+    <main class="max-w-[98%] mx-auto px-4 pb-12">
 
-        // A. Liquidity & Banking Data (From Excel Files)
-        const sourcesData = [ { name: 'دریافتی از سازه‌گستر (جاری)', value: 3407, fill: '#3b82f6' }, { name: 'دریافتی از سازه (حقوق)', value: 2908, fill: '#60a5fa' }, { name: 'اوراق گام (غیرنقد)', value: 1250, fill: '#f59e0b' }, { name: 'دریافت مستقیم سایپا', value: 680, fill: '#10b981' }, { name: 'سایر (LC، ضایعات، ...)', value: 562, fill: '#94a3b8' } ];
-        const forecastData = [ { month: 'آبان', salaries: 410, insurance: 120, loans: 28, total: 558 }, { month: 'آذر', salaries: 410, insurance: 120, loans: 30, total: 888 }, { month: 'دی', salaries: 410, insurance: 120, loans: 0, total: 672 }, { month: 'بهمن', salaries: 410, insurance: 120, loans: 0, total: 530 }, { month: 'اسفند', salaries: 410, insurance: 120, loans: 0, total: 740 } ];
-        const bankStatusSummary = [ { name: 'مسدود/غیرقابل برداشت', value: 12, fill: '#ef4444' }, { name: 'راکد', value: 5, fill: '#f97316' }, { name: 'فعال', value: 4, fill: '#10b981' } ];
-        const blockedFundsData = [ { bank: 'بانک شهر', amount: 21134, status: 'مسدود' }, { bank: 'بانک مهر ایران', amount: 7613, status: 'مسدود' }, { bank: 'بانک رسالت', amount: 672, status: 'راکد' }, { bank: 'بانک سپه', amount: 12, status: 'راکد' } ];
-        const bouncedChecksData = [ { id: 1, beneficiary: 'سازمان امور مالیاتی (ارزش افزوده ۱۴۰۱)', amount: 79250, due: '1404/08/20', bank: 'شهر', status: 'اقدام اجرایی' }, { id: 2, beneficiary: 'سازمان امور مالیاتی (ارزش افزوده ۱۴۰۳)', amount: 79250, due: '1404/08/24', bank: 'شهر', status: 'اقدام اجرایی' }, { id: 3, beneficiary: 'سازمان امور مالیاتی (عملکرد ۱۴۰۳)', amount: 36505, due: '1404/08/24', bank: 'شهر', status: 'برگشتی' } ];
+        <!-- Controls -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+            <div class="text-sm text-slate-500 bg-slate-100 px-3 py-2 rounded-lg flex items-center gap-2 border border-slate-200">
+                <i class="fas fa-arrows-alt-h text-cyan-600"></i>
+                <span>برای مشاهده تمام ستون‌ها، جدول را به چپ و راست اسکرول کنید</span>
+            </div>
+            <div class="text-right flex items-center gap-2 bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+                <span class="font-bold text-slate-700">جمع کل تخصیص: </span>
+                <span id="totalAllocDisplay" class="text-cyan-600 font-mono font-bold text-2xl">---</span>
+                <span class="text-sm text-slate-400">میلیون ریال</span>
+            </div>
+        </div>
 
-        // B. Strategic Data (From HTML Report)
-        const historicalTrendData = [ { name: '۱۲م ۱۴۰۱', revenue: 20927, cost: 19238, net: 850 }, { name: '۱۲م ۱۴۰۲', revenue: 20972, cost: 19548, net: -1055 }, { name: '۱۲م ۱۴۰۳', revenue: 32813, cost: 32737, net: -3580 }, { name: 'پیش‌بینی ۱۴۰۴', revenue: 21300, cost: 23220, net: -7100 } ];
-        const gapAnalysisData = [ { name: '۶م ۱۴۰۱', revenue: 9200, cost: 8450 }, { name: '۶م ۱۴۰۲', revenue: 9400, cost: 8900 }, { name: '۶م ۱۴۰۳', revenue: 14052, cost: 15094 }, { name: '۶م ۱۴۰۴', revenue: 10650, cost: 11611 } ];
+        <!-- THE TABLE CONTAINER -->
+        <div class="glass-panel rounded-xl shadow-lg h-[750px] flex flex-col mb-12">
+            <div class="table-wrapper h-full">
+                <table class="custom-table" id="allocationTable">
+                    <thead>
+                        <tr>
+                            <th class="w-16 text-center">ردیف</th>
+                            <th onclick="sortTable('name')" class="w-auto">شرح تفصیلی <i id="icon-name" class="fas fa-sort sort-icon"></i></th>
+                            <th onclick="sortTable('group')" class="w-32">گروه <i id="icon-group" class="fas fa-sort sort-icon"></i></th>
+                            <th onclick="sortTable('debt0')" class="pl-6 text-left w-48">طلب صفر روزه <span class="unit-header">(میلیون ریال)</span> <i id="icon-debt0" class="fas fa-sort sort-icon"></i></th>
+                            <th onclick="sortTable('alloc')" class="pl-6 text-left bg-cyan-50 w-48">تخصیص <span class="unit-header">(میلیون ریال)</span> <i id="icon-alloc" class="fas fa-sort sort-icon sort-active"></i></th>
+                            <th onclick="sortTable('percent')" class="text-center w-32">درصد از کل <i id="icon-percent" class="fas fa-sort sort-icon"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- JS will populate this -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-        // --- 2. COMPONENTS ---
-        
-        const Card = ({ title, value, subtext, icon: Icon, alertLevel = 'normal', borderLeft = false }) => {
-            const schemes = {
-                normal: 'bg-white border-blue-500 text-slate-800',
-                warning: 'bg-amber-50 border-amber-500 text-amber-900',
-                critical: 'bg-red-50 border-red-600 text-red-900',
-                success: 'bg-emerald-50 border-emerald-500 text-emerald-900',
-            };
-            const borderClass = borderLeft ? 'border-l-4' : 'border-r-4';
-            return React.createElement('div', { className: `p-5 rounded-xl shadow-sm ${borderClass} ${schemes[alertLevel]} flex justify-between items-start hover:shadow-md transition-shadow` },
-                React.createElement('div', null,
-                    React.createElement('h3', { className: "text-xs font-bold uppercase tracking-wide opacity-70 mb-1" }, title),
-                    React.createElement('div', { className: "text-2xl font-black" }, value),
-                    subtext && React.createElement('div', { className: "text-xs mt-2 font-medium opacity-80" }, subtext)
-                ),
-                Icon && React.createElement(Icon, { className: "w-8 h-8 opacity-20" })
-            );
+        <!-- Analysis Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- NEW CHART: Coverage Hierarchy -->
+            <div class="glass-panel p-6 rounded-xl border-t-4 border-slate-700 lg:col-span-2">
+                <h3 class="text-2xl font-bold text-slate-800 mb-2 flex items-center gap-2">
+                    <i class="fas fa-balance-scale-right text-slate-700"></i>
+                    مقایسه کلان: بدهی در برابر تخصیص
+                </h3>
+                <p class="text-slate-500 mb-6 text-sm">این نمودار نشان می‌دهد چه سهم کوچکی از تعهدات کلان شرکت با بودجه فعلی پوشش داده شده است.</p>
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="coverageChart"></canvas>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-xl border-t-4 border-cyan-500">
+                <h3 class="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
+                    <i class="fas fa-chart-pie text-cyan-500"></i>
+                    توزیع تخصیص بر اساس گروه
+                </h3>
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="groupChart"></canvas>
+                </div>
+            </div>
+            <div class="glass-panel p-6 rounded-xl border-t-4 border-pink-500">
+                <h3 class="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
+                    <i class="fas fa-trophy text-pink-500"></i>
+                    ۱۰ دریافت‌کننده برتر (میلیون ریال)
+                </h3>
+                <div class="chart-container" style="height: 300px;">
+                    <canvas id="top10Chart"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- 1. DATASET ---
+        // Raw Data in Rials (Integer). Will be converted to Millions in display.
+        const rawData = [
+            {r:46, c:'700180', n:'شرکت تولیدی گوهربافان', g:'غیرفلزی', d0:-1405360857148, d120:-1171104535806, nt:0, a:100000000000, p:'7%'}, 
+            {r:65, c:'701324', n:'جهش فام ایرانیان (فوم)', g:'غیرفلزی', d0:-135372486594, d120:-15084858364, nt:-200000000000, a:80000000000, p:'59%'},
+            {r:1, c:'701472', n:'جرثقیل مسعود', g:'تدارکات', d0:-22729241218, d120:0, nt:0, a:1000000000, p:'4%'},
+            {r:2, c:'403551', n:'پخش اکسیژن پرتو', g:'تدارکات', d0:-19144740000, d120:0, nt:0, a:1000000000, p:'5%'},
+            {r:3, c:'403831', n:'شرکت همراهان شایان نوین گلستان', g:'تدارکات', d0:-9456452212, d120:0, nt:0, a:1000000000, p:'11%'},
+            {r:4, c:'401620', n:'فروشگاه فولادکار', g:'تدارکات', d0:-14084935744, d120:0, nt:0, a:500000000, p:'4%'},
+            {r:5, c:'400262', n:'فروشگاه لاستیک منوچهری', g:'تدارکات', d0:-8227500000, d120:0, nt:0, a:500000000, p:'6%'},
+            {r:6, c:'701458', n:'آونگ تجارت اورنگ', g:'تدارکات', d0:-10474717228, d120:0, nt:0, a:1000000000, p:'10%'},
+            {r:7, c:'403948', n:'تولیدی پوشاک صباحی(محمد صباحی)', g:'تدارکات', d0:-6597000000, d120:0, nt:0, a:1400000000, p:'21%'},
+            {r:8, c:'403271', n:'فروشگاه ایمن کالای برادران حضرتی', g:'تدارکات', d0:-3851844000, d120:0, nt:0, a:600000000, p:'16%'},
+            {r:9, c:'402118', n:'شرکت مهندسی دقت گستر', g:'تدارکات', d0:-5144511000, d120:0, nt:0, a:1000000000, p:'19%'},
+            {r:10, c:'403946', n:'فروشگاه ابزار دقیق نور(اعظم ایوبی زازانی)', g:'تدارکات', d0:-2922385000, d120:0, nt:0, a:1000000000, p:'34%'},
+            {r:11, c:'404021', n:'شرکت ابزار آوران صنعت ایرانیان', g:'تدارکات', d0:-3230447520, d120:0, nt:0, a:500000000, p:'15%'},
+            {r:12, c:'404221', n:'پترو صنعت آژند(اسماعیل محمود زاده)', g:'تدارکات', d0:-2417274100, d120:0, nt:0, a:500000000, p:'21%'},
+            {r:13, c:'701401', n:'جهان شلنگ', g:'تدارکات', d0:-2592156080, d120:0, nt:0, a:300000000, p:'12%'},
+            {r:14, c:'403778', n:'فروشگاه صنایع گستر (محمد خدادادی)', g:'تدارکات', d0:-3635893000, d120:0, nt:0, a:500000000, p:'14%'},
+            {r:15, c:'404271', n:'سوخت رساني پورمهدي(جهان پور مهدي)', g:'تدارکات', d0:-1642000000, d120:0, nt:0, a:500000000, p:'30%'},
+            {r:16, c:'402874', n:'فروشگاه افشاریان', g:'تدارکات', d0:-1034731000, d120:0, nt:0, a:500000000, p:'48%'},
+            {r:17, c:'701194', n:'شرکت شبکه تجاری پیوند ایرانیان', g:'تدارکات', d0:-599379877, d120:0, nt:0, a:300000000, p:'50%'},
+            {r:18, c:'403784', n:'تحلیل گران اطلاعات گویا', g:'تدارکات', d0:-1857214250, d120:0, nt:0, a:500000000, p:'27%'},
+            {r:19, c:'701429', n:'شزکت پیشتازان محیط زیست آسیا', g:'تدارکات', d0:-1621962126, d120:0, nt:0, a:300000000, p:'18%'},
+            {r:20, c:'404003', n:'دماسازان البرز(محمد شیراوند)', g:'تدارکات', d0:-1474833854, d120:0, nt:0, a:400000000, p:'27%'},
+            {r:21, c:'404177', n:'فروشگاه برق و صنعت صفری (مهدی صفری)', g:'تدارکات', d0:-944595000, d120:0, nt:0, a:300000000, p:'32%'},
+            {r:22, c:'404168', n:'تعمیرات ماشینهای اداری ( علی اشرف فیروز پوری )', g:'تدارکات', d0:-1542153835, d120:0, nt:0, a:300000000, p:'19%'},
+            {r:23, c:'404164', n:'شرکت برادران رنجبر (عباس رنجبر)', g:'تدارکات', d0:-2994830000, d120:0, nt:0, a:2000000000, p:'67%'},
+            {r:24, c:'403039', n:'پیمانکاری محسن', g:'تدارکات', d0:-3331458050, d120:0, nt:0, a:400000000, p:'12%'},
+            {r:25, c:'403142', n:'شرکت پترو پیشتاز پایتخت آراد', g:'تدارکات', d0:-1863680176, d120:0, nt:0, a:300000000, p:'16%'},
+            {r:26, c:'403914', n:'شرکت غزال پخش پیشرو', g:'تدارکات', d0:-2706272650, d120:0, nt:0, a:600000000, p:'22%'},
+            {r:27, c:'404204', n:'برق و صنعت رادین(زهرا جهاندوست)', g:'تدارکات', d0:-280940000, d120:0, nt:0, a:200000000, p:'71%'},
+            {r:28, c:'404243', n:'شرکت آکام صنعت ماهان', g:'تدارکات', d0:-1054955000, d120:0, nt:0, a:300000000, p:'28%'},
+            {r:29, c:'402082', n:'جهان لیفتراک', g:'تدارکات', d0:-1785800000, d120:0, nt:0, a:300000000, p:'17%'},
+            {r:30, c:'402922', n:'کارگاه تولیدی نوار و کشبافی نساجی رحیم نعمتی', g:'تدارکات', d0:-976250000, d120:0, nt:0, a:300000000, p:'31%'},
+            {r:31, c:'400314', n:'فروشگاه هپکو', g:'تدارکات', d0:-624060000, d120:0, nt:0, a:200000000, p:'32%'},
+            {r:32, c:'404227', n:'شرکت پايا پرداز محيط', g:'تدارکات', d0:-480886000, d120:0, nt:0, a:200000000, p:'42%'},
+            {r:33, c:'400867', n:'شرکت خدمات عمومی فولاد ایران', g:'تدارکات', d0:-2062975475, d120:0, nt:0, a:300000000, p:'15%'},
+            {r:34, c:'401414', n:'فروشگاه دنیای پلاستیک', g:'تدارکات', d0:-685220000, d120:0, nt:0, a:300000000, p:'44%'},
+            {r:35, c:'403286', n:'فروشگاه مدرن صنعت', g:'تدارکات', d0:-224250000, d120:0, nt:0, a:100000000, p:'45%'},
+            {r:36, c:'402389', n:'فروشگاه رنگ جوشقانی', g:'تدارکات', d0:-404600000, d120:0, nt:0, a:300000000, p:'74%'},
+            {r:37, c:'404275', n:'گاز سيلندر صالحي(ابراهيم صالحي چهر)', g:'تدارکات', d0:-378000000, d120:0, nt:0, a:370000000, p:'98%'},
+            {r:38, c:'403500', n:'فروشگاه پرتو شیمی', g:'تدارکات', d0:-75700000, d120:0, nt:0, a:70000000, p:'92%'},
+            {r:39, c:'402157', n:'شیلر فرآیند پارس', g:'تدارکات', d0:-256445500, d120:0, nt:0, a:100000000, p:'39%'},
+            {r:40, c:'403615', n:'شرکت فنی و مهندسی اعتلای صنعت پارس', g:'تدارکات', d0:-101230720, d120:0, nt:0, a:100000000, p:'99%'},
+            {r:41, c:'700811', n:'شرکت برید سامانه نوین', g:'تدارکات', d0:-342894000, d120:0, nt:0, a:250000000, p:'73%'},
+            {r:42, c:'403925', n:'فروشگاه جزایری(سید علا الدین جزایری)', g:'تدارکات', d0:-55596000, d120:0, nt:0, a:50000000, p:'90%'},
+            {r:43, c:'402917', n:'سیم پیچی الکتروتکنیک اکبر', g:'تدارکات', d0:-675251810, d120:0, nt:0, a:300000000, p:'44%'},
+            {r:44, c:'403721', n:'پخش پدیده پایدار(شعبه هورکا)', g:'تدارکات', d0:0, d120:0, nt:0, a:600000000, p:'-'},
+            {r:45, c:'701331', n:'شرکت آرین توف پاسارگاد', g:'تدارکات', d0:-135193700, d120:0, nt:0, a:50000000, p:'37%'},
+            {r:47, c:'701407', n:'پایا ابر مارال', g:'غیرفلزی', d0:-172463837103, d120:-32828440021, nt:0, a:5000000000, p:'3%'},
+            {r:48, c:'701425', n:'رویال توسعه پایدار', g:'غیرفلزی', d0:-102953953244, d120:-26594153244, nt:0, a:8000000000, p:'8%'},
+            {r:49, c:'700132', n:'شرکت فجر پلاستیک ایرانیان', g:'غیرفلزی', d0:-93938262813, d120:-75629902373, nt:0, a:2000000000, p:'2%'},
+            {r:50, c:'700251', n:'شرکت رویابافت توس', g:'غیرفلزی', d0:-89899709782, d120:-28008559372, nt:0, a:9910000000, p:'11%'},
+            {r:51, c:'701398', n:'شرکت پلیمر فوم اطلس', g:'غیرفلزی', d0:-79117967702, d120:-21210887702, nt:0, a:3000000000, p:'4%'},
+            {r:52, c:'701204', n:'شرکت تراز تجارت پارس', g:'غیرفلزی', d0:-62361037724, d120:-60570148998, nt:0, a:1000000000, p:'2%'},
+            {r:53, c:'700835', n:'کارگاه فرامرز تابان', g:'غیرفلزی', d0:-58252050629, d120:-52078139369, nt:0, a:1000000000, p:'2%'},
+            {r:54, c:'701338', n:'ارج پلاست مهران', g:'غیرفلزی', d0:-50318107197, d120:-50318107197, nt:-5000000000, a:6000000000, p:'12%'},
+            {r:55, c:'701488', n:'شرکت کاژه پوشش پایدار', g:'غیرفلزی', d0:-33047669200, d120:-15398200000, nt:0, a:1000000000, p:'3%'},
+            {r:56, c:'701469', n:'پایدار صنعت ارزش آفرین', g:'غیرفلزی', d0:-20517891499, d120:-15939251499, nt:0, a:1500000000, p:'7%'},
+            {r:57, c:'700995', n:'شرکت سپیده کویر کاشان', g:'غیرفلزی', d0:-12485294077, d120:-9624194077, nt:0, a:1500000000, p:'12%'},
+            {r:58, c:'701487', n:'شرکت شیمی فرآیند دنا', g:'غیرفلزی', d0:-12401884000, d120:-9705124000, nt:0, a:2500000000, p:'20%'},
+            {r:59, c:'701497', n:'بافت و تکمیل تیراژه ', g:'غیرفلزی', d0:-8004941212, d120:3743755253, nt:0, a:1500000000, p:'19%'},
+            {r:60, c:'701296', n:'شرکت کوثر بافت جنوب یزد', g:'غیرفلزی', d0:-3616946141, d120:-3616946141, nt:0, a:1000000000, p:'28%'},
+            {r:61, c:'700992', n:'شرکت اطلس پلاستيك فجر', g:'غیرفلزی', d0:-3590282177, d120:450501823, nt:0, a:1500000000, p:'42%'},
+            {r:62, c:'701482', n:'ریسندگی و بافندگی قماش آذر شهر', g:'غیرفلزی', d0:-2131278219, d120:-2131278219, nt:0, a:1000000000, p:'47%'},
+            {r:63, c:'700552', n:'شرکت کش و نوار ایران', g:'غیرفلزی', d0:-2100938400, d120:-2100938400, nt:0, a:500000000, p:'24%'},
+            {r:64, c:'701436', n:'ماسوره دوخت غرب (وحید جمشیدی)', g:'غیرفلزی', d0:-1942732058, d120:-1942732058, nt:0, a:500000000, p:'26%'},
+            {r:66, c:'701019', n:'نواندیش صنعت پرنیان', g:'فلزی', d0:-564859979295, d120:-403445001964, nt:0, a:8000000000, p:'1%'},
+            {r:67, c:'700849', n:'شرکت مهندسی وتولیدی ورافن', g:'فلزی', d0:-466391455173, d120:-368707250863, nt:-20000000000, a:2000000000, p:'0%'},
+            {r:68, c:'700802', n:'سازه پردازان', g:'فلزی', d0:-367088512309, d120:-241473241161, nt:0, a:4500000000, p:'1%'},
+            {r:69, c:'701086', n:'شرکت صنایع الکترونیک شیراز', g:'فلزی', d0:-322541281873, d120:-317821819939, nt:0, a:4000000000, p:'1%'},
+            {r:70, c:'701451', n:'شرکت نیکان قطعه', g:'فلزی', d0:-274346311057, d120:-219269671726, nt:0, a:4000000000, p:'1%'},
+            {r:71, c:'700439', n:'شرکت سروش ثامن', g:'فلزی', d0:-217432590004, d120:-179081357085, nt:0, a:3500000000, p:'2%'},
+            {r:72, c:'701176', n:'شرکت سازه فنر پویش', g:'فلزی', d0:-168358935077, d120:-135191673435, nt:0, a:3500000000, p:'2%'},
+            {r:73, c:'700740', n:'شرکت کوبش کویر سمنان', g:'فلزی', d0:-84389357744, d120:-68410399144, nt:0, a:1500000000, p:'2%'},
+            {r:74, c:'701223', n:'پارت خودرو بیستون', g:'فلزی', d0:-73550651500, d120:-54850651500, nt:-3500000000, a:2000000000, p:'3%'},
+            {r:75, c:'700532', n:'شرکت یزدپیچ', g:'فلزی', d0:-67948685817, d120:-66640682857, nt:0, a:4000000000, p:'6%'},
+            {r:76, c:'700630', n:'پویا فنر جهان', g:'فلزی', d0:-58744773994, d120:-40671064406, nt:0, a:3000000000, p:'5%'},
+            {r:77, c:'701474', n:'پولاد نصر البرز', g:'فلزی', d0:-56367625574, d120:-41635348775, nt:0, a:700000000, p:'1%'},
+            {r:78, c:'701483', n:'شرکت اطلس پيچ گستر ايرانيان', g:'فلزی', d0:-52655468141, d120:-31853547744, nt:0, a:3500000000, p:'7%'},
+            {r:79, c:'700578', n:'شرکت مهندسی خوشنامان صنعت', g:'فلزی', d0:-38450668373, d120:-33591008843, nt:0, a:2400000000, p:'6%'},
+            {r:80, c:'701113', n:'صنایع فلزی آرمان قطعه لیا', g:'فلزی', d0:-35757795051, d120:-32303138716, nt:0, a:2500000000, p:'7%'},
+            {r:81, c:'700892', n:'شرکت ایمن خودرو شرق', g:'فلزی', d0:-105691589833, d120:753158967, nt:-10000000000, a:8000000000, p:'8%'},
+            {r:82, c:'700462', n:'شرکت ایران قطعه', g:'فلزی', d0:-27093721955, d120:16309462309, nt:-170000000000, a:5000000000, p:'18%'},
+            {r:83, c:'701421', n:'امید آینده آروین', g:'فلزی', d0:-25830141809, d120:-25207130809, nt:0, a:350000000, p:'1%'},
+            {r:84, c:'700844', n:'شرکت اخشان', g:'فلزی', d0:-24300425841, d120:11693279159, nt:0, a:1500000000, p:'6%'},
+            {r:85, c:'701379', n:'شرکت فن آوران صنعت  پرتو اندیشه', g:'فلزی', d0:-23691479854, d120:-13537930691, nt:0, a:700000000, p:'3%'},
+            {r:86, c:'700817', n:'شرکت آذر صنعت اسکو', g:'فلزی', d0:-22134611988, d120:-19383836268, nt:0, a:400000000, p:'2%'},
+            {r:87, c:'700930', n:'قطعه گستران', g:'فلزی', d0:-15705903613, d120:-15705903613, nt:0, a:800000000, p:'5%'},
+            {r:88, c:'700659', n:'صنایع مفتولی اشتهارد', g:'فلزی', d0:-13424886952, d120:-7893509452, nt:-5000000000, a:5000000000, p:'37%'},
+            {r:89, c:'700673', n:'شرکت رسا قطعه گستر مهر', g:'فلزی', d0:-12012437067, d120:-11892597645, nt:0, a:400000000, p:'3%'},
+            {r:90, c:'700968', n:'پارس پرچ', g:'فلزی', d0:-11733649700, d120:-9493956200, nt:0, a:2500000000, p:'21%'},
+            {r:91, c:'701092', n:'صنعتی استیل', g:'فلزی', d0:-4213962513, d120:-2246282513, nt:0, a:300000000, p:'7%'},
+            {r:92, c:'701380', n:'صنایع فاین ایران', g:'فلزی', d0:-3832280344, d120:-2845580344, nt:0, a:300000000, p:'8%'},
+            {r:93, c:'701371', n:'صنایع پیچ جاوید', g:'فلزی', d0:-3557120306, d120:-2199082856, nt:0, a:800000000, p:'22%'},
+            {r:94, c:'701316', n:'شرکت جهان مفتول بردیا', g:'فلزی', d0:-1558396903, d120:-1558396903, nt:0, a:1000000000, p:'64%'},
+            {r:95, c:'701486', n:'بنيان طب شادمهر(محمد شادمهر)', g:'فلزی', d0:-1397500180, d120:-519009050, nt:0, a:400000000, p:'29%'},
+            {r:96, c:'701057', n:'آژند سیم آریا', g:'فلزی', d0:-25116770, d120:1069383503, nt:0, a:400000000, p:'1593%'},
+            {r:97, c:'', n:'فروشگاه آهن آلات 110', g:'فلزی', d0:-2160397000, d120:0, nt:0, a:800000000, p:'37%'},
+            {r:98, c:'', n:'فروشگاه فولادکار', g:'فلزی', d0:-14084935744, d120:0, nt:0, a:800000000, p:'6%'},
+            {r:99, c:'', n:'صنایع مفتولی تیمره', g:'فلزی', d0:0, d120:0, nt:0, a:850000000, p:'-'},
+            {r:100, c:'', n:'باربری دوستان', g:'فلزی', d0:-3370713200, d120:0, nt:0, a:600000000, p:'18%'},
+            {r:971, c:'701171', n:'ماشین سازی سرداری', g:'تدارکات', d0:-43267200, d120:0, nt:0, a:0, p:'0%'},
+            {r:973, c:'400206', n:'شرکت پویا پروتئین', g:'تدارکات', d0:-538999798, d120:0, nt:0, a:0, p:'0%'},
+            {r:974, c:'404175', n:'کارگاه آريا صنعت(حبيب رستگار قره شيران)', g:'تدارکات', d0:-1908105000, d120:0, nt:0, a:0, p:'0%'},
+            {r:975, c:'404259', n:'شرکت راهبر خودرو مهدی', g:'تدارکات', d0:-96036196765, d120:0, nt:0, a:0, p:'0%'},
+            {r:976, c:'404283', n:'شرکت کاوش ابزار ليان', g:'تدارکات', d0:-50600000, d120:0, nt:0, a:0, p:'0%'},
+            {r:977, c:'404285', n:'شرکت پيچ و مهره آرين', g:'تدارکات', d0:-45000000, d120:0, nt:0, a:0, p:'0%'},
+            {r:978, c:'404289', n:'فروشگاه اصغر زاده (شيرزاد اصغرزاده)', g:'تدارکات', d0:-1772950000, d120:0, nt:0, a:0, p:'0%'},
+            {r:979, c:'404291', n:'قالب و قطعات صنعتي جوان(قلي دوست محمدي)', g:'تدارکات', d0:-44000000, d120:0, nt:0, a:0, p:'0%'},
+            {r:980, c:'404292', n:'شرکت ايمن محيط آسيا', g:'تدارکات', d0:-705180000, d120:0, nt:0, a:0, p:'0%'}
+        ];
+
+        // --- 2. TABLE LOGIC (Millions Converter) ---
+        let tableData = [...rawData];
+        let currentSort = { col: 'alloc', dir: 'desc' };
+
+        // Formatter: Convert to Millions (div by 1e6) and Round
+        const fmt = (num) => {
+            if (num === 0) return '0';
+            
+            // Convert to Millions
+            let valInMillions = num / 1000000;
+            let rounded = Math.round(valInMillions);
+            
+            const valStr = new Intl.NumberFormat('en-US').format(Math.abs(rounded));
+            return rounded < 0 ? `<span class="negative-val">(${valStr})</span>` : `<span class="positive-val">${valStr}</span>`;
         };
 
-        const Table = ({ headers, rows }) => {
-            return React.createElement('div', { className: "overflow-x-auto rounded-lg border border-slate-200" },
-                React.createElement('table', { className: "w-full text-sm text-right bg-white" },
-                    React.createElement('thead', { className: "bg-slate-100 text-slate-600 font-bold" },
-                        React.createElement('tr', null, headers.map((h, i) => React.createElement('th', { key: i, className: "p-3 whitespace-nowrap" }, h)))
-                    ),
-                    React.createElement('tbody', { className: "divide-y divide-slate-100" },
-                        rows.map((row, i) => 
-                            React.createElement('tr', { key: i, className: "hover:bg-slate-50" },
-                                row.map((cell, j) => React.createElement('td', { key: j, className: "p-3" }, cell))
-                            )
-                        )
-                    )
-                )
-            );
-        };
+        const getBadge = (grp) => {
+            if(grp.includes('فلزی') && !grp.includes('غیر')) return 'badge-metal';
+            if(grp.includes('تدارکات')) return 'badge-tadarokat';
+            return 'badge-nonmetal';
+        }
 
-        const Dashboard = () => {
-            const [activeTab, setActiveTab] = useState('liquidity'); // Default to Excel Dashboard
-            const [showReport, setShowReport] = useState(false);
-            const formatNumber = (num) => new Intl.NumberFormat('fa-IR').format(num);
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            let totalAlloc = 0;
 
-            // --- TAB 1: LIQUIDITY & BANKING DASHBOARD (Excel Data) ---
-            const renderLiquidityTab = () => (
-                React.createElement('div', { className: "space-y-8 animate-fade-in" },
-                    
-                    // SECTION: ALERTS
-                    React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" },
-                        React.createElement(Card, { title: "چک‌های برگشتی (مالیاتی)", value: "۱۹۵,۰۰۵ م.ر", subtext: "وضعیت قرمز: اقدام اجرایی", icon: AlertTriangle, alertLevel: "critical" }),
-                        React.createElement(Card, { title: "نقدینگی مسدود بانکی", value: "۳۰,۲۱۷ م.ر", subtext: "عمدتاً بانک شهر و مهر", icon: Ban, alertLevel: "warning" }),
-                        React.createElement(Card, { title: "کسری نقدینگی آذر", value: "۸۸۸,۰۰۰ م.ر", subtext: "پیک هزینه: حقوق + پاداش", icon: TrendingDown, alertLevel: "critical" }),
-                        React.createElement(Card, { title: "تعداد حساب‌های مسدود", value: "۱۲ حساب", subtext: "از مجموع ۲۱ حساب", icon: Activity, alertLevel: "normal" })
-                    ),
+            tableData.forEach(row => {
+                totalAlloc += row.a;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-center font-bold text-slate-400">${row.r}</td>
+                    <td class="font-bold text-slate-700 truncate max-w-[300px]" title="${row.n}">${row.n}</td>
+                    <td class="text-center"><span class="badge ${getBadge(row.g)}">${row.g}</span></td>
+                    <td class="amount-col">${fmt(row.d0)}</td>
+                    <td class="amount-col bg-cyan-50/50 alloc-val">${fmt(row.a)}</td>
+                    <td class="text-center font-bold text-xs dir-ltr">${row.p}</td>
+                `;
+                tbody.appendChild(tr);
+            });
 
-                    // SECTION: CASH FLOW
-                    React.createElement('div', { className: "grid grid-cols-1 lg:grid-cols-2 gap-6" },
-                        React.createElement('div', { className: "bg-white p-6 rounded-2xl shadow-sm border border-slate-200" },
-                            React.createElement('h3', { className: "text-lg font-bold text-slate-800 mb-6 flex items-center gap-2" }, React.createElement(TrendingUp, {className:"w-5 h-5"}), "پیش‌بینی جریان خروجی نقدینگی"),
-                            React.createElement('div', { className: "h-72" },
-                                React.createElement(ResponsiveContainer, { width: "100%", height: "100%" },
-                                    React.createElement(AreaChart, { data: forecastData },
-                                        React.createElement('defs', null, React.createElement('linearGradient', { id: "colorTotal", x1: "0", y1: "0", x2: "0", y2: "1" }, React.createElement('stop', { offset: "5%", stopColor: "#ef4444", stopOpacity: 0.8 }), React.createElement('stop', { offset: "95%", stopColor: "#ef4444", stopOpacity: 0 }))),
-                                        React.createElement(CartesianGrid, { strokeDasharray: "3 3", vertical: false }),
-                                        React.createElement(XAxis, { dataKey: "month" }),
-                                        React.createElement(YAxis),
-                                        React.createElement(Tooltip, { formatter: (value) => formatNumber(value) }),
-                                        React.createElement(Area, { type: "monotone", dataKey: "total", stroke: "#dc2626", fill: "url(#colorTotal)", name: "مجموع مصارف" })
-                                    )
-                                )
-                            )
-                        ),
-                        React.createElement('div', { className: "bg-white p-6 rounded-2xl shadow-sm border border-slate-200" },
-                            React.createElement('h3', { className: "text-lg font-bold text-slate-800 mb-6 flex items-center gap-2" }, React.createElement(Activity, {className:"w-5 h-5"}), "ترکیب منابع ورودی"),
-                            React.createElement('div', { className: "h-72" },
-                                React.createElement(ResponsiveContainer, { width: "100%", height: "100%" },
-                                    React.createElement(PieChart, null,
-                                        React.createElement(Pie, { data: sourcesData, cx: "50%", cy: "50%", innerRadius: 70, outerRadius: 90, paddingAngle: 5, dataKey: "value" }, sourcesData.map((entry, index) => React.createElement(Cell, { key: `cell-${index}`, fill: entry.fill }))),
-                                        React.createElement(Tooltip, { formatter: (value) => formatNumber(value) }),
-                                        React.createElement(Legend, { layout: "vertical", verticalAlign: "middle", align: "right" })
-                                    )
-                                )
-                            )
-                        )
-                    ),
+            // Update Total Header Display (Convert total to Millions too)
+            const totalM = Math.round(totalAlloc / 1000000);
+            document.getElementById('totalAllocDisplay').innerText = new Intl.NumberFormat('en-US').format(totalM);
+        }
 
-                    // SECTION: BANKING
-                    React.createElement('div', { className: "grid grid-cols-1 lg:grid-cols-3 gap-6" },
-                        React.createElement('div', { className: "bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2" },
-                            React.createElement('h3', { className: "text-lg font-bold text-slate-800 mb-4 flex items-center gap-2" }, React.createElement(Ban, {className:"w-5 h-5"}), "توزیع منابع حبس شده (میلیون ریال)"),
-                            React.createElement('div', { className: "h-64" },
-                                React.createElement(ResponsiveContainer, { width: "100%", height: "100%" },
-                                    React.createElement(BarChart, { data: blockedFundsData, layout: "vertical", margin: { top: 5, right: 10, left: 60, bottom: 5 }, barSize: 35 },
-                                        React.createElement(CartesianGrid, { strokeDasharray: "3 3", horizontal: false }),
-                                        React.createElement(XAxis, { type: "number", reversed: true, hide: true }),
-                                        React.createElement(YAxis, { dataKey: "bank", type: "category", orientation: "right", width: 130, tick: {fontSize: 13, fontWeight: 600}, tickLine: false }),
-                                        React.createElement(Tooltip, { formatter: (value) => formatNumber(value), cursor: {fill: '#f1f5f9'}, contentStyle: {direction: 'rtl'} }),
-                                        React.createElement(Bar, { dataKey: "amount", radius: [4, 0, 0, 4] },
-                                            blockedFundsData.map((entry, index) => React.createElement(Cell, { key: `cell-${index}`, fill: entry.status === 'مسدود' ? '#ef4444' : '#f97316' })),
-                                            React.createElement(LabelList, { dataKey: "amount", position: "left", formatter: (val) => formatNumber(val), style: { fontSize: '12px', fontWeight: 'bold', fill: '#64748b' } })
-                                        )
-                                    )
-                                )
-                            )
-                        ),
-                        React.createElement('div', { className: "bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-1" },
-                            React.createElement('h3', { className: "text-lg font-bold text-slate-800 mb-4" }, "چک‌های برگشتی (فوری)"),
-                            React.createElement('div', { className: "space-y-3" },
-                                bouncedChecksData.map((check, i) => (
-                                    React.createElement('div', { key: i, className: "p-3 bg-red-50 rounded-lg border border-red-100 text-sm" },
-                                        React.createElement('div', { className: "font-bold text-red-800" }, check.beneficiary),
-                                        React.createElement('div', { className: "flex justify-between mt-2 text-slate-600" },
-                                            React.createElement('span', null, check.due),
-                                            React.createElement('span', { className: "font-black" }, formatNumber(check.amount))
-                                        )
-                                    )
-                                ))
-                            )
-                        )
-                    )
-                )
-            );
+        function sortTable(col) {
+            if(currentSort.col === col) {
+                currentSort.dir = currentSort.dir === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.col = col;
+                currentSort.dir = 'desc'; // Default to desc for numbers
+            }
 
-            // --- TAB 2: STRATEGIC REPORT (HTML Replication) ---
-            const renderStrategicTab = () => (
-                React.createElement('div', { className: "space-y-8 animate-fade-in pb-12" },
-                    
-                    // 1. Dashboard Section (Replicated from HTML)
-                    React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" },
-                        React.createElement(Card, { title: "درآمد عملیاتی (۶ ماهه)", value: "۱۰,۶۵۰ م.ر", subtext: "۲۴٪ کاهش نسبت به سال قبل", icon: TrendingDown, alertLevel: "critical", borderLeft: true }),
-                        React.createElement(Card, { title: "زیان خالص (۶ ماهه)", value: "(۳,۵۶۴) م.ر", subtext: "۸۰٪ سرمایه شرکت از دست رفت", icon: AlertTriangle, alertLevel: "critical", borderLeft: true }),
-                        React.createElement(Card, { title: "زیان انباشته", value: "(۴,۹۷۱) م.ر", subtext: "۱۱۱٪ سرمایه (ماده ۱۴۱)", icon: Activity, alertLevel: "warning", borderLeft: true }),
-                        React.createElement(Card, { title: "بدهی مالیاتی و بیمه", value: "۸,۱۱۳ م.ر", subtext: "ریسک اجرایی و توقیف", icon: ShieldAlert, alertLevel: "normal", borderLeft: true })
-                    ),
+            // Icon Update
+            document.querySelectorAll('.sort-icon').forEach(i => i.className = 'fas fa-sort sort-icon');
+            const icon = document.getElementById(`icon-${col}`);
+            if(icon) icon.className = `fas fa-sort-${currentSort.dir === 'asc' ? 'up' : 'down'} sort-active`;
 
-                    // 2. Financial Analysis Section
-                    React.createElement('div', { className: "grid grid-cols-1 lg:grid-cols-2 gap-8" },
-                        React.createElement('div', { className: "bg-white p-6 rounded-2xl shadow-sm border border-slate-200" },
-                            React.createElement('h3', { className: "text-center font-bold text-slate-700 mb-4" }, "۱. روند تاریخی سالانه و سقوط سودآوری"),
-                            React.createElement('div', { className: "h-80" },
-                                React.createElement(ResponsiveContainer, { width: "100%", height: "100%" },
-                                    React.createElement(ComposedChart, { data: historicalTrendData },
-                                        React.createElement(CartesianGrid, { strokeDasharray: "3 3", vertical: false }),
-                                        React.createElement(XAxis, { dataKey: "name", tick: {fontSize: 10} }),
-                                        React.createElement(YAxis, { tick: {fontSize: 10} }),
-                                        React.createElement(Tooltip, { formatter: (value) => formatNumber(value) }),
-                                        React.createElement(Legend),
-                                        React.createElement(Bar, { dataKey: "revenue", name: "درآمد", fill: "#3b82f6", barSize: 20 }),
-                                        React.createElement(Bar, { dataKey: "cost", name: "هزینه", fill: "#dc2626", barSize: 20 }),
-                                        React.createElement(Line, { type: "monotone", dataKey: "net", name: "زیان خالص", stroke: "#fbbf24", strokeWidth: 3 })
-                                    )
-                                )
-                            ),
-                            React.createElement('p', { className: "text-xs text-center text-red-600 font-bold mt-2" }, "افزایش شدید فاصله درآمد و هزینه و سقوط زیان خالص در ۱۴۰۴")
-                        ),
-                        React.createElement('div', { className: "bg-white p-6 rounded-2xl shadow-sm border border-slate-200" },
-                            React.createElement('h3', { className: "text-center font-bold text-slate-700 mb-4" }, "۲. تحلیل مقایسه‌ای ۶ ماهه و ۱۲ ماهه"),
-                            React.createElement('div', { className: "h-80" },
-                                React.createElement(ResponsiveContainer, { width: "100%", height: "100%" },
-                                    React.createElement(BarChart, { data: gapAnalysisData },
-                                        React.createElement(CartesianGrid, { strokeDasharray: "3 3", vertical: false }),
-                                        React.createElement(XAxis, { dataKey: "name", tick: {fontSize: 10} }),
-                                        React.createElement(YAxis, { tick: {fontSize: 10} }),
-                                        React.createElement(Tooltip, { formatter: (value) => formatNumber(value) }),
-                                        React.createElement(Legend),
-                                        React.createElement(Bar, { dataKey: "revenue", name: "درآمد", fill: "#60a5fa" }),
-                                        React.createElement(Bar, { dataKey: "cost", name: "هزینه", fill: "#f87171" })
-                                    )
-                                )
-                            ),
-                            React.createElement('p', { className: "text-xs text-center text-slate-500 mt-2" }, "بحران در ۶ ماهه ۱۴۰۴ عمیق‌تر از هر زمان دیگری است.")
-                        )
-                    ),
+            tableData.sort((a, b) => {
+                // Column mapping: code(c) removed, name(n), group(g), debt0(d0), alloc(a), percent(p)
+                let valA = a[col === 'name' ? 'n' : col === 'group' ? 'g' : col === 'debt0' ? 'd0' : col === 'alloc' ? 'a' : 'p'];
+                let valB = b[col === 'name' ? 'n' : col === 'group' ? 'g' : col === 'debt0' ? 'd0' : col === 'alloc' ? 'a' : 'p'];
 
-                    // Detailed P&L Table
-                    React.createElement('div', { className: "bg-white p-6 rounded-xl shadow-sm border border-slate-200" },
-                        React.createElement('h3', { className: "font-bold text-lg mb-4 text-slate-700" }, "جدول جامع صورت سود و زیان (میلیارد ریال)"),
-                        React.createElement(Table, {
-                            headers: ["شرح", "۶م ۱۴۰۳", "۶م ۱۴۰۴ (جاری)", "۱۲م ۱۴۰۳", "۱۴۰۴ (پیش‌بینی)"],
-                            rows: [
-                                ["درآمد عملیاتی", "14,052", React.createElement('span', {className:"font-bold bg-blue-100 px-2 rounded"}, "10,650"), "32,813", "~21,300"],
-                                ["بهای تمام شده", "(15,094)", "(11,611)", "(32,737)", "~(23,200)"],
-                                ["سود (زیان) ناخالص", "(1,042)", React.createElement('span', {className:"font-bold text-red-600"}, "(961)"), "76", "~(1,900)"],
-                                ["سود (زیان) خالص", "(1,879)", React.createElement('span', {className:"font-black text-red-700 text-lg"}, "(3,564)"), "(3,580)", "~(7,100)"]
-                            ]
-                        })
-                    ),
+                // Handle percentage string sort
+                if(col === 'percent') {
+                    valA = parseFloat(valA.replace('%','')) || 0;
+                    valB = parseFloat(valB.replace('%','')) || 0;
+                }
 
-                    // 3. Operational Crisis Section (Tables)
-                    React.createElement('div', { className: "grid grid-cols-1 lg:grid-cols-2 gap-8" },
-                        // Creditors
-                        React.createElement('div', { className: "bg-white p-6 rounded-xl shadow-sm border-t-4 border-red-500" },
-                            React.createElement('h3', { className: "font-bold text-lg mb-4 flex items-center gap-2" }, React.createElement(Truck, {className:"w-5 h-5"}), "وضعیت بحرانی تأمین‌کنندگان"),
-                            React.createElement(Table, {
-                                headers: ["تأمین‌کننده", "کالا", "بدهی (م.ر)", "وضعیت"],
-                                rows: [
-                                    ["گوهربافان", "پارچه", "1,290,533", React.createElement('span', {className:"bg-red-100 text-red-800 px-2 rounded text-xs font-bold"}, "توقف تحویل")],
-                                    ["نواندیش صنعت", "فلزی", "444,889", "خرید نقدی"],
-                                    ["صنایع الکترونیک", "برقی", "317,117", "محدود"],
-                                    ["ایران قطعه", "فوم", "170,000", React.createElement('span', {className:"bg-red-100 text-red-800 px-2 rounded text-xs font-bold"}, "ریسک توقف")]
-                                ]
-                            })
-                        ),
-                        // Receivables
-                        React.createElement('div', { className: "bg-white p-6 rounded-xl shadow-sm border-t-4 border-orange-500" },
-                            React.createElement('h3', { className: "font-bold text-lg mb-4 flex items-center gap-2" }, React.createElement(Wallet, {className:"w-5 h-5"}), "وضعیت حبس نقدینگی (مطالبات)"),
-                            React.createElement(Table, {
-                                headers: ["مشتری", "مانده (م.ر)", "سهم", "ریسک"],
-                                rows: [
-                                    ["سازه‌گستر", React.createElement('span', {className:"font-bold"}, "9,732,909"), "88%", "زیاد (درون‌گروهی)"],
-                                    ["زامیاد", "419,583", "4%", "متوسط"],
-                                    ["سایرین", "881,892", "8%", "کم"],
-                                    [React.createElement('span', {className:"font-bold"}, "جمع کل"), React.createElement('span', {className:"font-bold"}, "11,034,384"), "100%", "-"]
-                                ]
-                            })
-                        ),
-                        // Gov Debt
-                        React.createElement('div', { className: "bg-white p-6 rounded-xl shadow-sm border-t-4 border-red-600" },
-                            React.createElement('h3', { className: "font-bold text-lg mb-4 flex items-center gap-2" }, React.createElement(ShieldAlert, {className:"w-5 h-5"}), "وضعیت ریسک‌های حاکمیتی (دیون)"),
-                            React.createElement(Table, {
-                                headers: ["سرفصل", "اصل (م.ر)", "جرائم (م.ر)", "جمع کل (م.ر)", "وضعیت"],
-                                rows: [
-                                    ["ارزش افزوده", "1,787,000", "3,325,000", "5,112,000", React.createElement('span', {className:"text-red-600 font-bold"}, "اجرایی")],
-                                    ["تأمین اجتماعی", "855,000", "10,000", "865,000", "اخطار کسر"],
-                                    ["مالیات عملکرد", "1,020,000", "533,000", "1,553,000", "دادرسی"],
-                                    [React.createElement('span', {className:"font-bold"}, "جمع کل"), "3,662,000", "3,868,000", React.createElement('span', {className:"font-black text-lg"}, "7,530,000"), "-"]
-                                ]
-                            })
-                        ),
-                        // Payroll
-                        React.createElement('div', { className: "bg-white p-6 rounded-xl shadow-sm border-t-4 border-blue-500" },
-                            React.createElement('h3', { className: "font-bold text-lg mb-4 flex items-center gap-2" }, React.createElement(Users, {className:"w-5 h-5"}), "وضعیت سربار حقوق و دستمزد"),
-                            React.createElement(Table, {
-                                headers: ["شرح", "مبلغ (م.ر)", "سهم", "توضیحات"],
-                                rows: [
-                                    ["دستمزد مستقیم", "1,050,754", "60%", "نیروهای خط تولید"],
-                                    ["دستمزد ستاد", "703,898", React.createElement('span', {className:"text-red-600 font-bold"}, "40%"), "تراکم نیروی مازاد"],
-                                    ["جمع کل", React.createElement('span', {className:"font-bold"}, "1,754,652"), "100%", "میانگین ماهانه: 292 م.ر"]
-                                ]
-                            })
-                        )
-                    ),
+                if(valA < valB) return currentSort.dir === 'asc' ? -1 : 1;
+                if(valA > valB) return currentSort.dir === 'asc' ? 1 : -1;
+                return 0;
+            });
 
-                    // 4. Detailed Report (Accordion)
-                    React.createElement('div', { className: "bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl overflow-hidden shadow-2xl mt-8" },
-                        React.createElement('button', { 
-                            onClick: () => setShowReport(!showReport),
-                            className: "w-full p-6 text-left flex justify-between items-center text-white hover:bg-slate-700 transition-all focus:outline-none"
+            renderTable();
+        }
+
+        // --- 3. CHARTS ---
+        function initCharts() {
+            Chart.defaults.font.family = 'Vazirmatn';
+            Chart.defaults.color = '#64748b';
+
+            // 1. Grouping Logic
+            let groupSums = { 'فلزی': 0, 'غیرفلزی': 0, 'تدارکات': 0 };
+            tableData.forEach(item => {
+                let k = item.g.includes('غیر') ? 'غیرفلزی' : item.g.includes('فلزی') ? 'فلزی' : 'تدارکات';
+                groupSums[k] += item.a;
+            });
+            const groupChartData = Object.values(groupSums).map(v => Math.round(v/1e6));
+
+            // Group Chart
+            new Chart(document.getElementById('groupChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(groupSums),
+                    datasets: [{
+                        data: groupChartData,
+                        backgroundColor: ['#fee2e2', '#e2e8f0', '#dbeafe'],
+                        borderColor: ['#b91c1c', '#475569', '#1e40af'],
+                        borderWidth: 1
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + new Intl.NumberFormat('en-US').format(context.raw) + ' میلیون ریال';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 2. Top 10 Chart
+            const top10 = [...rawData].sort((a,b) => b.a - a.a).slice(0, 10);
+            new Chart(document.getElementById('top10Chart'), {
+                type: 'bar',
+                data: {
+                    labels: top10.map(i => i.n.substring(0, 20) + '...'),
+                    datasets: [{
+                        label: 'مبلغ تخصیص (میلیون ریال)',
+                        data: top10.map(i => Math.round(i.a / 1e6)),
+                        backgroundColor: '#0891b2',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: { x: { grid: {display: false} } },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + new Intl.NumberFormat('en-US').format(context.raw) + ' میلیون ریال';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 3. NEW CHART: Coverage Hierarchy (Debt vs Allocation)
+            // Totals from total.csv summary (roughly):
+            // Total Debt: 8,958,383 M Rials
+            // Overdue: 5,470,032 M Rials
+            // Allocation: 330,000 M Rials
+            const coverageData = [8958383, 5470032, 330000]; // In Millions
+            
+            new Chart(document.getElementById('coverageChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['کل تعهدات (Total)', 'بدهی حال‌شده (Overdue)', 'بودجه تخصیصی (Allocation)'],
+                    datasets: [{
+                        data: coverageData,
+                        backgroundColor: ['#e2e8f0', '#ef4444', '#0891b2'],
+                        barPercentage: 0.6,
+                        categoryPercentage: 0.8,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'right',
+                            formatter: function(value) {
+                                return new Intl.NumberFormat('en-US').format(value) + ' M';
+                            },
+                            color: '#64748b',
+                            font: { weight: 'bold' }
                         },
-                            React.createElement('div', { className: "flex items-center gap-4" },
-                                React.createElement('span', { className: "bg-red-600 p-2 rounded-lg text-xl" }, "📑"),
-                                React.createElement('div', null,
-                                    React.createElement('h2', { className: "text-xl font-bold" }, "گزارش محرمانه تحلیل ریسک و نقشه راه خروج (کلیک کنید)"),
-                                    React.createElement('p', { className: "text-sm text-slate-300" }, "تحلیل ماده ۱۴۱، ریسک‌های حسابرسی و استراتژی تامین مالی")
-                                )
-                            ),
-                            React.createElement('svg', { 
-                                className: `w-8 h-8 transform transition-transform duration-300 ${showReport ? 'rotate-180' : ''}`, 
-                                fill: "none", stroke: "currentColor", viewBox: "0 0 24 24" 
-                            }, React.createElement('path', { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: "2", d: "M19 9l-7 7-7-7" }))
-                        ),
-                        
-                        showReport && React.createElement('div', { className: "bg-white p-8 border-t border-slate-700 text-slate-800 leading-8 text-justify" },
-                            React.createElement('div', { className: "max-w-4xl mx-auto space-y-6" },
-                                React.createElement('h3', { className: "text-2xl text-center text-blue-900 font-bold mb-4" }, "گزارش جامع تحلیل مالی و استراتژی خروج (۱۴۰۴)"),
-                                
-                                React.createElement('div', null,
-                                    React.createElement('h4', { className: "text-lg font-bold text-red-700 mb-2" }, "۱. تحلیل وضعیت بحرانی ماده ۱۴۱ (Vital Priority)"),
-                                    React.createElement('p', null, "شرکت نه تنها نیمی از سرمایه، بلکه کل سرمایه خود را از دست داده و ۵۰۰ میلیارد ریال هم بدهی مازاد بر دارایی خالص دارد. انحلال شرکت روی میز است مگر اینکه مجمع فوق‌العاده رای به بقا دهد."),
-                                    React.createElement('ul', { className: "list-disc list-inside mt-2 text-sm bg-red-50 p-4 rounded" },
-                                        React.createElement('li', null, "سرمایه ثبت شده: ۴,۴۵۶ میلیارد ریال"),
-                                        React.createElement('li', null, "زیان انباشته: (۴,۹۷۱) میلیارد ریال"),
-                                        React.createElement('li', { className: "font-bold text-red-600" }, "نسبت زیان به سرمایه: ۱۱۱٪")
-                                    )
-                                ),
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + new Intl.NumberFormat('en-US').format(context.raw) + ' میلیون ریال';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { display: false, grid: { display: false } },
+                        y: { grid: { display: false }, ticks: { font: { family: 'Vazirmatn', weight: 'bold' } } }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
 
-                                React.createElement('div', null,
-                                    React.createElement('h4', { className: "text-lg font-bold text-blue-700 mb-2" }, "۲. سناریوی بهینه خروج (تجدید ارزیابی)"),
-                                    React.createElement('p', null, "تنها راهکار عملیاتی «افزایش سرمایه از محل مازاد تجدید ارزیابی دارایی‌های استهلاک‌ناپذیر» (زمین کارخانه جاده مخصوص) است. برآورد می‌شود ارزش روز زمین‌ها بتواند زیان انباشته را پوشش دهد.")
-                                ),
+        // Init
+        renderTable();
+        initCharts();
 
-                                React.createElement('div', null,
-                                    React.createElement('h4', { className: "text-lg font-bold text-orange-700 mb-2" }, "۳. استراتژی تأمین مالی نوین"),
-                                    React.createElement('ul', { className: "list-disc list-inside space-y-2" },
-                                        React.createElement('li', null, React.createElement('strong', null, "اوراق گام:"), " تسویه بدهی تأمین‌کنندگان عمده (مثل گوهربافان) با سررسید ۹ ماهه."),
-                                        React.createElement('li', null, React.createElement('strong', null, "فاکتورینگ:"), " واگذاری مطالبات از سازه‌گستر به نهادهای مالی جهت دریافت نقدینگی فوری.")
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            );
-
-            // --- MAIN RENDER ---
-            return React.createElement('div', { className: "min-h-screen bg-slate-50 p-4 md:p-8", dir: "rtl" },
-                // HEADER
-                React.createElement('div', { className: "flex flex-col md:flex-row justify-between items-end mb-8 border-b-2 border-slate-200 pb-4" },
-                    React.createElement('div', null,
-                        React.createElement('h1', { className: "text-3xl font-black text-slate-900 mb-2 flex items-center gap-3" },
-                            React.createElement(Briefcase, { className: "w-8 h-8 text-blue-800" }),
-                            "داشبورد جامع مدیریت و استراتژی"
-                        ),
-                        React.createElement('p', { className: "text-slate-500 text-lg" }, "شرکت سایپا آذین - گزارش ۶ ماهه ۱۴۰۴")
-                    ),
-                    React.createElement('div', { className: "text-left" },
-                        React.createElement('div', { className: "text-sm font-bold text-slate-700" }, "تاریخ گزارش: ۱۴۰۴/۰۹/۰۸"),
-                        React.createElement('div', { className: "text-xs text-slate-400" }, "تهیه شده جهت استحضار هیئت مدیره")
-                    )
-                ),
-                
-                // TABS
-                React.createElement('div', { className: "flex flex-wrap gap-2 mb-8 p-1 bg-white rounded-xl shadow-sm border border-slate-200 w-fit" },
-                    [
-                        {id: 'liquidity', label: 'داشبورد نقدینگی و بانک', icon: Activity}, 
-                        {id: 'strategic', label: 'گزارش استراتژیک جامع', icon: FileText}
-                    ].map(tab => (
-                        React.createElement('button', {
-                            key: tab.id,
-                            onClick: () => setActiveTab(tab.id),
-                            className: `flex items-center gap-2 px-6 py-3 rounded-lg font-bold transition-all ${activeTab === tab.id ? 'bg-slate-800 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'}`
-                        }, React.createElement(tab.icon, { className: "w-4 h-4" }), tab.label)
-                    ))
-                ),
-
-                // CONTENT
-                activeTab === 'liquidity' ? renderLiquidityTab() : renderStrategicTab(),
-
-                // FOOTER
-                React.createElement('div', { className: "mt-12 bg-white border-l-4 border-blue-800 rounded-r-xl shadow-lg p-8" },
-                    React.createElement('h3', { className: "text-2xl font-black text-slate-800 mb-6 border-b border-slate-100 pb-4" }, "جمع‌بندی مدیریتی"),
-                    React.createElement('div', { className: "grid md:grid-cols-2 gap-8 text-slate-700 leading-8 text-justify" },
-                        React.createElement('div', null,
-                            React.createElement('h4', { className: "font-bold text-red-700 mb-2" }, "۱. بحران مالیاتی (فوری)"),
-                            React.createElement('p', { className: "text-sm" }, "وجود ۱۹.۵ میلیارد تومان چک برگشتی نزد سازمان امور مالیاتی با سررسید آبان‌ماه ریسک مسدودی حساب‌ها را ایجاد کرده است.")
-                        ),
-                        React.createElement('div', null,
-                            React.createElement('h4', { className: "font-bold text-orange-700 mb-2" }, "۲. قفل نقدینگی"),
-                            React.createElement('p', { className: "text-sm" }, "بیش از ۷۰٪ حساب‌های بانکی شرکت مسدود یا راکد هستند و ۳ میلیارد تومان نقدینگی حبس شده است.")
-                        )
-                    )
-                )
-            );
-        };
-
-        const root = createRoot(document.getElementById('root'));
-        root.render(React.createElement(Dashboard));
     </script>
 </body>
 </html>
