@@ -3,370 +3,673 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>گزارش دسترسی کاربران</title>
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <title>اینفوگرافیک جامع سطوح دسترسی</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
-            --primary: #2563eb;
-            --header-bg: #1e293b;
-            --border-color: #cbd5e1;
+            --bg-body: #f1f5f9;
+            --bg-surface: #ffffff;
+            --primary: #0f172a;
+            --secondary: #334155;
+            --accent: #3b82f6;
+            --border: #e2e8f0;
+
+            /* Department Colors */
+            --c-mng: #3b82f6; /* Blue */
+            --c-fin: #0ea5e9; /* Sky */
+            --c-hr: #ec4899;  /* Pink */
+            --c-ops: #f59e0b; /* Amber */
+            --c-eng: #8b5cf6; /* Violet */
+            --c-it: #10b981;  /* Emerald */
         }
 
         body {
-            font-family: 'Vazirmatn', Tahoma, sans-serif;
+            font-family: "Vazirmatn", sans-serif;
+            background-color: var(--bg-body);
+            color: var(--primary);
             margin: 0;
-            padding: 20px;
-            background-color: #f8fafc;
-            color: #334155;
+            padding: 40px;
             direction: rtl;
         }
 
-        .report-container {
+        .container {
             max-width: 100%;
             margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            background: var(--bg-surface);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
         }
 
-        .web-header {
+        /* --- Header Section --- */
+        .report-header {
+            background: linear-gradient(120deg, #1e293b, #0f172a);
+            color: white;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .title-block h1 { margin: 0; font-size: 32px; font-weight: 900; letter-spacing: -1px; }
+        .title-block p { margin: 10px 0 0; opacity: 0.8; font-size: 16px; font-weight: 300; }
+
+        .meta-badges { display: flex; gap: 15px; }
+        .badge {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(4px);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        /* --- Toolbar & Legend --- */
+        .toolbar {
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 3px solid var(--primary);
-            padding-bottom: 20px;
-            margin-bottom: 20px;
+            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
 
-        .web-header h1 { margin: 0; font-size: 24px; color: #0f172a; }
-        .web-header .meta { font-size: 14px; color: #64748b; }
+        .legend { display: flex; gap: 20px; font-size: 13px; color: var(--secondary); flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
 
-        .search-box {
-            margin-bottom: 15px;
-            position: relative;
-            max-width: 300px;
-        }
-        .search-box input {
-            width: 100%;
-            padding: 10px 40px 10px 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
+        .actions button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
             font-family: inherit;
+            display: flex; align-items: center; gap: 8px;
+            transition: background 0.2s;
         }
-        .search-box i {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-        }
+        .actions button:hover { background: #334155; }
 
-        .table-wrapper {
+        /* --- Table Styling --- */
+        .table-responsive {
             overflow-x: auto;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
+            width: 100%;
         }
 
         table {
             width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-            min-width: 1000px;
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 1400px;
         }
 
-        thead {
-            background-color: var(--header-bg);
-            color: white;
-        }
-
-        th {
-            padding: 15px 10px;
-            font-weight: 500;
-            text-align: center;
-            border-left: 1px solid #334155;
-            position: sticky;
-            top: 0;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        
-        th:last-child { border-left: none; }
-        th:first-child { text-align: right; padding-right: 20px; position: sticky; right: 0; z-index: 10; background-color: var(--header-bg); }
-
-        td {
-            padding: 12px;
-            text-align: center;
-            border-bottom: 1px solid var(--border-color);
-            border-left: 1px solid #e2e8f0;
-        }
-
-        td:first-child {
-            text-align: right;
-            padding-right: 20px;
-            font-weight: 600;
+        /* Sticky Headers */
+        thead th {
             background-color: #f8fafc;
+            color: var(--secondary);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 15px 5px;
+            text-align: center;
+            position: sticky;
+            top: 73px; /* Height of toolbar */
+            z-index: 40;
+            height: 120px;
+            vertical-align: bottom;
+            border-bottom: 2px solid var(--border);
+            border-left: 1px solid #f1f5f9;
+        }
+
+        .v-text {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            white-space: nowrap;
+            height: 70px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Role Column */
+        th.col-role, td.col-role {
             position: sticky;
             right: 0;
-            border-left: 2px solid var(--border-color);
+            z-index: 45;
+            background: white;
+            border-left: 2px solid var(--border);
+            width: 280px;
+            min-width: 280px;
+            text-align: right;
+            padding: 15px 25px;
+        }
+        
+        th.col-role {
+            z-index: 55;
+            background: #f1f5f9;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 14px;
         }
 
-        tr:nth-child(even) { background-color: #fcfcfc; }
-        tr:hover td { background-color: #eff6ff; }
+        td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            border-left: 1px dashed #f1f5f9;
+            position: relative;
+        }
 
-        .full { color: #16a34a; }
-        .read { color: #f59e0b; }
-        .none { color: #e2e8f0; }
+        /* Hover Effects */
+        tbody tr:hover td { background-color: #f8fafc; }
+        tbody tr:hover td.col-role { background-color: #f0f9ff; }
 
-        .role-badge {
-            display: inline-block;
-            font-size: 11px;
-            padding: 2px 8px;
+        /* --- Component Styles --- */
+        
+        /* Role Card */
+        .role-card { display: flex; align-items: center; gap: 15px; }
+        .role-icon {
+            width: 42px; height: 42px;
             border-radius: 10px;
-            background: #e2e8f0;
-            color: #475569;
-            margin-left: 8px;
+            display: flex; align-items: center; justify-content: center;
+            color: white;
+            font-size: 18px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .role-details { display: flex; flex-direction: column; }
+        .role-title { font-weight: 700; font-size: 14px; color: var(--primary); }
+        .role-dept { font-size: 11px; color: #94a3b8; text-transform: uppercase; margin-top: 2px; }
+
+        /* Access Icons */
+        .access-badge {
+            display: inline-flex;
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            align-items: center; justify-content: center;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+        tr:hover .access-badge { transform: scale(1.15); }
+        
+        .acc-full { background: #dcfce7; color: #15803d; }
+        .acc-read { background: #fff7ed; color: #c2410c; }
+        .acc-none { background: #f1f5f9; color: #cbd5e1; }
+
+        /* Tooltip */
+        td[data-tip]:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 80%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 100;
+            pointer-events: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        /* Dept Color Mapping */
+        .dept-mng .role-icon { background: var(--c-mng); }
+        .dept-fin .role-icon { background: var(--c-fin); }
+        .dept-hr .role-icon { background: var(--c-hr); }
+        .dept-ops .role-icon { background: var(--c-ops); }
+        .dept-eng .role-icon { background: var(--c-eng); }
+        .dept-it .role-icon { background: var(--c-it); }
+
+        /* Row Separation Line */
+        .row-separator td {
+            border-bottom: 2px solid var(--primary);
         }
 
         @media print {
             body { padding: 0; background: white; }
-            .report-container { box-shadow: none; padding: 0; }
-            .search-box { display: none; }
-            th { background-color: #ddd !important; color: black !important; }
-            @page { size: landscape; margin: 10mm; }
+            .container { box-shadow: none; border-radius: 0; }
+            .toolbar { display: none; }
+            .report-header { background: #fff; color: #000; border-bottom: 2px solid #000; padding: 20px; }
+            .badge { border: 1px solid #ccc; color: #000; }
+            thead th { position: static; height: auto; top: 0; }
+            .v-text { writing-mode: horizontal-tb; transform: none; height: auto; }
+            th.col-role, td.col-role { position: static; border: 1px solid #ccc; }
+            td { border: 1px solid #ccc; }
+            @page { size: landscape; }
         }
     </style>
 </head>
 <body>
 
-<div class="report-container">
-    <div class="web-header">
-        <div>
-            <h1>جدول سطوح دسترسی (ماتریس جامع)</h1>
-            <div class="meta">اداره مهندسی نرم‌افزار | تاریخ گزارش: 1404/09/06</div>
+<div class="container">
+    
+    <!-- Header -->
+    <header class="report-header">
+        <div class="header-content">
+            <div class="title-block">
+                <h1>داشبورد جامع دسترسی‌های سیستمی</h1>
+                <p>اداره مهندسی نرم‌افزار و توسعه سیستم‌های اطلاعاتی | نسخه نهایی</p>
+            </div>
+            <div class="meta-badges">
+                <div class="badge"><i class="fa-solid fa-calendar"></i> 1404/09/06</div>
+                <div class="badge"><i class="fa-solid fa-shield-halved"></i> محرمانه</div>
+                <div class="badge"><i class="fa-solid fa-users"></i> 16 نقش سازمانی</div>
+            </div>
         </div>
-        <div style="text-align: left;">
-            <button onclick="window.print()" style="padding: 8px 16px; background: #334155; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                <i class="fa-solid fa-print"></i> چاپ گزارش
-            </button>
+    </header>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="legend">
+            <div class="legend-item"><div class="dot" style="background: var(--c-mng)"></div>مدیریت</div>
+            <div class="legend-item"><div class="dot" style="background: var(--c-fin)"></div>مالی</div>
+            <div class="legend-item"><div class="dot" style="background: var(--c-hr)"></div>منابع انسانی</div>
+            <div class="legend-item"><div class="dot" style="background: var(--c-ops)"></div>عملیات</div>
+            <div class="legend-item"><div class="dot" style="background: var(--c-eng)"></div>مهندسی</div>
+            <span style="border-left: 1px solid #ccc; height: 15px; margin: 0 10px;"></span>
+            <div class="legend-item"><div class="access-badge acc-full" style="width: 20px; height: 20px; font-size: 10px;"><i class="fa-solid fa-check"></i></div> عملیاتی</div>
+            <div class="legend-item"><div class="access-badge acc-read" style="width: 20px; height: 20px; font-size: 10px;"><i class="fa-solid fa-eye"></i></div> مشاهده</div>
+        </div>
+        <div class="actions">
+            <button onclick="window.print()"><i class="fa-solid fa-print"></i> چاپ گزارش</button>
         </div>
     </div>
 
-    <div class="search-box">
-        <i class="fa-solid fa-search"></i>
-        <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="جستجوی نام یا سمت...">
-    </div>
-
-    <div class="table-wrapper">
-        <table id="mainTable">
+    <!-- Table -->
+    <div class="table-responsive">
+        <table>
             <thead>
                 <tr>
-                    <th onclick="sortTable(0)">نقش / سمت <i class="fa-solid fa-sort"></i></th>
-                    <th onclick="sortTable(1)">پرسنلی <i class="fa-solid fa-sort"></i></th>
-                    <th onclick="sortTable(2)">احکام <i class="fa-solid fa-sort"></i></th>
-                    <th onclick="sortTable(3)">حقوق <i class="fa-solid fa-sort"></i></th>
-                    <th onclick="sortTable(4)">مالی <i class="fa-solid fa-sort"></i></th>
-                    <th onclick="sortTable(5)">خزانه <i class="fa-solid fa-sort"></i></th>
-                    <th onclick="sortTable(6)">اموال <i class="fa-solid fa-sort"></i></th>
-                    <th onclick="sortTable(7)">بهای تمام شده <i class="fa-solid fa-sort"></i></th>
-                    <th onclick="sortTable(8)">انبار <i class="fa-solid fa-sort"></i></th>
-                    <th onclick="sortTable(9)">تولید <i class="fa-solid fa-sort"></i></th>
-                    <th onclick="sortTable(10)">مهندسی <i class="fa-solid fa-sort"></i></th>
-                    <th onclick="sortTable(11)">خرید <i class="fa-solid fa-sort"></i></th>
-                    <th onclick="sortTable(12)">پیمانکاری <i class="fa-solid fa-sort"></i></th>
+                    <th class="col-role">سمت و واحد سازمانی</th>
+                    <th><span class="v-text">سیستم پرسنلی</span></th>
+                    <th><span class="v-text">سیستم احکام</span></th>
+                    <th><span class="v-text">حقوق دستمزد</span></th>
+                    <th><span class="v-text">سیستم مالی</span></th>
+                    <th><span class="v-text">خزانه‌داری</span></th>
+                    <th><span class="v-text">سیستم اموال</span></th>
+                    <th><span class="v-text">بهای تمام شده</span></th>
+                    <th><span class="v-text">سیستم انبار</span></th>
+                    <th><span class="v-text">سیستم تولید</span></th>
+                    <th><span class="v-text">مهندسی</span></th>
+                    <th><span class="v-text">سیستم خرید</span></th>
+                    <th><span class="v-text">پیمانکاری</span></th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Rows -->
-                <tr>
-                    <td><span class="role-badge">مدیر</span> مدیر عامل</td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                
+                <!-- 1. CEO -->
+                <tr class="dept-mng">
+                    <td class="col-role">
+                        <div class="role-card">
+                            <div class="role-icon"><i class="fa-solid fa-user-tie"></i></div>
+                            <div class="role-details"><span class="role-title">مدیر عامل</span><span class="role-dept">مدیریت ارشد</span></div>
+                        </div>
+                    </td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
                 </tr>
-                <tr>
-                    <td><span class="role-badge">مدیر</span> مدیر مالی</td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+
+                <!-- 2. Planning -->
+                <tr class="dept-mng">
+                    <td class="col-role">
+                        <div class="role-card">
+                            <div class="role-icon"><i class="fa-solid fa-chart-line"></i></div>
+                            <div class="role-details"><span class="role-title">مدیر برنامه‌ریزی</span><span class="role-dept">طرح و برنامه</span></div>
+                        </div>
+                    </td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
                 </tr>
-                 <tr>
-                    <td><span class="role-badge">مدیر</span> مدیر منابع انسانی</td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+
+                <!-- 3. Finance Manager -->
+                <tr class="dept-fin">
+                    <td class="col-role">
+                        <div class="role-card">
+                            <div class="role-icon"><i class="fa-solid fa-coins"></i></div>
+                            <div class="role-details"><span class="role-title">مدیر مالی</span><span class="role-dept">امور مالی</span></div>
+                        </div>
+                    </td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مدیریت کامل"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت کامل"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت کامل"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت کامل"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت کامل"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
                 </tr>
-                <tr>
-                    <td><span class="role-badge">مدیر</span> مدیر تولید</td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+
+                <!-- 4. HR Manager -->
+                <tr class="dept-hr">
+                    <td class="col-role">
+                        <div class="role-card">
+                            <div class="role-icon"><i class="fa-solid fa-users"></i></div>
+                            <div class="role-details"><span class="role-title">مدیر منابع انسانی</span><span class="role-dept">اداری</span></div>
+                        </div>
+                    </td>
+                    <td data-tip="مدیریت کامل"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت کامل"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت کامل"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
                 </tr>
-                <tr>
-                    <td><span class="role-badge">مدیر</span> مدیر IT</td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+
+                <!-- 5. Commercial Manager -->
+                <tr class="dept-ops">
+                    <td class="col-role">
+                        <div class="role-card">
+                            <div class="role-icon"><i class="fa-solid fa-handshake"></i></div>
+                            <div class="role-details"><span class="role-title">مدیر بازرگانی</span><span class="role-dept">بازرگانی</span></div>
+                        </div>
+                    </td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مدیریت کامل"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت کامل"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
                 </tr>
-                <tr>
-                    <td><span class="role-badge">کارشناس</span> کارشناس اداری</td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+
+                <!-- 6. Production Manager -->
+                <tr class="dept-ops">
+                    <td class="col-role">
+                        <div class="role-card">
+                            <div class="role-icon"><i class="fa-solid fa-industry"></i></div>
+                            <div class="role-details"><span class="role-title">مدیر تولید</span><span class="role-dept">تولید</span></div>
+                        </div>
+                    </td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مدیریت کامل"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
                 </tr>
-                <tr>
-                    <td><span class="role-badge">کارشناس</span> کارشناس حسابداری</td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+
+                <!-- 7. Engineering Manager -->
+                <tr class="dept-eng">
+                    <td class="col-role">
+                        <div class="role-card">
+                            <div class="role-icon"><i class="fa-solid fa-compass-drafting"></i></div>
+                            <div class="role-details"><span class="role-title">مدیر مهندسی</span><span class="role-dept">فنی مهندسی</span></div>
+                        </div>
+                    </td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مدیریت کامل"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
                 </tr>
-                <tr>
-                    <td><span class="role-badge">کارشناس</span> کارشناس انبار</td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
-                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
-                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+
+                <!-- 8. IT Manager -->
+                <tr class="dept-it">
+                    <td class="col-role">
+                        <div class="role-card">
+                            <div class="role-icon"><i class="fa-solid fa-server"></i></div>
+                            <div class="role-details"><span class="role-title">مدیر IT</span><span class="role-dept">فناوری اطلاعات</span></div>
+                        </div>
+                    </td>
+                    <td data-tip="مدیریت سیستم"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت سیستم"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت سیستم"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت سیستم"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت سیستم"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت سیستم"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت سیستم"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت سیستم"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت سیستم"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت سیستم"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت سیستم"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مدیریت سیستم"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
                 </tr>
+
+                <!-- Experts / Separator -->
+                <tr style="height: 10px;"></tr>
+
+                <!-- 9. HR Admin Expert -->
+                <tr class="dept-hr">
+                    <td class="col-role">
+                        <div class="role-card">
+                            <div class="role-icon" style="background: rgba(236, 72, 153, 0.7);"><i class="fa-regular fa-user"></i></div>
+                            <div class="role-details"><span class="role-title">کارشناس اداری</span><span class="role-dept">منابع انسانی</span></div>
+                        </div>
+                    </td>
+                    <td data-tip="عملیاتی"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="عملیاتی"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                </tr>
+
+                <!-- 10. HR Payroll Expert -->
+                <tr class="dept-hr">
+                    <td class="col-role">
+                        <div class="role-card">
+                            <div class="role-icon" style="background: rgba(236, 72, 153, 0.7);"><i class="fa-regular fa-user"></i></div>
+                            <div class="role-details"><span class="role-title">کارشناس حقوق</span><span class="role-dept">منابع انسانی</span></div>
+                        </div>
+                    </td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="عملیاتی"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                </tr>
+
+                <!-- 11. Finance Accountant -->
+                <tr class="dept-fin">
+                    <td class="col-role">
+                        <div class="role-card">
+                            <div class="role-icon" style="background: rgba(14, 165, 233, 0.7);"><i class="fa-regular fa-user"></i></div>
+                            <div class="role-details"><span class="role-title">کارشناس مالی</span><span class="role-dept">امور مالی</span></div>
+                        </div>
+                    </td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="عملیاتی"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                </tr>
+
+                <!-- 12. Treasury Expert -->
+                <tr class="dept-fin">
+                    <td class="col-role">
+                        <div class="role-card">
+                            <div class="role-icon" style="background: rgba(14, 165, 233, 0.7);"><i class="fa-regular fa-user"></i></div>
+                            <div class="role-details"><span class="role-title">کارشناس خزانه</span><span class="role-dept">امور مالی</span></div>
+                        </div>
+                    </td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="عملیاتی"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                </tr>
+
+                <!-- 13. Warehouse Expert -->
+                <tr class="dept-ops">
+                    <td class="col-role">
+                        <div class="role-card">
+                            <div class="role-icon" style="background: rgba(245, 158, 11, 0.7);"><i class="fa-regular fa-user"></i></div>
+                            <div class="role-details"><span class="role-title">کارشناس انبار</span><span class="role-dept">عملیات</span></div>
+                        </div>
+                    </td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="عملیاتی"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                </tr>
+                
+                <!-- 14. Production Expert -->
+                <tr class="dept-ops">
+                    <td class="col-role">
+                        <div class="role-card">
+                            <div class="role-icon" style="background: rgba(245, 158, 11, 0.7);"><i class="fa-regular fa-user"></i></div>
+                            <div class="role-details"><span class="role-title">کارشناس تولید</span><span class="role-dept">تولید</span></div>
+                        </div>
+                    </td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="عملیاتی"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                </tr>
+
+                <!-- 15. Purchase Expert -->
+                <tr class="dept-ops">
+                    <td class="col-role">
+                        <div class="role-card">
+                            <div class="role-icon" style="background: rgba(245, 158, 11, 0.7);"><i class="fa-regular fa-user"></i></div>
+                            <div class="role-details"><span class="role-title">کارشناس خرید</span><span class="role-dept">بازرگانی</span></div>
+                        </div>
+                    </td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="عملیاتی"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td data-tip="عملیاتی"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                </tr>
+
+                <!-- 16. Technical Expert -->
+                <tr class="dept-eng">
+                    <td class="col-role">
+                        <div class="role-card">
+                            <div class="role-icon" style="background: rgba(139, 92, 246, 0.7);"><i class="fa-regular fa-user"></i></div>
+                            <div class="role-details"><span class="role-title">کارشناس فنی</span><span class="role-dept">مهندسی</span></div>
+                        </div>
+                    </td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="مشاهده"><div class="access-badge acc-read"><i class="fa-solid fa-eye"></i></div></td>
+                    <td data-tip="عملیاتی"><div class="access-badge acc-full"><i class="fa-solid fa-check"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                    <td><div class="access-badge acc-none"><i class="fa-solid fa-minus"></i></div></td>
+                </tr>
+
             </tbody>
         </table>
     </div>
 </div>
-
-<script>
-    function filterTable() {
-        var input, filter, table, tr, td, i, txtValue;
-        input = document.getElementById("searchInput");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("mainTable");
-        tr = table.getElementsByTagName("tr");
-
-        for (i = 1; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[0];
-            if (td) {
-                txtValue = td.textContent || td.innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
-            }       
-        }
-    }
-
-    let sortDirection = {};
-    function sortTable(n) {
-        var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-        table = document.getElementById("mainTable");
-        switching = true;
-        
-        if (!sortDirection[n] || sortDirection[n] === "desc") {
-            dir = "asc"; sortDirection[n] = "asc";
-        } else {
-            dir = "desc"; sortDirection[n] = "desc";
-        }
-        
-        while (switching) {
-            switching = false;
-            rows = table.rows;
-            for (i = 1; i < (rows.length - 1); i++) {
-                shouldSwitch = false;
-                x = rows[i].getElementsByTagName("TD")[n];
-                y = rows[i + 1].getElementsByTagName("TD")[n];
-                
-                let xVal, yVal;
-                if (n === 0) {
-                    xVal = x.textContent.trim(); yVal = y.textContent.trim();
-                } else {
-                    xVal = parseInt(x.getAttribute("data-v"));
-                    yVal = parseInt(y.getAttribute("data-v"));
-                }
-
-                if (dir == "asc") {
-                    if (xVal > yVal) { shouldSwitch = true; break; }
-                } else if (dir == "desc") {
-                    if (xVal < yVal) { shouldSwitch = true; break; }
-                }
-            }
-            if (shouldSwitch) {
-                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-                switching = true;
-                switchcount++;
-            }
-        }
-    }
-</script>
 
 </body>
 </html>
