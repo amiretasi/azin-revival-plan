@@ -3,644 +3,360 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد یکپارچه سطوح دسترسی</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <title>گزارش دسترسی کاربران</title>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
             --primary: #2563eb;
-            --bg-body: #f1f5f9;
-            --bg-card: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
             --header-bg: #1e293b;
-            --header-text: #ffffff;
-            --hover-row: #eff6ff;
+            --border-color: #cbd5e1;
         }
-
-        * { box-sizing: border-box; }
 
         body {
-            font-family: "Vazirmatn", sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
+            font-family: 'Vazirmatn', Tahoma, sans-serif;
             margin: 0;
-            padding: 40px;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-
-        /* --- Header Section --- */
-        .report-header {
-            background-color: var(--bg-card);
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 4px solid var(--primary);
-        }
-
-        .report-title h1 { margin: 0; font-size: 28px; font-weight: 800; }
-        .report-title p { margin: 5px 0 0 0; color: var(--text-muted); font-size: 14px; }
-        .report-meta { display: flex; gap: 15px; }
-
-        .badge {
-            padding: 8px 16px;
-            border-radius: 50px;
-            font-size: 13px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .badge-date { background-color: #e0f2fe; color: #0369a1; }
-        .badge-security { background-color: #fef2f2; color: #991b1b; }
-
-        /* --- Matrix Section --- */
-        .matrix-section {
-            background-color: var(--bg-card);
-            border-radius: 16px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            margin-bottom: 40px;
-            border: 1px solid var(--border);
-        }
-
-        .section-header {
-            padding: 20px 30px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 20px;
             background-color: #f8fafc;
+            color: #334155;
+            direction: rtl;
         }
 
-        .section-header h2 { margin: 0; font-size: 20px; color: var(--primary); font-weight: 700; }
+        .report-container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
 
-        .legend { display: flex; gap: 15px; font-size: 13px; }
-        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .web-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
 
-        /* --- Table Styling --- */
-        .table-container {
-            overflow-x: auto;
-            max-height: 80vh;
+        .web-header h1 { margin: 0; font-size: 24px; color: #0f172a; }
+        .web-header .meta { font-size: 14px; color: #64748b; }
+
+        .search-box {
+            margin-bottom: 15px;
             position: relative;
+            max-width: 300px;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 10px 40px 10px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+        .search-box i {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
         }
 
         table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            min-width: 1200px;
+            border-collapse: collapse;
+            font-size: 14px;
+            min-width: 1000px;
         }
 
-        /* Sticky Header */
-        thead th {
+        thead {
             background-color: var(--header-bg);
-            color: var(--header-text);
-            padding: 10px;
-            font-size: 13px;
-            font-weight: 400;
+            color: white;
+        }
+
+        th {
+            padding: 15px 10px;
+            font-weight: 500;
             text-align: center;
+            border-left: 1px solid #334155;
             position: sticky;
             top: 0;
-            z-index: 10;
-            height: 120px;
-            vertical-align: bottom;
-            border-right: 1px solid #334155;
-            cursor: pointer; /* Clickable */
-            user-select: none;
-            transition: background 0.2s;
-        }
-
-        thead th:hover {
-            background-color: #334155;
-        }
-
-        /* Sort Icons */
-        .sort-icon {
-            font-size: 10px;
-            color: #94a3b8;
-            margin-bottom: 5px;
-            display: block;
-            text-align: center;
-            height: 15px;
-        }
-
-        /* Vertical text in header */
-        thead th span.v-text {
-            writing-mode: vertical-rl;
-            transform: rotate(180deg);
+            cursor: pointer;
             white-space: nowrap;
-            margin: 0 auto;
-            display: block;
-            height: 70px;
-            pointer-events: none; /* Let clicks pass to th */
-        }
-
-        /* Sticky First Column (Roles) */
-        .role-col {
-            position: sticky;
-            right: 0;
-            z-index: 20;
-            background-color: #f1f5f9;
-            border-left: 2px solid var(--border);
-            text-align: right;
-            padding: 15px 20px;
-            width: 240px;
-            min-width: 240px;
-            font-weight: 600;
-            color: var(--text-main);
         }
         
-        thead th.role-col {
-            background-color: var(--header-bg);
-            color: #fbbf24;
-            z-index: 30;
-            vertical-align: middle;
-            text-align: center;
-        }
-        
-        thead th.role-col span {
-            writing-mode: horizontal-tb;
-            transform: none;
-            height: auto;
-            font-size: 16px;
-            font-weight: 700;
-        }
+        th:last-child { border-left: none; }
+        th:first-child { text-align: right; padding-right: 20px; position: sticky; right: 0; z-index: 10; background-color: var(--header-bg); }
 
         td {
             padding: 12px;
             text-align: center;
-            border-bottom: 1px solid var(--border);
-            border-left: 1px solid #f1f5f9;
-            transition: background 0.2s;
+            border-bottom: 1px solid var(--border-color);
+            border-left: 1px solid #e2e8f0;
         }
 
-        tbody tr:hover td { background-color: var(--hover-row); }
-        tbody tr:hover .role-col { background-color: #e0e7ff; }
+        td:first-child {
+            text-align: right;
+            padding-right: 20px;
+            font-weight: 600;
+            background-color: #f8fafc;
+            position: sticky;
+            right: 0;
+            border-left: 2px solid var(--border-color);
+        }
 
-        /* Icons */
-        .fa-circle-check { color: #16a34a; font-size: 20px; } /* Val: 2 */
-        .fa-eye { color: #f59e0b; font-size: 20px; } /* Val: 1 */
-        .fa-minus { color: #cbd5e1; font-size: 14px; } /* Val: 0 */
+        tr:nth-child(even) { background-color: #fcfcfc; }
+        tr:hover td { background-color: #eff6ff; }
 
-        .role-group {
-            display: block;
+        .full { color: #16a34a; }
+        .read { color: #f59e0b; }
+        .none { color: #e2e8f0; }
+
+        .role-badge {
+            display: inline-block;
             font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 400;
-            margin-bottom: 4px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: #e2e8f0;
+            color: #475569;
+            margin-left: 8px;
         }
 
-        .role-title { display: block; }
-
-        /* Footer */
-        .security-footer {
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            border-right: 5px solid #ef4444;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-top: 40px;
-        }
-
-        /* Print */
         @media print {
             body { padding: 0; background: white; }
-            .container { max-width: 100%; }
-            .report-header, .matrix-section, .security-footer { box-shadow: none; border: 1px solid #000; }
-            .table-container { overflow: visible; max-height: none; }
-            thead th { background-color: #eee !important; color: black !important; border: 1px solid #000; }
-            td { border: 1px solid #000; }
-            .role-col { border: 1px solid #000; background: #ddd !important; }
-            .sort-icon { display: none; }
-            @page { size: landscape; }
+            .report-container { box-shadow: none; padding: 0; }
+            .search-box { display: none; }
+            th { background-color: #ddd !important; color: black !important; }
+            @page { size: landscape; margin: 10mm; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-
-    <header class="report-header">
-        <div class="report-title">
-            <h1>گزارش یکپارچه سطوح دسترسی</h1>
-            <p>اداره مهندسی نرم‌افزار و توسعه سیستم‌های اطلاعاتی</p>
-        </div>
-        <div class="report-meta">
-            <div class="badge badge-date"><i class="fa-solid fa-calendar"></i> 1404/09/06</div>
-            <div class="badge badge-security"><i class="fa-solid fa-lock"></i> سند محرمانه</div>
-        </div>
-    </header>
-
-    <section class="matrix-section">
-        <div class="section-header">
-            <h2><i class="fa-solid fa-table-list"></i> ماتریس جامع (مدیران و کارشناسان)</h2>
-            <div class="legend">
-                <div class="legend-item"><i class="fa-solid fa-arrow-up-wide-short"></i> برای مرتب‌سازی روی ستون‌ها کلیک کنید</div>
-                <span style="color: #cbd5e1;">|</span>
-                <div class="legend-item"><i class="fa-solid fa-circle-check"></i> عملیاتی</div>
-                <div class="legend-item"><i class="fa-solid fa-eye"></i> مشاهده</div>
-                <div class="legend-item"><i class="fa-solid fa-minus"></i> بدون دسترسی</div>
-            </div>
-        </div>
-        
-        <div class="table-container">
-            <table id="accessTable">
-                <thead>
-                    <tr>
-                        <!-- 0 -->
-                        <th class="role-col" onclick="sortTable(0)">
-                            <div class="sort-icon"><i class="fa-solid fa-sort"></i></div>
-                            <span>نام نقش / سمت</span>
-                        </th>
-                        <!-- 1 -->
-                        <th onclick="sortTable(1)">
-                            <div class="sort-icon"><i class="fa-solid fa-sort"></i></div>
-                            <span class="v-text">سیستم پرسنلی</span>
-                        </th>
-                        <!-- 2 -->
-                        <th onclick="sortTable(2)">
-                            <div class="sort-icon"><i class="fa-solid fa-sort"></i></div>
-                            <span class="v-text">سیستم احکام</span>
-                        </th>
-                        <!-- 3 -->
-                        <th onclick="sortTable(3)">
-                            <div class="sort-icon"><i class="fa-solid fa-sort"></i></div>
-                            <span class="v-text">حقوق و دستمزد</span>
-                        </th>
-                        <!-- 4 -->
-                        <th onclick="sortTable(4)">
-                            <div class="sort-icon"><i class="fa-solid fa-sort"></i></div>
-                            <span class="v-text">سیستم مالی</span>
-                        </th>
-                        <!-- 5 -->
-                        <th onclick="sortTable(5)">
-                            <div class="sort-icon"><i class="fa-solid fa-sort"></i></div>
-                            <span class="v-text">خزانه‌داری</span>
-                        </th>
-                        <!-- 6 -->
-                        <th onclick="sortTable(6)">
-                            <div class="sort-icon"><i class="fa-solid fa-sort"></i></div>
-                            <span class="v-text">سیستم اموال</span>
-                        </th>
-                        <!-- 7 -->
-                        <th onclick="sortTable(7)">
-                            <div class="sort-icon"><i class="fa-solid fa-sort"></i></div>
-                            <span class="v-text">بهای تمام شده</span>
-                        </th>
-                        <!-- 8 -->
-                        <th onclick="sortTable(8)">
-                            <div class="sort-icon"><i class="fa-solid fa-sort"></i></div>
-                            <span class="v-text">سیستم انبار</span>
-                        </th>
-                        <!-- 9 -->
-                        <th onclick="sortTable(9)">
-                            <div class="sort-icon"><i class="fa-solid fa-sort"></i></div>
-                            <span class="v-text">سیستم تولید</span>
-                        </th>
-                        <!-- 10 -->
-                        <th onclick="sortTable(10)">
-                            <div class="sort-icon"><i class="fa-solid fa-sort"></i></div>
-                            <span class="v-text">سیستم مهندسی</span>
-                        </th>
-                        <!-- 11 -->
-                        <th onclick="sortTable(11)">
-                            <div class="sort-icon"><i class="fa-solid fa-sort"></i></div>
-                            <span class="v-text">سیستم خرید</span>
-                        </th>
-                        <!-- 12 -->
-                        <th onclick="sortTable(12)">
-                            <div class="sort-icon"><i class="fa-solid fa-sort"></i></div>
-                            <span class="v-text">پیمانکاری</span>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <!-- Managers -->
-                    <tr>
-                        <td class="role-col"><span class="role-group">مدیریت ارشد</span><span class="role-title">مدیر عامل</span></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                    </tr>
-                    <tr>
-                        <td class="role-col"><span class="role-group">طرح و برنامه</span><span class="role-title">مدیر طرح و برنامه</span></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                    </tr>
-                    <tr>
-                        <td class="role-col"><span class="role-group">امور مالی</span><span class="role-title">مدیر مالی</span></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                    </tr>
-                    <tr>
-                        <td class="role-col"><span class="role-group">منابع انسانی</span><span class="role-title">مدیر منابع انسانی</span></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                    </tr>
-                    <tr>
-                        <td class="role-col"><span class="role-group">بازرگانی</span><span class="role-title">مدیر بازرگانی</span></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                    </tr>
-                    <tr>
-                        <td class="role-col"><span class="role-group">تولید</span><span class="role-title">مدیر تولید</span></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                    </tr>
-                    <tr>
-                        <td class="role-col"><span class="role-group">مهندسی</span><span class="role-title">مدیر مهندسی</span></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                    </tr>
-                    <tr>
-                        <td class="role-col"><span class="role-group">IT</span><span class="role-title">مدیر IT / ادمین</span></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                    </tr>
-                    <!-- Experts -->
-                    <tr>
-                        <td class="role-col"><span class="role-group">منابع انسانی</span><span class="role-title">کارشناس اداری</span></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                    </tr>
-                    <tr>
-                        <td class="role-col"><span class="role-group">منابع انسانی</span><span class="role-title">کارشناس حقوق</span></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                    </tr>
-                    <tr>
-                        <td class="role-col"><span class="role-group">امور مالی</span><span class="role-title">کارشناس حسابداری</span></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                    </tr>
-                    <tr>
-                        <td class="role-col"><span class="role-group">امور مالی</span><span class="role-title">کارشناس خزانه</span></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                    </tr>
-                    <tr>
-                        <td class="role-col"><span class="role-group">عملیات</span><span class="role-title">کارشناس انبار</span></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                    </tr>
-                    <tr>
-                        <td class="role-col"><span class="role-group">تولید</span><span class="role-title">کارشناس تولید</span></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                    </tr>
-                    <tr>
-                        <td class="role-col"><span class="role-group">بازرگانی</span><span class="role-title">کارشناس خرید</span></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                    </tr>
-                    <tr>
-                        <td class="role-col"><span class="role-group">مهندسی</span><span class="role-title">کارشناس فنی</span></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="1"><i class="fa-solid fa-eye"></i></td>
-                        <td data-val="2"><i class="fa-solid fa-circle-check"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                        <td data-val="0"><i class="fa-solid fa-minus"></i></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
-
-    <div class="security-footer">
-        <div style="font-size: 32px; color: #ef4444;"><i class="fa-solid fa-shield-halved"></i></div>
+<div class="report-container">
+    <div class="web-header">
         <div>
-            <strong style="display: block; font-size: 16px; margin-bottom: 5px;">سیاست غیرفعال‌سازی خودکار</strong>
-            <span style="color: var(--text-muted); font-size: 14px;">دسترسی سیستمی کلیه کاربران (مدیران و کارشناسان) در صورت قطع همکاری، مرخصی طولانی مدت یا تغییر پست سازمانی، باید بلافاصله توسط واحد IT و منابع انسانی بازبینی و غیرفعال گردد.</span>
+            <h1>جدول سطوح دسترسی (ماتریس جامع)</h1>
+            <div class="meta">اداره مهندسی نرم‌افزار | تاریخ گزارش: 1404/09/06</div>
+        </div>
+        <div style="text-align: left;">
+            <button onclick="window.print()" style="padding: 8px 16px; background: #334155; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                <i class="fa-solid fa-print"></i> چاپ گزارش
+            </button>
         </div>
     </div>
 
+    <div class="search-box">
+        <i class="fa-solid fa-search"></i>
+        <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="جستجوی نام یا سمت...">
+    </div>
+
+    <div class="table-wrapper">
+        <table id="mainTable">
+            <thead>
+                <tr>
+                    <th onclick="sortTable(0)">نقش / سمت <i class="fa-solid fa-sort"></i></th>
+                    <th onclick="sortTable(1)">پرسنلی <i class="fa-solid fa-sort"></i></th>
+                    <th onclick="sortTable(2)">احکام <i class="fa-solid fa-sort"></i></th>
+                    <th onclick="sortTable(3)">حقوق <i class="fa-solid fa-sort"></i></th>
+                    <th onclick="sortTable(4)">مالی <i class="fa-solid fa-sort"></i></th>
+                    <th onclick="sortTable(5)">خزانه <i class="fa-solid fa-sort"></i></th>
+                    <th onclick="sortTable(6)">اموال <i class="fa-solid fa-sort"></i></th>
+                    <th onclick="sortTable(7)">بهای تمام شده <i class="fa-solid fa-sort"></i></th>
+                    <th onclick="sortTable(8)">انبار <i class="fa-solid fa-sort"></i></th>
+                    <th onclick="sortTable(9)">تولید <i class="fa-solid fa-sort"></i></th>
+                    <th onclick="sortTable(10)">مهندسی <i class="fa-solid fa-sort"></i></th>
+                    <th onclick="sortTable(11)">خرید <i class="fa-solid fa-sort"></i></th>
+                    <th onclick="sortTable(12)">پیمانکاری <i class="fa-solid fa-sort"></i></th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows -->
+                <tr>
+                    <td><span class="role-badge">مدیر</span> مدیر عامل</td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                </tr>
+                <tr>
+                    <td><span class="role-badge">مدیر</span> مدیر مالی</td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                </tr>
+                 <tr>
+                    <td><span class="role-badge">مدیر</span> مدیر منابع انسانی</td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                </tr>
+                <tr>
+                    <td><span class="role-badge">مدیر</span> مدیر تولید</td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                </tr>
+                <tr>
+                    <td><span class="role-badge">مدیر</span> مدیر IT</td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                </tr>
+                <tr>
+                    <td><span class="role-badge">کارشناس</span> کارشناس اداری</td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                </tr>
+                <tr>
+                    <td><span class="role-badge">کارشناس</span> کارشناس حسابداری</td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                </tr>
+                <tr>
+                    <td><span class="role-badge">کارشناس</span> کارشناس انبار</td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="2"><i class="fa-solid fa-circle-check full"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                    <td data-v="1"><i class="fa-solid fa-eye read"></i></td>
+                    <td data-v="0"><i class="fa-solid fa-minus none"></i></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    let sortDirection = {}; // To toggle asc/desc for each column
+    function filterTable() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("searchInput");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("mainTable");
+        tr = table.getElementsByTagName("tr");
 
+        for (i = 1; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[0];
+            if (td) {
+                txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }       
+        }
+    }
+
+    let sortDirection = {};
     function sortTable(n) {
         var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
-        table = document.getElementById("accessTable");
+        table = document.getElementById("mainTable");
         switching = true;
         
-        // Initialize or toggle direction
         if (!sortDirection[n] || sortDirection[n] === "desc") {
-            dir = "asc";
-            sortDirection[n] = "asc";
+            dir = "asc"; sortDirection[n] = "asc";
         } else {
-            dir = "desc";
-            sortDirection[n] = "desc";
+            dir = "desc"; sortDirection[n] = "desc";
         }
         
-        // Update Icons
-        updateSortIcons(n, dir);
-
         while (switching) {
             switching = false;
             rows = table.rows;
-            
-            // Loop through all table rows (except the first, which contains table headers):
             for (i = 1; i < (rows.length - 1); i++) {
                 shouldSwitch = false;
-                
                 x = rows[i].getElementsByTagName("TD")[n];
                 y = rows[i + 1].getElementsByTagName("TD")[n];
                 
                 let xVal, yVal;
-
-                // If sorting first column (Names), use text content
                 if (n === 0) {
-                    xVal = x.textContent.trim();
-                    yVal = y.textContent.trim();
-                } 
-                // Else (System columns), use data-val attribute for numeric sort (Access Level)
-                else {
-                    xVal = parseInt(x.getAttribute("data-val"));
-                    yVal = parseInt(y.getAttribute("data-val"));
+                    xVal = x.textContent.trim(); yVal = y.textContent.trim();
+                } else {
+                    xVal = parseInt(x.getAttribute("data-v"));
+                    yVal = parseInt(y.getAttribute("data-v"));
                 }
 
                 if (dir == "asc") {
-                    if (xVal > yVal) {
-                        shouldSwitch = true;
-                        break;
-                    }
+                    if (xVal > yVal) { shouldSwitch = true; break; }
                 } else if (dir == "desc") {
-                    if (xVal < yVal) {
-                        shouldSwitch = true;
-                        break;
-                    }
+                    if (xVal < yVal) { shouldSwitch = true; break; }
                 }
             }
             if (shouldSwitch) {
@@ -648,26 +364,6 @@
                 switching = true;
                 switchcount++;
             }
-        }
-    }
-
-    function updateSortIcons(n, dir) {
-        // Reset all icons
-        const icons = document.querySelectorAll('.sort-icon i');
-        icons.forEach(icon => {
-            icon.className = 'fa-solid fa-sort'; // Default neutral icon
-            icon.style.color = '#94a3b8';
-        });
-
-        // Set active icon
-        const activeHeader = document.querySelectorAll('th')[n];
-        const activeIcon = activeHeader.querySelector('.sort-icon i');
-        if (dir === 'asc') {
-            activeIcon.className = 'fa-solid fa-sort-up';
-            activeIcon.style.color = '#2563eb';
-        } else {
-            activeIcon.className = 'fa-solid fa-sort-down';
-            activeIcon.style.color = '#2563eb';
         }
     }
 </script>
