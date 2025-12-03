@@ -6,9 +6,12 @@
     <title>داشبورد جامع فرماندهی سایپا آذین</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;300;400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+        
         :root {
             --primary: #0f172a;   /* Deep Navy */
             --secondary: #3b82f6; /* Vivid Blue */
@@ -29,6 +32,12 @@
             padding: 0;
             overflow-x: hidden;
         }
+        
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         /* --- Header --- */
         .dashboard-header {
@@ -44,20 +53,20 @@
         .dashboard-header p { margin: 8px 0 0; font-weight: 300; color: #cbd5e1; font-size: 1.05rem; }
 
         /* --- Container --- */
-        .container {
+        .container-custom {
             max-width: 1380px;
             margin: 0 auto;
             padding: 0 20px 60px 20px;
         }
 
-        /* --- KPI Cards --- */
-        .kpi-row {
+        /* --- KPI Cards (Main) --- */
+        .kpi-row-main {
             display: flex;
             gap: 15px;
             margin-bottom: 25px;
             flex-wrap: wrap;
         }
-        .kpi-card {
+        .kpi-card-main {
             flex: 1;
             background: var(--card-bg);
             padding: 18px;
@@ -71,10 +80,57 @@
             flex-direction: column;
             justify-content: center;
         }
-        .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        .kpi-card-main:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
         .kpi-title { font-size: 0.9rem; color: #64748b; font-weight: 700; margin-bottom: 5px; }
         .kpi-value { font-size: 1.6rem; font-weight: 900; color: var(--primary); }
         .kpi-sub { font-size: 0.8rem; font-weight: 600; margin-top: 5px; color: #64748b; }
+
+        /* --- TABS STYLE --- */
+        .tabs-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: #e2e8f0;
+            padding: 5px;
+            border-radius: 12px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 10px 25px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-weight: 700;
+            font-size: 1rem;
+            color: #64748b;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.5);
+            color: var(--primary);
+        }
+        .tab-btn.active {
+            background: white;
+            color: var(--secondary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         /* --- Accordion --- */
         .accordion {
@@ -127,7 +183,7 @@
         .panel-financial .panel-content { background-color: #fff1f2; border-color: #fecaca; }
         .panel-retiree .accordion { border-right: 6px solid var(--accent); }
         .panel-retiree .panel-content { background-color: #fffbeb; border-color: #fde68a; }
-        .panel-fleet .accordion { border-right: 6px solid #0f172a; } /* Navy for Fleet */
+        .panel-fleet .accordion { border-right: 6px solid #0f172a; } 
 
         /* --- Charts Grid --- */
         .charts-grid {
@@ -163,7 +219,6 @@
         }
         .side-by-side.top-align { align-items: flex-start; }
         
-        /* Adjusted: Table on Right, Chart on Left/Right as needed */
         .side-chart { width: 48%; height: 100%; position: relative; display: flex; justify-content: center; align-items: center; }
         .side-table-container { width: 48%; height: 100%; overflow-y: auto; }
 
@@ -241,281 +296,375 @@
         <p>تحلیل استراتژیک سرمایه انسانی و وضعیت مالی شرکت سایپا آذین | آذر ۱۴۰۴</p>
     </div>
 
-    <div class="container">
+    <div class="container-custom">
 
-        <!-- KPI Section -->
-        <div class="kpi-row">
-            <div class="kpi-card" style="border-color: var(--primary);">
+        <!-- KPI Section (Always Visible) -->
+        <div class="kpi-row-main">
+            <div class="kpi-card-main" style="border-color: var(--primary);">
                 <span class="kpi-title">کل پرسنل فعال</span>
                 <span class="kpi-value" id="kpi-total">1,004</span>
             </div>
-            <div class="kpi-card" style="border-color: var(--success);">
+            <div class="kpi-card-main" style="border-color: var(--success);">
                 <span class="kpi-title">نیروهای صف (تولید)</span>
                 <span class="kpi-value" id="kpi-saf">771</span>
                 <span class="kpi-sub" style="color: var(--success);">۷۷٪ سازمان</span>
             </div>
-            <div class="kpi-card" style="border-color: var(--accent);">
+            <div class="kpi-card-main" style="border-color: var(--accent);">
                 <span class="kpi-title">نیروهای ستاد</span>
                 <span class="kpi-value" id="kpi-setad">233</span>
                 <span class="kpi-sub" style="color: var(--accent);">۲۳٪ سازمان</span>
             </div>
-            <div class="kpi-card" style="border-color: var(--danger);">
+            <div class="kpi-card-main" style="border-color: var(--danger);">
                 <span class="kpi-title">کل ذخیره سنوات (تجمعی)</span>
                 <span class="kpi-value">1,622</span>
                 <span class="kpi-sub" style="color: var(--danger);">میلیارد ریال</span>
             </div>
         </div>
 
-        <!-- 1. Structure Analysis -->
-        <div class="accordion-wrapper">
-            <button class="accordion">۱. تحلیل ساختار سازمانی و واحدهای کاری</button>
-            <div class="panel"><div class="panel-content">
-                <div class="charts-grid">
-                    <!-- Row 1: Pie + Org Table -->
-                    <div class="chart-box">
-                        <h3>نسبت صف به ستاد</h3>
-                        <div class="side-by-side">
-                            <div class="side-chart"><canvas id="safSetadPie"></canvas></div>
-                            <div class="side-table-container">
-                                <table class="mini-table">
-                                    <tr><td class="label">نیروهای صف</td><td class="value">771 نفر</td></tr>
-                                    <tr><td class="label">نیروهای ستاد</td><td class="value">233 نفر</td></tr>
-                                    <tr style="background:#f1f5f9;"><td class="label">جمع کل</td><td class="value">1,004 نفر</td></tr>
+        <!-- TABS NAVIGATION -->
+        <div class="tabs-container">
+            <button class="tab-btn active" onclick="openTab('tab-hr')">منابع انسانی و ساختار</button>
+            <button class="tab-btn" onclick="openTab('tab-fleet')">ناوگان خودرویی</button>
+            <button class="tab-btn" onclick="openTab('tab-finance')">مالی و بودجه</button>
+            <button class="tab-btn" onclick="openTab('tab-contract')">تعاونی و قراردادها</button>
+            <button class="tab-btn" onclick="openTab('tab-retiree')">بازنشستگان و سنوات</button>
+        </div>
+
+        <!-- TAB 1: HR & Structure -->
+        <div id="tab-hr" class="tab-content active">
+            <!-- 1. Structure Analysis -->
+            <div class="accordion-wrapper">
+                <button class="accordion">تحلیل ساختار سازمانی و واحدهای کاری</button>
+                <div class="panel"><div class="panel-content">
+                    <div class="charts-grid">
+                        <!-- Row 1: Pie + Org Table -->
+                        <div class="chart-box">
+                            <h3>نسبت صف به ستاد</h3>
+                            <div class="side-by-side">
+                                <div class="side-chart"><canvas id="safSetadPie"></canvas></div>
+                                <div class="side-table-container">
+                                    <table class="mini-table">
+                                        <tr><td class="label">نیروهای صف</td><td class="value">771 نفر</td></tr>
+                                        <tr><td class="label">نیروهای ستاد</td><td class="value">233 نفر</td></tr>
+                                        <tr style="background:#f1f5f9;"><td class="label">جمع کل</td><td class="value">1,004 نفر</td></tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-box">
+                            <h3>تفکیک سطوح و سمت‌های سازمانی</h3>
+                            <div class="table-wrapper" style="width:100%; border:none;">
+                                <table class="org-table">
+                                    <thead><tr><th>سطح سازمانی</th><th>تعداد</th><th>درصد</th></tr></thead>
+                                    <tbody>
+                                        <tr><td>کارگر / اپراتور</td><td>680</td><td>67.7%</td></tr>
+                                        <tr><td>تکنسین / سرپرست</td><td>150</td><td>14.9%</td></tr>
+                                        <tr><td>کارشناس</td><td>120</td><td>11.9%</td></tr>
+                                        <tr><td>رئیس</td><td>40</td><td>3.9%</td></tr>
+                                        <tr><td>مدیر / معاون / مشاور</td><td>14</td><td>1.4%</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Unit Breakdown (Side by Side) -->
+                        <div class="chart-box full-width" style="height: auto; min-height: 450px;">
+                            <h3>توزیع پرسنل به تفکیک واحدهای کاری</h3>
+                            <div class="side-by-side top-align">
+                                <!-- Chart Left -->
+                                <div class="side-chart">
+                                    <div class="chart-container-inner" style="height: 350px;">
+                                        <canvas id="unitChart"></canvas>
+                                    </div>
+                                </div>
+                                <!-- Table Right -->
+                                <div class="side-table-container">
+                                    <table class="org-table" id="unitTable" style="margin-top:0;">
+                                        <thead><tr><th>واحد سازمانی</th><th>تعداد</th><th>درصد</th></tr></thead>
+                                        <tbody></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div></div>
+            </div>
+
+            <!-- 2. Human Capital (Education & Majors) -->
+            <div class="accordion-wrapper">
+                <button class="accordion">تحلیل سرمایه انسانی (تحصیلات و رشته)</button>
+                <div class="panel"><div class="panel-content">
+                    <div class="charts-grid">
+                        <!-- SIDE BY SIDE EDUCATION -->
+                        <div class="chart-box full-width" style="height: 450px;">
+                            <h3>وضعیت تحصیلی پرسنل (توزیع کل و تفکیک)</h3>
+                            <div class="side-by-side">
+                                <div class="side-chart">
+                                    <canvas id="educationChart"></canvas>
+                                </div>
+                                <div class="side-chart">
+                                    <canvas id="eduSplitChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chart-box full-width tall-chart">
+                            <h3>۱۰ رشته اصلی + مهندسی‌های پایه (عمران، مکانیک) + سایر</h3>
+                            <div class="chart-container-inner"><canvas id="majorsChart"></canvas></div>
+                        </div>
+                    </div>
+                </div></div>
+            </div>
+
+            <!-- 3. Personnel Database -->
+            <div class="accordion-wrapper">
+                <button class="accordion">بانک اطلاعاتی پرسنل</button>
+                <div class="panel"><div class="panel-content">
+                    <input type="text" id="personnelSearch" class="search-box" placeholder="جستجو در نام، واحد، مدرک...">
+                    <div class="table-wrapper">
+                        <table class="main-table" id="personnelTable">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortTable('personnelTable',0)">ردیف <i class="fas fa-sort"></i></th>
+                                    <th onclick="sortTable('personnelTable',1)">شماره <i class="fas fa-sort"></i></th>
+                                    <th onclick="sortTable('personnelTable',2)">نام و نام خانوادگی <i class="fas fa-sort"></i></th>
+                                    <th onclick="sortTable('personnelTable',3)">جنسیت <i class="fas fa-sort"></i></th>
+                                    <th onclick="sortTable('personnelTable',4)">واحد <i class="fas fa-sort"></i></th>
+                                    <th onclick="sortTable('personnelTable',5)">مدرک <i class="fas fa-sort"></i></th>
+                                    <th onclick="sortTable('personnelTable',6)">رشته <i class="fas fa-sort"></i></th>
+                                    <th onclick="sortTable('personnelTable',7)">رسته <i class="fas fa-sort"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top: 5px; font-size: 0.8rem; color: #64748b;">تعداد رکورد: <span id="setad-count">0</span></div>
+                </div></div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Fleet Management -->
+        <div id="tab-fleet" class="tab-content">
+            <div class="accordion-wrapper panel-fleet">
+                <button class="accordion">وضعیت ناوگان خودرویی شرکت</button>
+                <div class="panel" style="max-height: 2000px;"><div class="panel-content"> <!-- Default Open -->
+                    <div class="charts-grid">
+                        <div class="chart-box full-width" style="height: auto; min-height: 400px;">
+                            <h3>لیست خودروهای در اختیار و عمومی (آبان ۱۴۰۴)</h3>
+                             <div class="table-wrapper" style="border:none; max-height: 600px;">
+                                <table class="main-table" id="fleetTable">
+                                    <thead>
+                                        <tr>
+                                            <th>ردیف</th>
+                                            <th>تحویل گیرنده</th>
+                                            <th>سمت / واحد</th>
+                                            <th>نوع خودرو</th>
+                                            <th>سال</th>
+                                            <th>پلاک</th>
+                                            <th>نوع کاربری</th>
+                                            <th>وضعیت فنی</th>
+                                            <th>وضعیت کلی</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Populated by JS -->
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="chart-box">
-                        <h3>تفکیک سطوح و سمت‌های سازمانی</h3>
-                        <div class="table-wrapper" style="width:100%; border:none;">
-                            <table class="org-table">
-                                <thead><tr><th>سطح سازمانی</th><th>تعداد</th><th>درصد</th></tr></thead>
-                                <tbody>
-                                    <tr><td>کارگر / اپراتور</td><td>680</td><td>67.7%</td></tr>
-                                    <tr><td>تکنسین / سرپرست</td><td>150</td><td>14.9%</td></tr>
-                                    <tr><td>کارشناس</td><td>120</td><td>11.9%</td></tr>
-                                    <tr><td>رئیس</td><td>40</td><td>3.9%</td></tr>
-                                    <tr><td>مدیر / معاون / مشاور</td><td>14</td><td>1.4%</td></tr>
-                                </tbody>
-                            </table>
+                </div></div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Finance -->
+        <div id="tab-finance" class="tab-content">
+             <!-- 6. Financial Analysis -->
+             <div class="accordion-wrapper panel-financial">
+                <button class="accordion">آنالیز مالی (حقوق، بودجه و بدهی)</button>
+                <div class="panel" style="max-height: 2000px;"><div class="panel-content">
+                    <div class="charts-grid">
+                        
+                        <!-- Budget Section -->
+                        <div class="chart-box full-width" style="height: 350px;">
+                            <h3>بودجه ماهانه مورد نیاز (آبان ۱۴۰۴) - منطبق با برآورد مالی</h3>
+                            <div class="side-by-side">
+                                <div class="side-table-container">
+                                    <table class="mini-table" style="width: 100%;">
+                                        <tbody id="budgetTableBody"></tbody>
+                                    </table>
+                                    <div style="margin-top: 15px; padding: 8px; background: #fff1f2; border: 1px solid #ef4444; border-radius: 6px; text-align: center; font-weight: 900; color: #991b1b; font-size: 0.95rem;">
+                                        جمع کل ناخالص بودجه ماهانه: ۵۱۰,۵۴۵,۵۵۰,۷۶۲ ریال
+                                    </div>
+                                </div>
+                                <div class="side-chart"><canvas id="budgetChart"></canvas></div>
+                            </div>
+                        </div>
+
+                        <!-- Debt & Insurance Side by Side -->
+                        <div class="chart-box full-width" style="height: 450px;">
+                            <h3>آنالیز جامع بدهی‌ها و تعهدات بیمه‌ای</h3>
+                            <div class="side-by-side">
+                                <div class="side-chart" style="width: 48%;">
+                                    <canvas id="debtChart"></canvas>
+                                </div>
+                                <div class="side-chart" style="width: 48%;">
+                                    <canvas id="insuranceChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div></div>
+            </div>
+        </div>
+        
+        <!-- TAB 4: Contract Expiry (New Independent Tab) -->
+        <div id="tab-contract" class="tab-content">
+            <!-- NEW: Contract Expiry Section -->
+            <div class="max-w-7xl mx-auto bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden flex flex-col mt-6">
+                <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 flex-shrink-0">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        لیست انقضای قراردادها (پرسنل تعاونی و...)
+                    </h3>
+                    <div class="flex gap-2 items-center">
+                         <div id="alert-box" class="bg-red-50 border border-red-200 text-red-700 px-3 py-1 rounded flex items-center gap-2 text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                            <span id="alert-text">در حال محاسبه...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Charts for Contract Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6 bg-slate-50 border-b border-slate-200">
+                     <!-- Department Chart -->
+                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+                        <h3 class="text-lg font-bold text-slate-800 mb-6">توزیع پرسنل قراردادی به تفکیک واحد</h3>
+                        <div id="dept-chart-contract" class="space-y-4">
+                            <!-- Bars will be inserted here by JS -->
                         </div>
                     </div>
 
-                    <!-- Row 2: Unit Breakdown (Side by Side) -->
-                    <div class="chart-box full-width" style="height: auto; min-height: 450px;">
-                        <h3>توزیع پرسنل به تفکیک واحدهای کاری</h3>
-                        <div class="side-by-side top-align">
-                            <!-- Chart Left -->
-                            <div class="side-chart">
-                                <div class="chart-container-inner" style="height: 350px;">
-                                    <canvas id="unitChart"></canvas>
+                    <!-- Shift Chart -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 flex flex-col items-center">
+                        <h3 class="text-lg font-bold text-slate-800 mb-6">ترکیب شیفت کاری</h3>
+                        <div class="relative w-40 h-40 flex items-center justify-center">
+                            <svg viewBox="0 0 36 36" class="w-full h-full transform -rotate-90">
+                                <path class="text-slate-100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="4" />
+                                <path id="ring-shift" class="text-amber-500" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="4" />
+                                <path id="ring-fixed" class="text-blue-600" stroke-dasharray="0, 100" stroke-dashoffset="0" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="4" />
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                <span class="text-2xl font-bold text-slate-800" id="donut-total">0</span>
+                                <span class="text-[10px] text-slate-500">مجموع</span>
+                            </div>
+                        </div>
+                         <div class="w-full mt-4 space-y-2">
+                            <div class="flex justify-between items-center p-1 rounded bg-amber-50 text-xs">
+                                <span>شیفتی</span>
+                                <span class="font-bold" id="legend-shift">0</span>
+                            </div>
+                            <div class="flex justify-between items-center p-1 rounded bg-blue-50 text-xs">
+                                <span>ثابت</span>
+                                <span class="font-bold" id="legend-fixed">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-auto flex-grow custom-scrollbar" style="max-height: 500px;">
+                    <table class="w-full text-right relative border-collapse">
+                        <thead class="bg-slate-50 text-slate-500 text-sm sticky top-0 shadow-sm z-10">
+                            <tr>
+                                <th class="p-4 font-medium bg-slate-50">ردیف</th>
+                                <th class="p-4 font-medium bg-slate-50">نام پرسنل</th>
+                                <th class="p-4 font-medium bg-slate-50">واحد سازمانی</th>
+                                <th class="p-4 font-medium bg-slate-50">نوع شیفت</th>
+                                <th class="p-4 font-medium bg-slate-50">تاریخ اتمام قرارداد</th>
+                                <th class="p-4 font-medium bg-slate-50">وضعیت</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body-contract" class="divide-y divide-slate-100 text-sm">
+                            <!-- Rows will be populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- TAB 5: Retirees & Resigned (New Independent Tab) -->
+        <div id="tab-retiree" class="tab-content">
+             <!-- 5. Retirees & Resigned -->
+             <div class="accordion-wrapper panel-retiree">
+                <button class="accordion">وضعیت بازنشستگان و مستعفی‌ها (اصلاح شده)</button>
+                <div class="panel" style="max-height: 2000px;"><div class="panel-content">
+                    
+                    <div class="charts-grid">
+                        <!-- Debt Share Pie + Table -->
+                        <div class="chart-box full-width" style="height: 350px;">
+                            <h3>سهم بدهی سنوات (لیست جاری)</h3>
+                            <div class="side-by-side">
+                                <div class="side-chart"><canvas id="retireeDebtChart"></canvas></div>
+                                <div class="side-table-container">
+                                    <table class="mini-table">
+                                        <tr>
+                                            <td class="label">بازنشستگان (لیست جدید)</td>
+                                            <td class="value" style="color: #d97706;" id="sum-retired-table">0</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="label">مستعفی و قطع همکاری (لیست کامل)</td>
+                                            <td class="value" style="color: #1e3a8a;" id="sum-resigned-table">0</td>
+                                        </tr>
+                                        <tr style="background: #fffbeb; border-top: 2px solid #d97706;">
+                                            <td class="label" style="font-weight: 900; color: #92400e;">جمع تعهدات جاری (نمایشی)</td>
+                                            <td class="value" style="font-size: 1.1rem; color: #92400e;" id="sum-total-table">0</td>
+                                        </tr>
+                                    </table>
                                 </div>
                             </div>
-                            <!-- Table Right -->
-                            <div class="side-table-container">
-                                <table class="org-table" id="unitTable" style="margin-top:0;">
-                                    <thead><tr><th>واحد سازمانی</th><th>تعداد</th><th>درصد</th></tr></thead>
+                        </div>
+
+                        <!-- Split Tables -->
+                        <div class="chart-box full-width tall-chart" style="height: auto; min-height: 500px;">
+                            <!-- Retired Table -->
+                            <div class="section-title">
+                                لیست بازنشستگان (عادی و زیان‌آور)
+                                <span class="total-display" id="total-retired-display">جمع: ...</span>
+                            </div>
+                            <div class="table-wrapper" style="height: 250px; margin-bottom: 30px;">
+                                <table class="main-table" id="retiredTableList">
+                                    <thead>
+                                        <tr>
+                                            <th>ردیف</th><th>پرسنلی</th><th>نام و نام خانوادگی</th><th>تاریخ قطع همکاری</th><th>مانده سنوات (ریال)</th><th>علت انفصال</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+
+                            <!-- Resigned Table -->
+                            <div class="section-title" style="color: #1e3a8a; border-color: #1e3a8a;">
+                                لیست مستعفی‌ها و قطع همکاری
+                                <span class="total-display" style="color: #1e3a8a; background: #e0f2fe;" id="total-resigned-display">جمع: ...</span>
+                            </div>
+                            <div class="table-wrapper" style="height: 250px;">
+                                <table class="main-table" id="resignedTableList">
+                                    <thead>
+                                        <tr>
+                                            <th>ردیف</th><th>پرسنلی</th><th>نام و نام خانوادگی</th><th>تاریخ قطع همکاری</th><th>مانده سنوات (ریال)</th><th>توضیحات</th>
+                                        </tr>
+                                    </thead>
                                     <tbody></tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
 
-                </div>
-            </div></div>
-        </div>
-
-        <!-- 2. Human Capital (Education & Majors) -->
-        <div class="accordion-wrapper">
-            <button class="accordion">۲. تحلیل سرمایه انسانی (تحصیلات و رشته)</button>
-            <div class="panel"><div class="panel-content">
-                <div class="charts-grid">
-                    <!-- SIDE BY SIDE EDUCATION -->
-                    <div class="chart-box full-width" style="height: 450px;">
-                        <h3>وضعیت تحصیلی پرسنل (توزیع کل و تفکیک)</h3>
-                        <div class="side-by-side">
-                            <div class="side-chart">
-                                <canvas id="educationChart"></canvas>
-                            </div>
-                            <div class="side-chart">
-                                <canvas id="eduSplitChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="chart-box full-width tall-chart">
-                        <h3>۱۰ رشته اصلی + مهندسی‌های پایه (عمران، مکانیک) + سایر</h3>
-                        <div class="chart-container-inner"><canvas id="majorsChart"></canvas></div>
-                    </div>
-                </div>
-            </div></div>
-        </div>
-
-        <!-- 3. Personnel Database -->
-        <div class="accordion-wrapper">
-            <button class="accordion">۳. بانک اطلاعاتی پرسنل</button>
-            <div class="panel"><div class="panel-content">
-                <input type="text" id="personnelSearch" class="search-box" placeholder="جستجو در نام، واحد، مدرک...">
-                <div class="table-wrapper">
-                    <table class="main-table" id="personnelTable">
-                        <thead>
-                            <tr>
-                                <th onclick="sortTable('personnelTable',0)">ردیف <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('personnelTable',1)">شماره <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('personnelTable',2)">نام و نام خانوادگی <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('personnelTable',3)">جنسیت <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('personnelTable',4)">واحد <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('personnelTable',5)">مدرک <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('personnelTable',6)">رشته <i class="fas fa-sort"></i></th>
-                                <th onclick="sortTable('personnelTable',7)">رسته <i class="fas fa-sort"></i></th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-                <div style="margin-top: 5px; font-size: 0.8rem; color: #64748b;">تعداد رکورد: <span id="setad-count">0</span></div>
-            </div></div>
-        </div>
-        
-        <!-- 4. Fleet Management (New Section) -->
-        <div class="accordion-wrapper panel-fleet">
-            <button class="accordion">۴. وضعیت ناوگان خودرویی شرکت</button>
-            <div class="panel"><div class="panel-content">
-                <div class="charts-grid">
-                    <div class="chart-box full-width" style="height: auto; min-height: 400px;">
-                        <h3>لیست خودروهای در اختیار و عمومی (آبان ۱۴۰۴)</h3>
-                         <div class="table-wrapper" style="border:none; max-height: 600px;">
-                            <table class="main-table" id="fleetTable">
-                                <thead>
-                                    <tr>
-                                        <th>ردیف</th>
-                                        <th>تحویل گیرنده</th>
-                                        <th>سمت / واحد</th>
-                                        <th>نوع خودرو</th>
-                                        <th>سال</th>
-                                        <th>پلاک</th>
-                                        <th>نوع کاربری</th>
-                                        <th>وضعیت فنی</th>
-                                        <th>وضعیت کلی</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Populated by JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div></div>
-        </div>
-
-        <!-- 5. Retirees & Resigned (Split) - Renumbered -->
-        <div class="accordion-wrapper panel-retiree">
-            <button class="accordion">۵. وضعیت بازنشستگان و مستعفی‌ها (اصلاح شده)</button>
-            <div class="panel"><div class="panel-content">
-                
-                <div class="charts-grid">
-                    <!-- Debt Share Pie + Table -->
-                    <div class="chart-box full-width" style="height: 350px;">
-                        <h3>سهم بدهی سنوات (لیست جاری)</h3>
-                        <div class="side-by-side">
-                            <div class="side-chart"><canvas id="retireeDebtChart"></canvas></div>
-                            <div class="side-table-container">
-                                <table class="mini-table">
-                                    <tr>
-                                        <td class="label">بازنشستگان (لیست جدید)</td>
-                                        <td class="value" style="color: #d97706;" id="sum-retired-table">0</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="label">مستعفی و قطع همکاری (لیست کامل)</td>
-                                        <td class="value" style="color: #1e3a8a;" id="sum-resigned-table">0</td>
-                                    </tr>
-                                    <tr style="background: #fffbeb; border-top: 2px solid #d97706;">
-                                        <td class="label" style="font-weight: 900; color: #92400e;">جمع تعهدات جاری (نمایشی)</td>
-                                        <td class="value" style="font-size: 1.1rem; color: #92400e;" id="sum-total-table">0</td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Split Tables -->
-                    <div class="chart-box full-width tall-chart" style="height: auto; min-height: 500px;">
-                        <!-- Retired Table -->
-                        <div class="section-title">
-                            لیست بازنشستگان (عادی و زیان‌آور)
-                            <span class="total-display" id="total-retired-display">جمع: ...</span>
-                        </div>
-                        <div class="table-wrapper" style="height: 250px; margin-bottom: 30px;">
-                            <table class="main-table" id="retiredTableList">
-                                <thead>
-                                    <tr>
-                                        <th>ردیف</th><th>پرسنلی</th><th>نام و نام خانوادگی</th><th>تاریخ قطع همکاری</th><th>مانده سنوات (ریال)</th><th>علت انفصال</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-
-                        <!-- Resigned Table -->
-                        <div class="section-title" style="color: #1e3a8a; border-color: #1e3a8a;">
-                            لیست مستعفی‌ها و قطع همکاری
-                            <span class="total-display" style="color: #1e3a8a; background: #e0f2fe;" id="total-resigned-display">جمع: ...</span>
-                        </div>
-                        <div class="table-wrapper" style="height: 250px;">
-                            <table class="main-table" id="resignedTableList">
-                                <thead>
-                                    <tr>
-                                        <th>ردیف</th><th>پرسنلی</th><th>نام و نام خانوادگی</th><th>تاریخ قطع همکاری</th><th>مانده سنوات (ریال)</th><th>توضیحات</th>
-                                    </tr>
-                                </thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-            </div></div>
-        </div>
-
-        <!-- 6. Financial Analysis - Renumbered -->
-        <div class="accordion-wrapper panel-financial">
-            <button class="accordion">۶. آنالیز مالی (حقوق، بودجه و بدهی)</button>
-            <div class="panel"><div class="panel-content">
-                <div class="charts-grid">
-                    
-                    <!-- Budget Section -->
-                    <div class="chart-box full-width" style="height: 350px;">
-                        <h3>بودجه ماهانه مورد نیاز (آبان ۱۴۰۴) - منطبق با برآورد مالی</h3>
-                        <div class="side-by-side">
-                            <div class="side-table-container">
-                                <table class="mini-table" style="width: 100%;">
-                                    <tbody id="budgetTableBody"></tbody>
-                                </table>
-                                <div style="margin-top: 15px; padding: 8px; background: #fff1f2; border: 1px solid #ef4444; border-radius: 6px; text-align: center; font-weight: 900; color: #991b1b; font-size: 0.95rem;">
-                                    جمع کل ناخالص بودجه ماهانه: ۵۱۰,۵۴۵,۵۵۰,۷۶۲ ریال
-                                </div>
-                            </div>
-                            <div class="side-chart"><canvas id="budgetChart"></canvas></div>
-                        </div>
-                    </div>
-
-                    <!-- Debt & Insurance Side by Side -->
-                    <div class="chart-box full-width" style="height: 450px;">
-                        <h3>آنالیز جامع بدهی‌ها و تعهدات بیمه‌ای</h3>
-                        <div class="side-by-side">
-                            <div class="side-chart" style="width: 48%;">
-                                <canvas id="debtChart"></canvas>
-                            </div>
-                            <div class="side-chart" style="width: 48%;">
-                                <canvas id="insuranceChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div></div>
+                </div></div>
+            </div>
         </div>
 
     </div>
@@ -531,6 +680,24 @@
         Chart.defaults.font.family = 'Vazirmatn';
         Chart.defaults.color = '#334155';
         Chart.defaults.scale.grid.color = '#e2e8f0';
+
+        // --- TABS LOGIC ---
+        function openTab(tabId) {
+            // Hide all content
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            // Deactivate all buttons
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            // Show target
+            document.getElementById(tabId).classList.add('active');
+            // Activate button
+            const btns = document.querySelectorAll('.tab-btn');
+            btns.forEach(btn => {
+                if(btn.getAttribute('onclick').includes(tabId)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
 
         // --- DATA ---
         
@@ -1041,6 +1208,69 @@
             {row: 23, receiver: 'در اختیار آتش نشانی', position: '---', car: 'کامیون ایویکو', year: '---', plate: '39ع953 ایران33', usage: '---', tech: 'سالم', status: 'فعال', statusColor: 'active', techColor: 'active'},
         ];
 
+        // 6. Contract Expiry Data (Peymani/Cooperative)
+        const contractData = [
+            { id: 1, name: "آرش تالانه", workType: "بازرگانی", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1404/06/01" },
+            { id: 2, name: "مهلا پورخلف", workType: "تعاونی", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/06/01" },
+            { id: 3, name: "مریم فلاح", workType: "تعاونی", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1404/07/01" },
+            { id: 4, name: "حامد داودی", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 5, name: "حمید بهرامی", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 6, name: "سعید حنیفه", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 7, name: "سعیدحسینی", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/09/01" },
+            { id: 8, name: "سینا کرمی بانیارانی", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 9, name: "کاظم محمد نژاد", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 10, name: "علی اکبر علیزمانی", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/06/01" },
+            { id: 11, name: "فرزاد خدامرادی", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 12, name: "کاظم فتحعلی لو", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 13, name: "محسن دانا شالقونی", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 14, name: "محمد بیراک", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1404/03/01" },
+            { id: 15, name: "محمد جواد پورنورعلی", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 16, name: "مسعود اکبرزاده", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/06/01" },
+            { id: 17, name: "مهدی احدی عنایت", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/09/01" },
+            { id: 18, name: "نریمان نظری بابازیدی", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 19, name: "نیکزاد ابراهیمی ورمله", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 20, name: "محمد شهبازی کنچوبه", workType: "خدمات اداری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/07/01" },
+            { id: 21, name: "امیرمحمدخزائی", workType: "خدمات اداری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/03/01" },
+            { id: 22, name: "جعفر عباسی", workType: "خدمات اداری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/03/01" },
+            { id: 23, name: "حسن احمدی", workType: "خدمات اداری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/07/01" },
+            { id: 24, name: "حسینعلی شعار", workType: "خدمات اداری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/07/01" },
+            { id: 25, name: "حمزه ترکاشوند", workType: "خدمات اداری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/07/01" },
+            { id: 26, name: "رضا اخضری", workType: "خدمات اداری", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1404/05/01" },
+            { id: 27, name: "سیدهادی نورمحمدی", workType: "خدمات اداری", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 28, name: "علی رودساز", workType: "خدمات اداری", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 29, name: "علیرضا خداکرمی", workType: "خدمات اداری", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 30, name: "غلامرضا رشیدی", workType: "خدمات اداری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 31, name: "محمدرضا نصیرزاده", workType: "خدمات اداری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 32, name: "مرتضی باقری داشبلاغ", workType: "خدمات اداری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 33, name: "یوسف هدایت نیا", workType: "خدمات اداری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 34, name: "اعظم حصاری ایل ذوله", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/08/01" },
+            { id: 35, name: "اعظم رزم پور", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/06/01" },
+            { id: 36, name: "اکرم پیری", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1402/09/01" },
+            { id: 37, name: "اکرم حبیبی", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1402/09/01" },
+            { id: 38, name: "پری مهرزاد ثمرین", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1402/09/01" },
+            { id: 39, name: "پریسا الیاسی", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/03/01" },
+            { id: 40, name: "زهرا یزدان جو", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1402/09/01" },
+            { id: 41, name: "زهره بشکار", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/08/01" },
+            { id: 42, name: "شهرام محمدی", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/03/01" },
+            { id: 43, name: "شهین سواری", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/06/01" },
+            { id: 44, name: "فاطمه براتی", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
+            { id: 45, name: "فاطمه تیموری کیا", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/07/01" },
+            { id: 46, name: "فاطمه نیک پسند", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1402/09/01" },
+            { id: 47, name: "فریبا اشرفی", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1402/09/01" },
+            { id: 48, name: "محدثه امیری", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1404/07/01" },
+            { id: 49, name: "مرتضی آقائی", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/06/01" },
+            { id: 50, name: "مرجان سلیمانی", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1404/01/01" },
+            { id: 51, name: "مرضیه صادق پور داکدره", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1402/09/01" },
+            { id: 52, name: "مریم مهرزاد تکمه داش", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1402/09/01" },
+            { id: 53, name: "معصومه منصوری", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1402/09/01" },
+            { id: 54, name: "منصوره منصوری", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1402/09/01" },
+            { id: 55, name: "منوچهر خسروی اقکند", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1404/01/01" },
+            { id: 56, name: "مهسا مشکین فر", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1404/07/01" },
+            { id: 57, name: "نرگس ارجمندی نیا", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/01/15" },
+            { id: 58, name: "نسیرین نظری جوپیش", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1402/09/01" },
+            { id: 59, name: "وحید محمدزاده قمرکندی", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/06/01" },
+        ];
+
         // --- INIT ---
         function initDashboard() {
             
@@ -1235,8 +1465,95 @@
                 fleetTbody.appendChild(tr);
             });
 
+            // Initialize Contract Tab Logic
+            initContractTab();
+            
             // Calculate and display Totals for Section 5
             calculateSection5Totals();
+        }
+        
+        function initContractTab() {
+             // 1. Contract Counts
+             const total = contractData.length;
+             const expiringCount = contractData.filter(p => p.contractEnd === "1404/09/30").length;
+             document.getElementById('alert-text').textContent = `تاریخ سررسید: ۳۰ آذر ۱۴۰۴ (${expiringCount} نفر)`;
+             
+             // 2. Dept Analysis Contract
+             const deptCounts = {};
+            contractData.forEach(p => {
+                deptCounts[p.workType] = (deptCounts[p.workType] || 0) + 1;
+            });
+            const sortedDepts = Object.entries(deptCounts).sort((a, b) => b[1] - a[1]);
+            
+            const chartContainer = document.getElementById('dept-chart-contract');
+            chartContainer.innerHTML = ''; // Clear previous if any
+            sortedDepts.forEach(([dept, count], index) => {
+                const percentage = Math.round((count / total) * 100);
+                let colorClass = 'bg-slate-400';
+                if (index === 0) colorClass = 'bg-emerald-500';
+                else if (index === 1) colorClass = 'bg-blue-500';
+                else if (index === 2) colorClass = 'bg-amber-500';
+
+                const html = `
+                <div class="relative">
+                    <div class="flex justify-between mb-1 text-sm font-medium">
+                        <span class="text-slate-700">${dept}</span>
+                        <span class="text-slate-500">${count} نفر (${percentage}%)</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden">
+                        <div class="h-4 rounded-full ${colorClass}" style="width: ${percentage}%"></div>
+                    </div>
+                </div>`;
+                chartContainer.innerHTML += html;
+            });
+            
+             // 3. Shift Analysis
+            let fixedCount = 0;
+            let shiftCount = 0;
+            contractData.forEach(p => {
+                if (p.shift.includes("ثابت")) fixedCount++;
+                else shiftCount++;
+            });
+            document.getElementById('donut-total').textContent = total;
+            document.getElementById('legend-shift').textContent = `${shiftCount} نفر`;
+            document.getElementById('legend-fixed').textContent = `${fixedCount} نفر`;
+
+            // Update Donut Chart
+            const shiftPct = (shiftCount / total) * 100;
+            const fixedPct = (fixedCount / total) * 100;
+            
+            const ringShift = document.getElementById('ring-shift');
+            const ringFixed = document.getElementById('ring-fixed');
+            
+            ringShift.setAttribute('stroke-dasharray', `${shiftPct}, 100`);
+            ringFixed.setAttribute('stroke-dasharray', `${fixedPct}, 100`);
+            ringFixed.setAttribute('stroke-dashoffset', `-${shiftPct}`);
+            
+             // 5. Populate Table
+            const tableBody = document.getElementById('table-body-contract');
+            tableBody.innerHTML = '';
+            contractData.forEach(row => {
+                let deptStyle = 'bg-slate-100 text-slate-600 border-slate-200';
+                if(row.workType === 'کارگاه دوخت') deptStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                else if(row.workType === 'جمع آوری') deptStyle = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-4 text-slate-500 font-mono">${row.id}</td>
+                    <td class="p-4 font-medium text-slate-800">${row.name}</td>
+                    <td class="p-4"><span class="px-2 py-1 rounded text-xs border ${deptStyle}">${row.workType}</span></td>
+                    <td class="p-4 text-sm text-slate-600">${row.shift}</td>
+                    <td class="p-4 font-mono text-red-600 font-bold">${row.contractEnd}</td>
+                    <td class="p-4">
+                        <div class="flex items-center gap-1 text-red-600 text-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                            <span>انقضا</span>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
         }
 
         function calculateSection5Totals() {
@@ -1315,6 +1632,24 @@
             });
             rows.forEach(row => tbody.appendChild(row));
         };
+
+        // --- TABS LOGIC ---
+        function openTab(tabId) {
+            // Hide all content
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            // Deactivate all buttons
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            // Show target
+            document.getElementById(tabId).classList.add('active');
+            // Activate button
+            const btns = document.querySelectorAll('.tab-btn');
+            btns.forEach(btn => {
+                if(btn.getAttribute('onclick').includes(tabId)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
 
         document.querySelectorAll('.accordion').forEach(acc => {
             acc.addEventListener('click', function() {
