@@ -1,505 +1,628 @@
-import React, { useState } from 'react';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Cell, ResponsiveContainer 
-} from 'recharts';
-import { 
-  FileText, TrendingUp, AlertTriangle, ShieldAlert, Activity, Banknote, Zap, Users, ClipboardList, Target, ArrowRightCircle, CreditCard, Factory, TrendingDown 
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>گزارش جامع استراتژیک سایپا آذین</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM (Stable Versions) -->
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    
+    <!-- Prop Types (Required dependency for Recharts) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js"></script>
+    
+    <!-- Recharts (Stable Version) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.7/Recharts.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        /* Hide scrollbar for nav */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @media print {
+            .print\:hidden {
+                display: none !important;
+            }
+            body {
+                background-color: white;
+            }
+            .shadow-lg, .shadow-md, .shadow-sm {
+                box-shadow: none !important;
+            }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
 
-// --- تنظیمات و استایل‌ها ---
-const fontStyle = {
-  fontFamily: "'Vazirmatn', 'Tahoma', sans-serif",
-};
-
-// --- داده‌های ورودی ---
-
-// 1. داده‌های نمودار میله‌ای (ترکیب جریانات)
-const receivablesData = [
-  { name: 'فروش محصول', value: 9974, fill: '#10B981' }, 
-  { name: 'ارزش افزوده', value: 997, fill: '#34D399' }, 
-  { name: 'خرید ریل و مکانیزم', value: -2277, fill: '#EF4444' }, 
-  { name: 'دریافتی‌ها', value: -10065, fill: '#F59E0B' }, 
-];
-
-// 2. داده‌های جدول: وضعیت مطالبات از سازه گستر
-const sazeGostarReceivables = [
-  { id: 1, title: 'میزان بدهی صفر روزه', amount: 9305, type: 'receivable' },
-  { id: 2, title: 'طلب حال شده (۱۲۰ روز)', amount: 5834, type: 'info' },
-  { id: 3, title: 'چک‌های برگشتی سازه گستر', amount: 3000, type: 'critical' },
-];
-// محاسبه جمع کل (ردیف ۱ + ۳)
-const totalClaimable = 9305 + 3000;
-
-// 3. لیست تفصیلی ۶۵٪ بدهی (Top Suppliers)
-const topSuppliersData = [
-  { code: '700180', name: 'شرکت تولیدی گوهربافان', group: 'غیرفلزی', debt: 1405360 }, 
-  { code: '701019', name: 'نواندیش صنعت پرنیان', group: 'فلزی', debt: 564859 },
-  { code: '700849', name: 'مهندسی و تولیدی ورافن', group: 'فلزی', debt: 466391 },
-  { code: '700802', name: 'سازه پردازان', group: 'فلزی', debt: 367088 },
-  { code: '701086', name: 'صنایع الکترونیک شیراز', group: 'فلزی', debt: 322541 },
-  { code: '701451', name: 'نیکان قطعه', group: 'فلزی', debt: 274346 },
-  { code: '701072', name: 'کارگزاری رسمی بیمه سایپا', group: 'تدارکات', debt: 272959 },
-  { code: '700871', name: 'ماهان صنعت کاسپین', group: 'غیرفلزی', debt: 264210 },
-  { code: '700674', name: 'اندیشه ایمنی خودرو', group: 'فلزی', debt: 231412 },
-  { code: '700831', name: 'ایدکو پرس', group: 'فلزی', debt: 228038 },
-  { code: '701477', name: 'زرین صدف ماهان', group: 'تدارکات', debt: 222024 },
-  { code: '700439', name: 'سروش ثامن', group: 'فلزی', debt: 217432 },
-  { code: '701446', name: 'حمل و نقل نخل', group: 'تدارکات', debt: 180954 },
-  { code: '701407', name: 'پایا ابر مارال', group: 'غیرفلزی', debt: 172463 },
-  { code: '701176', name: 'سازه فنر پویش', group: 'فلزی', debt: 168358 },
-  { code: '701455', name: 'TIBA INTERNATIONAL', group: 'تدارکات', debt: 165501 },
-  { code: '701324', name: 'جهش فام ایرانیان', group: 'غیرفلزی', debt: 135372 },
-  { code: '701434', name: 'داریو پلیمر پارت', group: 'غیرفلزی', debt: 123536 },
-  { code: '700462', name: 'ایران قطعه', group: 'فلزی', debt: 27093 },
-];
-
-const totalDebtDisplayed = 5809950; 
-const totalDebtGlobal = 8958383; 
-
-// 4. داده‌های بدهی‌های شرکت
-const companyDebts = [
-  { title: 'بدهی به پیمانکاران (مجموع)', amount: 8958, unit: 'میلیارد ریال', type: 'critical' },
-  { title: 'حقوق و دستمزد (ماهانه)', amount: 500, unit: 'میلیارد ریال', type: 'high' }, 
-  { title: 'معوقات مالیاتی', amount: 830, unit: 'میلیارد ریال', type: 'high' },
-  { title: 'معوقات بیمه', amount: 300, unit: 'میلیارد ریال', type: 'high' },
-  { title: 'معوقات بازنشستگان ۱۴۰۳', amount: 380, unit: 'میلیارد ریال', type: 'warning' },
-  { title: 'بدهی بازنشستگان ۱۴۰۴', amount: 2100, unit: 'میلیارد ریال', type: 'warning' },
-];
-
-const HandshakeIcon = (props) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>
-);
-
-const Card = ({ children, className = "" }) => (
-  <div className={`bg-white rounded-xl shadow-lg p-6 border border-slate-100 ${className}`}>
-    {children}
-  </div>
-);
-
-const SectionTitle = ({ icon: Icon, title, subtitle, colorClass = "bg-blue-50 text-blue-700" }) => (
-  <div className="flex items-start gap-3 mb-6">
-    <div className={`p-3 rounded-lg ${colorClass}`}>
-      <Icon size={24} />
-    </div>
-    <div>
-      <h2 className="text-xl font-bold text-slate-800">{title}</h2>
-      {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
-    </div>
-  </div>
-);
-
-const StatBox = ({ label, value, unit = "میلیارد ریال", subtext, type = "neutral" }) => {
-  const colors = {
-    neutral: "bg-slate-50 text-slate-800 border-slate-200",
-    danger: "bg-red-50 text-red-800 border-red-200",
-    success: "bg-green-50 text-green-800 border-green-200",
-    warning: "bg-amber-50 text-amber-800 border-amber-200",
-    primary: "bg-blue-50 text-blue-800 border-blue-200",
-    critical: "bg-slate-800 text-white border-slate-900",
-  };
-
-  return (
-    <div className={`p-4 rounded-xl border ${colors[type]} flex flex-col items-center justify-center text-center h-full min-h-[130px] transition-transform hover:scale-105 shadow-sm`}>
-      <span className={`text-sm font-medium mb-2 ${type === 'critical' ? 'text-slate-300' : 'text-slate-500'}`}>{label}</span>
-      <div className="flex items-baseline gap-1" dir="ltr">
-        <span className="text-2xl font-black tracking-tight">{value}</span>
-      </div>
-        <span className={`text-xs ${type === 'critical' ? 'text-slate-400' : 'text-slate-400'}`}>{unit}</span>
-      {subtext && <span className={`text-xs mt-2 px-2 py-1 rounded-full ${type === 'critical' ? 'bg-slate-700' : 'bg-white/50'}`}>{subtext}</span>}
-    </div>
-  );
-};
-
-export default function SaipaAzinReport() {
-  const [activeTab, setActiveTab] = useState('overview');
-
-  return (
-    <div className="min-h-screen bg-slate-100 p-4 md:p-8 font-sans text-right" dir="rtl" style={fontStyle}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap');
-        body { font-family: 'Vazirmatn', sans-serif !important; }
-      `}</style>
-
-      <div className="max-w-6xl mx-auto space-y-6">
+    <script type="text/babel">
+        const { useState } = React;
+        // Ensure Recharts is loaded before destructuring
+        const { 
+            BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip: RechartsTooltip, Cell, ResponsiveContainer 
+        } = window.Recharts || {};
         
-        {/* Header */}
-        <header className="bg-white rounded-2xl shadow-sm p-6 flex flex-col md:flex-row justify-between items-center gap-4 border-b-4 border-blue-800">
-          <div className="flex items-center gap-4">
-            <div className="bg-blue-800 text-white p-3 rounded-xl shadow-lg animate-pulse">
-              <TrendingUp size={32} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black text-slate-800 tracking-tight">گزارش راهبردی و مدیریت بحران</h1>
-              <p className="text-slate-500 font-medium mt-1">سایپا آذین (سهامی عام) | صورت وضعیت و گلوگاه‌های تولید</p>
-            </div>
-          </div>
-          <div className="text-left bg-slate-50 p-3 rounded-lg border border-slate-200">
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Date</div>
-            <div className="text-lg font-mono font-bold text-slate-700">1404/09/11</div>
-          </div>
-        </header>
-
-        {/* Navigation */}
-        <nav className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-          {[
-            { id: 'overview', label: 'داشبورد مطالبات و بدهی‌ها', icon: Activity },
-            { id: 'crisis', label: 'بحران زنجیره تأمین', icon: AlertTriangle, activeColor: 'bg-red-600' },
-            { id: 'proposal', label: 'درخواست‌ها و راهکارها', icon: HandshakeIcon },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-6 py-4 rounded-xl transition-all whitespace-nowrap font-bold text-sm shadow-sm ${
-                activeTab === tab.id 
-                  ? `${tab.activeColor || 'bg-blue-800'} text-white transform scale-105 shadow-md ring-2 ring-offset-2 ring-blue-200` 
-                  : 'bg-white text-slate-600 hover:bg-slate-50'
-              }`}
+        // --- Inline Icons (SVG) ---
+        
+        const IconBase = ({ children, size = 24, className = "" }) => (
+            <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width={size} 
+                height={size} 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className={className}
             >
-              <tab.icon size={18} />
-              {tab.label}
-            </button>
-          ))}
-        </nav>
+                {children}
+            </svg>
+        );
 
-        {/* Content Area */}
-        <main className="min-h-[500px] animate-fadeIn">
-          
-          {/* TAB 1: OVERVIEW */}
-          {activeTab === 'overview' && (
-            <div className="space-y-6">
-              {/* Top Stats Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <StatBox 
-                  label="مانده کل مطالبات (صفر روزه)" 
-                  value="9,305" 
-                  subtext="تایید شده نهایی"
-                  type="primary"
-                />
-                <StatBox 
-                  label="بدهی پیمانکاران (تأمین)" 
-                  value="8,958" 
-                  subtext="ریسک توقف خط"
-                  type="critical"
-                />
-                 <StatBox 
-                  label="حقوق و دستمزد (ماهانه)" 
-                  value="500" 
-                  subtext="نیاز فوری نقدینگی"
-                  type="danger"
-                />
-                <StatBox 
-                  label="قدرت نقدینگی مورد نیاز" 
-                  value={totalClaimable.toLocaleString()}
-                  subtext="طلب صفر روزه + چک برگشتی"
-                  type="warning"
-                />
-              </div>
+        const TrendingUp = (props) => (
+            <IconBase {...props}><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></IconBase>
+        );
+        const Activity = (props) => (
+            <IconBase {...props}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></IconBase>
+        );
+        const AlertTriangle = (props) => (
+            <IconBase {...props}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></IconBase>
+        );
+        const HandshakeIcon = (props) => (
+            <IconBase {...props}><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></IconBase>
+        );
+        const FileText = (props) => (
+            <IconBase {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></IconBase>
+        );
+        const ShieldAlert = (props) => (
+            <IconBase {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></IconBase>
+        );
+        const ClipboardList = (props) => (
+            <IconBase {...props}><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></IconBase>
+        );
+        const Zap = (props) => (
+            <IconBase {...props}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></IconBase>
+        );
+        const Target = (props) => (
+            <IconBase {...props}><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></IconBase>
+        );
+        const Banknote = (props) => (
+            <IconBase {...props}><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></IconBase>
+        );
+        const CreditCard = (props) => (
+            <IconBase {...props}><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></IconBase>
+        );
+        const Factory = (props) => (
+            <IconBase {...props}><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path><line x1="17" y1="18" x2="17" y2="18"></line><line x1="12" y1="18" x2="12" y2="18"></line><line x1="7" y1="18" x2="7" y2="18"></line></IconBase>
+        );
+        const ArrowRightCircle = (props) => (
+            <IconBase {...props}><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></IconBase>
+        );
+        const TrendingDown = (props) => (
+            <IconBase {...props}><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></IconBase>
+        );
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
-                {/* 1. Receivables from Saze Gostar Table */}
-                <Card className="bg-blue-50/50 border-blue-100">
-                  <SectionTitle 
-                    icon={FileText} 
-                    title="وضعیت مطالبات از سازه گستر" 
-                    subtitle="آنالیز تعهدات مالی سازه گستر به سایپا آذین (میلیارد ریال)"
-                    colorClass="bg-blue-100 text-blue-700"
-                  />
-                  <div className="overflow-hidden rounded-xl border border-blue-200 shadow-sm bg-white">
-                    <table className="w-full text-sm">
-                      <thead className="bg-blue-50 text-blue-800">
-                        <tr>
-                          <th className="p-4 text-right">شرح اقلام</th>
-                          <th className="p-4 text-center">مبلغ (میلیارد ریال)</th>
-                          <th className="p-4 text-center">وضعیت</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-blue-50">
-                        {sazeGostarReceivables.map((item) => (
-                          <tr key={item.id} className={item.type === 'critical' ? 'bg-red-50' : ''}>
-                            <td className="p-4 font-bold text-slate-700">{item.title}</td>
-                            <td className="p-4 text-center font-mono font-bold text-lg" dir="ltr">{item.amount.toLocaleString()}</td>
-                            <td className="p-4 text-center">
-                              {item.type === 'critical' && <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">هشدار</span>}
-                              {item.type === 'receivable' && <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">قابل وصول</span>}
-                              {item.type === 'info' && <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs">اطلاع</span>}
-                            </td>
-                          </tr>
-                        ))}
-                        <tr className="bg-slate-800 text-white">
-                          <td className="p-4 font-bold">جمع کل (طلب صفر روزه + چک برگشتی)</td>
-                          <td className="p-4 text-center font-mono font-black text-xl" dir="ltr">{totalClaimable.toLocaleString()}</td>
-                          <td className="p-4 text-center text-yellow-400 text-xs">نقدینگی لازم</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <p className="text-xs text-slate-500 mt-3 mr-1">
-                    * طلب ۱۲۰ روزه (۵،۸۳۴ میلیارد ریال) در جمع کل فوق لحاظ نشده و به عنوان ذخیره احتساب می‌گردد.
-                  </p>
-                </Card>
 
-                {/* 2. Debts Table */}
-                <Card className="h-full bg-slate-50 border-slate-200">
-                  <SectionTitle 
-                    icon={ShieldAlert} 
-                    title="وضعیت بدهی‌های شرکت" 
-                    subtitle="فشار تعهدات جاری و معوقات (میلیارد ریال)"
-                    colorClass="bg-red-100 text-red-700"
-                  />
-                  <div className="space-y-3">
-                    {companyDebts.map((debt, idx) => (
-                      <div key={idx} className="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                        <span className="text-sm font-bold text-slate-700">{debt.title}</span>
-                        <div className="text-left">
-                          <span className={`text-sm font-black ml-1 ${debt.type === 'critical' ? 'text-red-600' : 'text-slate-800'}`} dir="ltr">
-                            {debt.amount.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-4 p-3 bg-red-100 rounded-lg text-xs text-red-800 leading-relaxed border border-red-200 flex gap-2">
-                    <AlertTriangle size={16} className="shrink-0" />
-                    <strong>هشدار:</strong> کسری نقدینگی برای حقوق (۵۰۰ م.ریال) ریسک نارضایتی پرسنلی و توقف خط را تشدید کرده است.
-                  </div>
-                </Card>
-              </div>
+        // --- Data ---
+
+        // 1. Receivables Data
+        const receivablesData = [
+            { name: 'فروش محصول', value: 9974, fill: '#10B981' }, 
+            { name: 'ارزش افزوده', value: 997, fill: '#34D399' }, 
+            { name: 'خرید ریل و مکانیزم', value: -2277, fill: '#EF4444' }, 
+            { name: 'دریافتی‌ها', value: -10065, fill: '#F59E0B' }, 
+        ];
+
+        // 2. Saze Gostar Receivables
+        const sazeGostarReceivables = [
+            { id: 1, title: 'میزان بدهی صفر روزه', amount: 9305, type: 'receivable' },
+            { id: 2, title: 'طلب حال شده (۱۲۰ روز)', amount: 5834, type: 'info' },
+            { id: 3, title: 'چک‌های برگشتی سازه گستر', amount: 3000, type: 'critical' },
+        ];
+        const totalClaimable = 9305 + 3000;
+
+        // 3. Top Suppliers Data (65%)
+        const topSuppliersData = [
+            { code: '700180', name: 'شرکت تولیدی گوهربافان', group: 'غیرفلزی', debt: 1405360 }, 
+            { code: '701019', name: 'نواندیش صنعت پرنیان', group: 'فلزی', debt: 564859 },
+            { code: '700849', name: 'مهندسی و تولیدی ورافن', group: 'فلزی', debt: 466391 },
+            { code: '700802', name: 'سازه پردازان', group: 'فلزی', debt: 367088 },
+            { code: '701086', name: 'صنایع الکترونیک شیراز', group: 'فلزی', debt: 322541 },
+            { code: '701451', name: 'نیکان قطعه', group: 'فلزی', debt: 274346 },
+            { code: '701072', name: 'کارگزاری رسمی بیمه سایپا', group: 'تدارکات', debt: 272959 },
+            { code: '700871', name: 'ماهان صنعت کاسپین', group: 'غیرفلزی', debt: 264210 },
+            { code: '700674', name: 'اندیشه ایمنی خودرو', group: 'فلزی', debt: 231412 },
+            { code: '700831', name: 'ایدکو پرس', group: 'فلزی', debt: 228038 },
+            { code: '701477', name: 'زرین صدف ماهان', group: 'تدارکات', debt: 222024 },
+            { code: '700439', name: 'سروش ثامن', group: 'فلزی', debt: 217432 },
+            { code: '701446', name: 'حمل و نقل نخل', group: 'تدارکات', debt: 180954 },
+            { code: '701407', name: 'پایا ابر مارال', group: 'غیرفلزی', debt: 172463 },
+            { code: '701176', name: 'سازه فنر پویش', group: 'فلزی', debt: 168358 },
+            { code: '701455', name: 'TIBA INTERNATIONAL', group: 'تدارکات', debt: 165501 },
+            { code: '701324', name: 'جهش فام ایرانیان', group: 'غیرفلزی', debt: 135372 },
+            { code: '701434', name: 'داریو پلیمر پارت', group: 'غیرفلزی', debt: 123536 },
+            { code: '700462', name: 'ایران قطعه', group: 'فلزی', debt: 27093 },
+        ];
+
+        const totalDebtDisplayed = 5809950; 
+        const totalDebtGlobal = 8958383; 
+
+        // 4. Company Debts
+        const companyDebts = [
+            { title: 'بدهی به پیمانکاران (مجموع)', amount: 8958, unit: 'میلیارد ریال', type: 'critical' },
+            { title: 'حقوق و دستمزد (ماهانه)', amount: 500, unit: 'میلیارد ریال', type: 'high' }, 
+            { title: 'معوقات مالیاتی', amount: 830, unit: 'میلیارد ریال', type: 'high' },
+            { title: 'معوقات بیمه', amount: 300, unit: 'میلیارد ریال', type: 'high' },
+            { title: 'معوقات بازنشستگان ۱۴۰۳', amount: 380, unit: 'میلیارد ریال', type: 'warning' },
+            { title: 'بدهی بازنشستگان ۱۴۰۴', amount: 2100, unit: 'میلیارد ریال', type: 'warning' },
+        ];
+
+        // --- Components ---
+
+        const Card = ({ children, className = "" }) => (
+            <div className={`bg-white rounded-xl shadow-lg p-6 border border-slate-100 ${className}`}>
+                {children}
             </div>
-          )}
+        );
 
-          {/* TAB 2: CRISIS */}
-          {activeTab === 'crisis' && (
-            <div className="space-y-6">
-              <div className="bg-red-600 text-white p-6 rounded-2xl shadow-lg flex items-center justify-between">
+        const SectionTitle = ({ icon: Icon, title, subtitle, colorClass = "bg-blue-50 text-blue-700" }) => (
+            <div className="flex items-start gap-3 mb-6">
+                <div className={`p-3 rounded-lg ${colorClass}`}>
+                    <Icon size={24} />
+                </div>
                 <div>
-                  <h2 className="text-2xl font-bold flex items-center gap-2">
-                    <AlertTriangle className="animate-bounce" />
-                    وضعیت قرمز زنجیره تأمین
-                  </h2>
-                  <p className="opacity-90 mt-2">لیست سیاه بدهی به تامین‌کنندگان اصلی و خطر توقف ارسال</p>
+                    <h2 className="text-xl font-bold text-slate-800">{title}</h2>
+                    {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
                 </div>
-                <div className="text-left hidden md:block">
-                  <div className="text-3xl font-black" dir="ltr">{totalDebtGlobal.toLocaleString()}</div>
-                  <div className="text-sm opacity-75">میلیارد ریال کل بدهی تأمین</div>
-                </div>
-              </div>
-
-              {/* Top Suppliers Table */}
-              <Card className="overflow-hidden">
-                <SectionTitle 
-                  icon={ClipboardList} 
-                  title="لیست بدهی‌های کلان (۶۵٪ وزن کل خرید)" 
-                  subtitle="تأمین‌کنندگان استراتژیک با بیشترین حجم مطالبات صفر روزه"
-                  colorClass="bg-orange-100 text-orange-700"
-                />
-                <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
-                  <table className="w-full text-right border-collapse text-sm">
-                    <thead className="sticky top-0 bg-slate-100 shadow-sm z-10">
-                      <tr className="text-slate-600">
-                        <th className="p-3 border-b">کد تفصیلی</th>
-                        <th className="p-3 border-b">نام شرکت</th>
-                        <th className="p-3 border-b text-center">گروه</th>
-                        <th className="p-3 border-b text-left pl-6">مطالبات صفر روزه (ریال)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {topSuppliersData.map((row, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                          <td className="p-3 font-mono text-slate-500">{row.code}</td>
-                          <td className="p-3 font-bold text-slate-800">{row.name}</td>
-                          <td className="p-3 text-center">
-                            <span className={`px-2 py-1 rounded text-xs ${
-                              row.group === 'فلزی' ? 'bg-blue-100 text-blue-700' :
-                              row.group === 'غیرفلزی' ? 'bg-amber-100 text-amber-700' :
-                              'bg-slate-100 text-slate-600'
-                            }`}>
-                              {row.group}
-                            </span>
-                          </td>
-                          <td className="p-3 text-left font-mono font-bold dir-ltr text-slate-700">
-                            {row.debt.toLocaleString()}
-                            <span className="text-xs text-slate-400 font-sans mr-1">میلیون</span>
-                          </td>
-                        </tr>
-                      ))}
-                      <tr className="bg-slate-800 text-white font-bold sticky bottom-0">
-                        <td className="p-4" colSpan="3">جمع اقلام فوق (۶۵٪ کل بدهی)</td>
-                        <td className="p-4 text-left font-mono dir-ltr text-yellow-400 text-lg">
-                          {(totalDebtDisplayed).toLocaleString()} <span className="text-xs">M</span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
-
-              {/* Risk Analysis */}
-              <div className="bg-white p-6 rounded-xl border-l-8 border-red-500 shadow-md">
-                <h3 className="font-bold text-red-700 flex items-center gap-2 mb-4 text-lg">
-                  <Zap size={24} />
-                  تحلیل ریسک توقف خط و بحران اعتباری
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3 text-sm text-slate-700 leading-relaxed text-justify">
-                    <p>
-                      <strong>۱. بحران چک‌های برگشتی:</strong> وجود <span className="text-red-600 font-black bg-red-50 px-1 rounded">۳۰۰ میلیارد تومان (معادل ۳،۰۰۰ میلیارد ریال)</span> چک برگشتی، عملاً اعتبار شرکت را در بازار ساقط کرده است. تامین‌کنندگان فلزی (مانند ورافن و نواندیش) به دلیل عدم امکان تنزیل این چک‌ها، ارسال محموله‌ها را متوقف کرده‌اند.
-                    </p>
-                    <p>
-                      <strong>۲. تمرکز ریسک:</strong> بدهی سنگین ۱.۴ همتی به شرکت <strong>گوهربافان</strong> (پارچه) و ۵۶۴ میلیارد ریالی به <strong>نواندیش</strong> (فلزی)، گلوگاه‌های اصلی خط تولید هستند. هرگونه توقف از سمت این دو تامین‌کننده، مونتاژ صندلی را ظرف ۴۸ ساعت متوقف خواهد کرد.
-                    </p>
-                  </div>
-                  <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm">
-                    <h4 className="font-bold text-slate-800 mb-2">اقدامات فوری مورد نیاز:</h4>
-                    <ul className="list-disc list-inside space-y-2 text-slate-600">
-                      <li>تخصیص ۳۰٪ نقدینگی درخواستی صرفاً برای تسویه چک‌های برگشتی.</li>
-                      <li>جلسه اضطراری با گوهربافان جهت تقسیط بدهی ۱.۴ همتی.</li>
-                      <li>جایگزینی خرید دین با "ال‌سی داخلی" برای خریدهای آتی.</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
             </div>
-          )}
+        );
 
-          {/* TAB 3: PROPOSAL (UPDATED ORDER) */}
-          {activeTab === 'proposal' && (
-            <div className="space-y-6">
-              
-              {/* Header Card */}
-              <div className="bg-white border-l-8 border-blue-800 text-slate-800 p-8 rounded-2xl shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div>
-                  <h2 className="text-3xl font-black mb-2 flex items-center gap-3">
-                    <Target className="text-blue-700" size={32} />
-                    بسته پیشنهادی خروج از بحران
-                  </h2>
-                  <p className="text-slate-500 font-medium">اولویت‌بندی اقدامات اجرایی جهت پایداری تولید</p>
-                </div>
-                <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl text-center min-w-[200px]">
-                  <div className="text-xs text-blue-500 font-bold mb-1">هدف‌گذاری نقدینگی فوری</div>
-                  <div className="text-2xl font-black text-blue-800">۳،۰۰۰ میلیارد ریال</div>
-                  <div className="text-xs text-blue-400 mt-1">مهلت: ۲ ماه</div>
-                </div>
-              </div>
+        const StatBox = ({ label, value, unit = "میلیارد ریال", subtext, type = "neutral" }) => {
+            const colors = {
+                neutral: "bg-slate-50 text-slate-800 border-slate-200",
+                danger: "bg-red-50 text-red-800 border-red-200",
+                success: "bg-green-50 text-green-800 border-green-200",
+                warning: "bg-amber-50 text-amber-800 border-amber-200",
+                primary: "bg-blue-50 text-blue-800 border-blue-200",
+                critical: "bg-slate-800 text-white border-slate-900",
+            };
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                {/* 1. Cash Injection */}
-                <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-                  <div className="absolute top-0 left-0 w-2 h-full bg-red-500 group-hover:bg-red-600 transition-colors"></div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-red-100 text-red-600 p-3 rounded-lg"><Banknote size={24} /></div>
-                    <div>
-                      <h3 className="font-bold text-xl text-slate-800">۱. تزریق نقدینگی فوری</h3>
-                      <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded">بسیار فوری</span>
+            return (
+                <div className={`p-4 rounded-xl border ${colors[type]} flex flex-col items-center justify-center text-center h-full min-h-[130px] transition-transform hover:scale-105 shadow-sm`}>
+                    <span className={`text-sm font-medium mb-2 ${type === 'critical' ? 'text-slate-300' : 'text-slate-500'}`}>{label}</span>
+                    <div className="flex items-baseline gap-1" dir="ltr">
+                        <span className="text-2xl font-black tracking-tight">{value}</span>
                     </div>
-                  </div>
-                  <p className="text-sm text-slate-600 leading-relaxed text-justify">
-                    پرداخت مبلغ <strong>۳۰۰ میلیارد تومان (۳ همت ریال)</strong> به صورت نقد ظرف حداکثر ۲ ماه. این مبلغ جهت جلوگیری از توقف خط، پرداخت حقوق و دستمزد معوقه پرسنل و تسویه بدهی‌های اضطراری بیمه و مالیات حیاتی است.
-                  </p>
+                    <span className={`text-xs ${type === 'critical' ? 'text-slate-400' : 'text-slate-400'}`}>{unit}</span>
+                    {subtext && <span className={`text-xs mt-2 px-2 py-1 rounded-full ${type === 'critical' ? 'bg-slate-700' : 'bg-white/50'}`}>{subtext}</span>}
                 </div>
+            );
+        };
 
-                {/* 2. Credit Instruments */}
-                <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-                  <div className="absolute top-0 left-0 w-2 h-full bg-blue-500 group-hover:bg-blue-600 transition-colors"></div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-blue-100 text-blue-600 p-3 rounded-lg"><CreditCard size={24} /></div>
-                    <h3 className="font-bold text-xl text-slate-800">۲. اوراق اعتباری (ال‌سی / گام)</h3>
-                  </div>
-                  <p className="text-sm text-slate-600 leading-relaxed text-justify">
-                    جایگزینی روش‌های سنتی و چک‌های خرید دین (که اعتبار شرکت را تخریب کرده‌اند) با <strong>LC (اعتبار اسنادی داخلی)</strong>. اولویت با ال‌سی است چرا که قابلیت انتقال در زنجیره تامین را دارد و مشکل نقدشوندگی کمتری نسبت به اوراق گام با سررسید طولانی دارد.
-                  </p>
-                </div>
+        // --- Main App ---
 
-                {/* 3. Financial Discipline */}
-                <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-                  <div className="absolute top-0 left-0 w-2 h-full bg-green-500 group-hover:bg-green-600 transition-colors"></div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-green-100 text-green-600 p-3 rounded-lg"><Activity size={24} /></div>
-                    <h3 className="font-bold text-xl text-slate-800">۳. انضباط مالی و تعهدات</h3>
-                  </div>
-                  <p className="text-sm text-slate-600 leading-relaxed text-justify">
-                    برقراری نظم در پرداخت‌ها از طریق تعیین <strong>سررسیدهای منظم (هفتگی/ماهانه)</strong>. این انضباط مالی پیش‌نیاز هرگونه برنامه‌ریزی تولید است. همچنین کمک به رفع تعهد ارزی و تسریع در ثبت سفارش‌های بانک مرکزی جهت تأمین مواد وارداتی.
-                  </p>
-                </div>
+        function SaipaAzinReport() {
+            const [activeTab, setActiveTab] = useState('overview');
 
-                {/* 4. Article 141 (Updated Short Term) */}
-                <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-                  <div className="absolute top-0 left-0 w-2 h-full bg-amber-500 group-hover:bg-amber-600 transition-colors"></div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="bg-amber-100 text-amber-600 p-3 rounded-lg"><ShieldAlert size={24} /></div>
-                    <div>
-                      <h3 className="font-bold text-xl text-slate-800">۴. خروج از ماده ۱۴۱</h3>
-                      <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">راهکار کوتاه‌مدت</span>
+            if (!window.Recharts) {
+                return <div className="p-8 text-center text-red-600">در حال بارگذاری کتابخانه نمودارها... لطفا صفحه را رفرش کنید یا اتصال اینترنت خود را بررسی نمایید.</div>;
+            }
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 font-sans text-right" dir="rtl">
+                    <div className="max-w-6xl mx-auto space-y-6">
+                        
+                        {/* Header */}
+                        <header className="bg-white rounded-2xl shadow-sm p-6 flex flex-col md:flex-row justify-between items-center gap-4 border-b-4 border-blue-800">
+                            <div className="flex items-center gap-4">
+                                <div className="bg-blue-800 text-white p-3 rounded-xl shadow-lg animate-pulse">
+                                    <TrendingUp size={32} />
+                                </div>
+                                <div>
+                                    <h1 className="text-2xl font-black text-slate-800 tracking-tight">گزارش راهبردی و مدیریت بحران</h1>
+                                    <p className="text-slate-500 font-medium mt-1">سایپا آذین (سهامی عام) | صورت وضعیت و گلوگاه‌های تولید</p>
+                                </div>
+                            </div>
+                            <div className="text-left bg-slate-50 p-3 rounded-lg border border-slate-200">
+                                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Date</div>
+                                <div className="text-lg font-mono font-bold text-slate-700">1404/09/11</div>
+                            </div>
+                        </header>
+
+                        {/* Navigation */}
+                        <nav className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                            {[
+                                { id: 'overview', label: 'داشبورد مطالبات و بدهی‌ها', icon: Activity },
+                                { id: 'crisis', label: 'بحران زنجیره تأمین', icon: AlertTriangle, activeColor: 'bg-red-600' },
+                                { id: 'proposal', label: 'درخواست‌ها و راهکارها', icon: HandshakeIcon },
+                            ].map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`flex items-center gap-2 px-6 py-4 rounded-xl transition-all whitespace-nowrap font-bold text-sm shadow-sm ${
+                                        activeTab === tab.id 
+                                            ? `${tab.activeColor || 'bg-blue-800'} text-white transform scale-105 shadow-md ring-2 ring-offset-2 ring-blue-200` 
+                                            : 'bg-white text-slate-600 hover:bg-slate-50'
+                                    }`}
+                                >
+                                    <tab.icon size={18} />
+                                    {tab.label}
+                                </button>
+                            ))}
+                        </nav>
+
+                        {/* Content Area */}
+                        <main className="min-h-[500px] animate-fadeIn">
+                        
+                            {/* TAB 1: OVERVIEW */}
+                            {activeTab === 'overview' && (
+                                <div className="space-y-6">
+                                    {/* Top Stats Row */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        <StatBox 
+                                            label="مانده کل مطالبات (صفر روزه)" 
+                                            value="9,305" 
+                                            subtext="تایید شده نهایی"
+                                            type="primary"
+                                        />
+                                        <StatBox 
+                                            label="بدهی پیمانکاران (تأمین)" 
+                                            value="8,958" 
+                                            subtext="ریسک توقف خط"
+                                            type="critical"
+                                        />
+                                        <StatBox 
+                                            label="حقوق و دستمزد (ماهانه)" 
+                                            value="500" 
+                                            subtext="نیاز فوری نقدینگی"
+                                            type="danger"
+                                        />
+                                        <StatBox 
+                                            label="قدرت نقدینگی مورد نیاز" 
+                                            value={totalClaimable.toLocaleString()}
+                                            subtext="طلب صفر روزه + چک برگشتی"
+                                            type="warning"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        
+                                        {/* 1. Receivables from Saze Gostar Table */}
+                                        <Card className="bg-blue-50/50 border-blue-100">
+                                            <SectionTitle 
+                                                icon={FileText} 
+                                                title="وضعیت مطالبات از سازه گستر" 
+                                                subtitle="آنالیز تعهدات مالی سازه گستر به سایپا آذین (میلیارد ریال)"
+                                                colorClass="bg-blue-100 text-blue-700"
+                                            />
+                                            <div className="overflow-hidden rounded-xl border border-blue-200 shadow-sm bg-white">
+                                                <table className="w-full text-sm">
+                                                    <thead className="bg-blue-50 text-blue-800">
+                                                        <tr>
+                                                            <th className="p-4 text-right">شرح اقلام</th>
+                                                            <th className="p-4 text-center">مبلغ (میلیارد ریال)</th>
+                                                            <th className="p-4 text-center">وضعیت</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-blue-50">
+                                                        {sazeGostarReceivables.map((item) => (
+                                                            <tr key={item.id} className={item.type === 'critical' ? 'bg-red-50' : ''}>
+                                                                <td className="p-4 font-bold text-slate-700">{item.title}</td>
+                                                                <td className="p-4 text-center font-mono font-bold text-lg" dir="ltr">{item.amount.toLocaleString()}</td>
+                                                                <td className="p-4 text-center">
+                                                                    {item.type === 'critical' && <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">هشدار</span>}
+                                                                    {item.type === 'receivable' && <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">قابل وصول</span>}
+                                                                    {item.type === 'info' && <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs">اطلاع</span>}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                        <tr className="bg-slate-800 text-white">
+                                                            <td className="p-4 font-bold">جمع کل (طلب صفر روزه + چک برگشتی)</td>
+                                                            <td className="p-4 text-center font-mono font-black text-xl" dir="ltr">{totalClaimable.toLocaleString()}</td>
+                                                            <td className="p-4 text-center text-yellow-400 text-xs">نقدینگی لازم</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <p className="text-xs text-slate-500 mt-3 mr-1">
+                                                * طلب ۱۲۰ روزه (۵،۸۳۴ میلیارد ریال) در جمع کل فوق لحاظ نشده و به عنوان ذخیره احتساب می‌گردد.
+                                            </p>
+                                        </Card>
+
+                                        {/* 2. Debts Table */}
+                                        <Card className="h-full bg-slate-50 border-slate-200">
+                                            <SectionTitle 
+                                                icon={ShieldAlert} 
+                                                title="وضعیت بدهی‌های شرکت" 
+                                                subtitle="فشار تعهدات جاری و معوقات (میلیارد ریال)"
+                                                colorClass="bg-red-100 text-red-700"
+                                            />
+                                            <div className="space-y-3">
+                                                {companyDebts.map((debt, idx) => (
+                                                    <div key={idx} className="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                                                        <span className="text-sm font-bold text-slate-700">{debt.title}</span>
+                                                        <div className="text-left">
+                                                            <span className={`text-sm font-black ml-1 ${debt.type === 'critical' ? 'text-red-600' : 'text-slate-800'}`} dir="ltr">
+                                                                {debt.amount.toLocaleString()}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="mt-4 p-3 bg-red-100 rounded-lg text-xs text-red-800 leading-relaxed border border-red-200 flex gap-2">
+                                                <AlertTriangle size={16} className="shrink-0" />
+                                                <strong>هشدار:</strong> کسری نقدینگی برای حقوق (۵۰۰ م.ریال) ریسک نارضایتی پرسنلی و توقف خط را تشدید کرده است.
+                                            </div>
+                                        </Card>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* TAB 2: CRISIS */}
+                            {activeTab === 'crisis' && (
+                                <div className="space-y-6">
+                                    <div className="bg-red-600 text-white p-6 rounded-2xl shadow-lg flex items-center justify-between">
+                                        <div>
+                                            <h2 className="text-2xl font-bold flex items-center gap-2">
+                                                <AlertTriangle className="animate-bounce" />
+                                                وضعیت قرمز زنجیره تأمین
+                                            </h2>
+                                            <p className="opacity-90 mt-2">لیست سیاه بدهی به تامین‌کنندگان اصلی و خطر توقف ارسال</p>
+                                        </div>
+                                        <div className="text-left hidden md:block">
+                                            <div className="text-3xl font-black" dir="ltr">{totalDebtGlobal.toLocaleString()}</div>
+                                            <div className="text-sm opacity-75">میلیارد ریال کل بدهی تأمین</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Top Suppliers Table */}
+                                    <Card className="overflow-hidden">
+                                        <SectionTitle 
+                                            icon={ClipboardList} 
+                                            title="لیست بدهی‌های کلان (۶۵٪ وزن کل خرید)" 
+                                            subtitle="تأمین‌کنندگان استراتژیک با بیشترین حجم مطالبات صفر روزه"
+                                            colorClass="bg-orange-100 text-orange-700"
+                                        />
+                                        <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
+                                            <table className="w-full text-right border-collapse text-sm">
+                                                <thead className="sticky top-0 bg-slate-100 shadow-sm z-10">
+                                                    <tr className="text-slate-600">
+                                                        <th className="p-3 border-b">کد تفصیلی</th>
+                                                        <th className="p-3 border-b">نام شرکت</th>
+                                                        <th className="p-3 border-b text-center">گروه</th>
+                                                        <th className="p-3 border-b text-left pl-6">مطالبات صفر روزه (ریال)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-100">
+                                                    {topSuppliersData.map((row, idx) => (
+                                                        <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                                                            <td className="p-3 font-mono text-slate-500">{row.code}</td>
+                                                            <td className="p-3 font-bold text-slate-800">{row.name}</td>
+                                                            <td className="p-3 text-center">
+                                                                <span className={`px-2 py-1 rounded text-xs ${
+                                                                    row.group === 'فلزی' ? 'bg-blue-100 text-blue-700' :
+                                                                    row.group === 'غیرفلزی' ? 'bg-amber-100 text-amber-700' :
+                                                                    'bg-slate-100 text-slate-600'
+                                                                }`}>
+                                                                    {row.group}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-3 text-left font-mono font-bold dir-ltr text-slate-700">
+                                                                {row.debt.toLocaleString()}
+                                                                <span className="text-xs text-slate-400 font-sans mr-1">میلیون</span>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                    <tr className="bg-slate-800 text-white font-bold sticky bottom-0">
+                                                        <td className="p-4" colSpan="3">جمع اقلام فوق (۶۵٪ کل بدهی)</td>
+                                                        <td className="p-4 text-left font-mono dir-ltr text-yellow-400 text-lg">
+                                                            {(totalDebtDisplayed).toLocaleString()} <span className="text-xs">M</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </Card>
+
+                                    {/* Risk Analysis */}
+                                    <div className="bg-white p-6 rounded-xl border-l-8 border-red-500 shadow-md">
+                                        <h3 className="font-bold text-red-700 flex items-center gap-2 mb-4 text-lg">
+                                            <Zap size={24} />
+                                            تحلیل ریسک توقف خط و بحران اعتباری
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-3 text-sm text-slate-700 leading-relaxed text-justify">
+                                                <p>
+                                                    <strong>۱. بحران چک‌های برگشتی:</strong> وجود <span className="text-red-600 font-black bg-red-50 px-1 rounded">۳۰۰ میلیارد تومان (معادل ۳،۰۰۰ میلیارد ریال)</span> چک برگشتی، عملاً اعتبار شرکت را در بازار ساقط کرده است. تامین‌کنندگان فلزی (مانند ورافن و نواندیش) به دلیل عدم امکان تنزیل این چک‌ها، ارسال محموله‌ها را متوقف کرده‌اند.
+                                                </p>
+                                                <p>
+                                                    <strong>۲. تمرکز ریسک:</strong> بدهی سنگین ۱.۴ همتی به شرکت <strong>گوهربافان</strong> (پارچه) و ۵۶۴ میلیارد ریالی به <strong>نواندیش</strong> (فلزی)، گلوگاه‌های اصلی خط تولید هستند. هرگونه توقف از سمت این دو تامین‌کننده، مونتاژ صندلی را ظرف ۴۸ ساعت متوقف خواهد کرد.
+                                                </p>
+                                            </div>
+                                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm">
+                                                <h4 className="font-bold text-slate-800 mb-2">اقدامات فوری مورد نیاز:</h4>
+                                                <ul className="list-disc list-inside space-y-2 text-slate-600">
+                                                    <li>تخصیص ۳۰٪ نقدینگی درخواستی صرفاً برای تسویه چک‌های برگشتی.</li>
+                                                    <li>جلسه اضطراری با گوهربافان جهت تقسیط بدهی ۱.۴ همتی.</li>
+                                                    <li>جایگزینی خرید دین با "ال‌سی داخلی" برای خریدهای آتی.</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* TAB 3: PROPOSAL */}
+                            {activeTab === 'proposal' && (
+                                <div className="space-y-6">
+                                    
+                                    {/* Header Card */}
+                                    <div className="bg-white border-l-8 border-blue-800 text-slate-800 p-8 rounded-2xl shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                        <div>
+                                            <h2 className="text-3xl font-black mb-2 flex items-center gap-3">
+                                                <Target className="text-blue-700" size={32} />
+                                                بسته پیشنهادی خروج از بحران
+                                            </h2>
+                                            <p className="text-slate-500 font-medium">اولویت‌بندی اقدامات اجرایی جهت پایداری تولید</p>
+                                        </div>
+                                        <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl text-center min-w-[200px]">
+                                            <div className="text-xs text-blue-500 font-bold mb-1">هدف‌گذاری نقدینگی فوری</div>
+                                            <div className="text-2xl font-black text-blue-800">۳،۰۰۰ میلیارد ریال</div>
+                                            <div className="text-xs text-blue-400 mt-1">مهلت: ۲ ماه</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        
+                                        {/* 1. Cash Injection */}
+                                        <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                                            <div className="absolute top-0 left-0 w-2 h-full bg-red-500 group-hover:bg-red-600 transition-colors"></div>
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="bg-red-100 text-red-600 p-3 rounded-lg"><Banknote size={24} /></div>
+                                                <div>
+                                                    <h3 className="font-bold text-xl text-slate-800">۱. تزریق نقدینگی فوری</h3>
+                                                    <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded">بسیار فوری</span>
+                                                </div>
+                                            </div>
+                                            <p className="text-sm text-slate-600 leading-relaxed text-justify">
+                                                پرداخت مبلغ <strong>۳۰۰ میلیارد تومان (۳ همت ریال)</strong> به صورت نقد ظرف حداکثر ۲ ماه. این مبلغ جهت جلوگیری از توقف خط، پرداخت حقوق و دستمزد معوقه پرسنل و تسویه بدهی‌های اضطراری بیمه و مالیات حیاتی است.
+                                            </p>
+                                        </div>
+
+                                        {/* 2. Credit Instruments */}
+                                        <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                                            <div className="absolute top-0 left-0 w-2 h-full bg-blue-500 group-hover:bg-blue-600 transition-colors"></div>
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="bg-blue-100 text-blue-600 p-3 rounded-lg"><CreditCard size={24} /></div>
+                                                <h3 className="font-bold text-xl text-slate-800">۲. اوراق اعتباری (ال‌سی / گام)</h3>
+                                            </div>
+                                            <p className="text-sm text-slate-600 leading-relaxed text-justify">
+                                                جایگزینی روش‌های سنتی و چک‌های خرید دین (که اعتبار شرکت را تخریب کرده‌اند) با <strong>LC (اعتبار اسنادی داخلی)</strong>. اولویت با ال‌سی است چرا که قابلیت انتقال در زنجیره تامین را دارد و مشکل نقدشوندگی کمتری نسبت به اوراق گام با سررسید طولانی دارد.
+                                            </p>
+                                        </div>
+
+                                        {/* 3. Financial Discipline */}
+                                        <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                                            <div className="absolute top-0 left-0 w-2 h-full bg-green-500 group-hover:bg-green-600 transition-colors"></div>
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="bg-green-100 text-green-600 p-3 rounded-lg"><Activity size={24} /></div>
+                                                <h3 className="font-bold text-xl text-slate-800">۳. انضباط مالی و تعهدات</h3>
+                                            </div>
+                                            <p className="text-sm text-slate-600 leading-relaxed text-justify">
+                                                برقراری نظم در پرداخت‌ها از طریق تعیین <strong>سررسیدهای منظم (هفتگی/ماهانه)</strong>. این انضباط مالی پیش‌نیاز هرگونه برنامه‌ریزی تولید است. همچنین کمک به رفع تعهد ارزی و تسریع در ثبت سفارش‌های بانک مرکزی جهت تأمین مواد وارداتی.
+                                            </p>
+                                        </div>
+
+                                        {/* 4. Article 141 (Updated Short Term) */}
+                                        <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                                            <div className="absolute top-0 left-0 w-2 h-full bg-amber-500 group-hover:bg-amber-600 transition-colors"></div>
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="bg-amber-100 text-amber-600 p-3 rounded-lg"><ShieldAlert size={24} /></div>
+                                                <div>
+                                                    <h3 className="font-bold text-xl text-slate-800">۴. خروج از ماده ۱۴۱</h3>
+                                                    <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">راهکار کوتاه‌مدت</span>
+                                                </div>
+                                            </div>
+                                            <p className="text-sm text-slate-600 leading-relaxed text-justify">
+                                                جهت خروج فوری از شمول ماده ۱۴۱ و جلوگیری از ورشکستگی، تصویب <strong>تعدیلات نرخ فروش ویژه (بیشتر از سایر شرکت‌ها)</strong> برای دوره ۶ ماهه پیش‌رو الزامی است. این اقدام اورژانسی جهت جبران زیان انباشته تا زمان اصلاح ساختار تولید ضروری می‌باشد.
+                                            </p>
+                                        </div>
+
+                                        {/* 5. Production Strategy (New Separate Section) */}
+                                        <div className="md:col-span-2 bg-slate-50 border-2 border-slate-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                                            <div className="flex flex-col md:flex-row gap-6">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-3 mb-4">
+                                                        <div className="bg-slate-200 text-slate-700 p-3 rounded-lg"><Factory size={24} /></div>
+                                                        <h3 className="font-bold text-xl text-slate-800">۵. استراتژی تولید و مدیریت سربار</h3>
+                                                    </div>
+                                                    <p className="text-sm text-slate-600 leading-relaxed text-justify mb-4">
+                                                        افزایش شدید هزینه‌های سربار و زیان‌دهی تولید، نتیجه مستقیم <strong>کاهش سهم بازار از ۸۰٪ به ۵۰٪</strong> در سبد محصولات سایپا است. کاهش تیراژ باعث شده هزینه‌های ثابت بر تعداد کمتری محصول سرشکن شود.
+                                                    </p>
+                                                    <div className="bg-white p-4 rounded-lg border border-slate-200 flex items-center justify-between gap-4">
+                                                        <div className="text-center">
+                                                            <span className="block text-xs text-slate-400">سهم فعلی</span>
+                                                            <span className="text-xl font-bold text-red-600">۵۰٪</span>
+                                                        </div>
+                                                        <ArrowRightCircle className="text-slate-300" />
+                                                        <div className="text-center">
+                                                            <span className="block text-xs text-slate-400">هدف پایان سال</span>
+                                                            <span className="text-xl font-bold text-green-600">۶۰٪</span>
+                                                        </div>
+                                                        <div className="text-xs text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+                                                            شرط کاهش سربار
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1 border-r border-slate-200 pr-6 mr-6 hidden md:block">
+                                                    <h4 className="font-bold text-sm text-slate-700 mb-3">گلوگاه‌های تحقق هدف:</h4>
+                                                    <ul className="space-y-3">
+                                                        <li className="flex items-start gap-2 text-sm text-slate-600">
+                                                            <TrendingDown className="text-red-500 shrink-0" size={18} />
+                                                            <span>تامین نقدینگی جهت خرید مواد اولیه (به‌ویژه فوم و پارچه)</span>
+                                                        </li>
+                                                        <li className="flex items-start gap-2 text-sm text-slate-600">
+                                                            <TrendingDown className="text-red-500 shrink-0" size={18} />
+                                                            <span>رفع تعهدات ارزی جهت واردات قطعات منفصله</span>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <div className="flex justify-end pt-4">
+                                        <button 
+                                            onClick={() => window.print()} 
+                                            className="bg-slate-800 text-white px-8 py-3 rounded-xl flex items-center gap-3 hover:bg-slate-700 transition-all shadow-lg hover:shadow-xl print:hidden font-bold"
+                                        >
+                                            <FileText size={20} />
+                                            چاپ گزارش مدیریتی
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                        </main>
+
+                        <footer className="text-center text-slate-400 text-xs py-8 border-t border-slate-200 mt-8">
+                            گزارش محرمانه جهت ارائه به هیئت مدیره سازه گستر سایپا | ۱۴۰۴
+                        </footer>
                     </div>
-                  </div>
-                  <p className="text-sm text-slate-600 leading-relaxed text-justify">
-                    جهت خروج فوری از شمول ماده ۱۴۱ و جلوگیری از ورشکستگی، تصویب <strong>تعدیلات نرخ فروش ویژه (بیشتر از سایر شرکت‌ها)</strong> برای دوره ۶ ماهه پیش‌رو الزامی است. این اقدام اورژانسی جهت جبران زیان انباشته تا زمان اصلاح ساختار تولید ضروری می‌باشد.
-                  </p>
                 </div>
+            );
+        }
 
-                {/* 5. Production Strategy (New Separate Section) */}
-                <div className="md:col-span-2 bg-slate-50 border-2 border-slate-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-                  <div className="flex flex-col md:flex-row gap-6">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="bg-slate-200 text-slate-700 p-3 rounded-lg"><Factory size={24} /></div>
-                        <h3 className="font-bold text-xl text-slate-800">۵. استراتژی تولید و مدیریت سربار</h3>
-                      </div>
-                      <p className="text-sm text-slate-600 leading-relaxed text-justify mb-4">
-                        افزایش شدید هزینه‌های سربار و زیان‌دهی تولید، نتیجه مستقیم <strong>کاهش سهم بازار از ۸۰٪ به ۵۰٪</strong> در سبد محصولات سایپا است. کاهش تیراژ باعث شده هزینه‌های ثابت بر تعداد کمتری محصول سرشکن شود.
-                      </p>
-                      <div className="bg-white p-4 rounded-lg border border-slate-200 flex items-center justify-between gap-4">
-                        <div className="text-center">
-                          <span className="block text-xs text-slate-400">سهم فعلی</span>
-                          <span className="text-xl font-bold text-red-600">۵۰٪</span>
-                        </div>
-                        <ArrowRightCircle className="text-slate-300" />
-                        <div className="text-center">
-                          <span className="block text-xs text-slate-400">هدف پایان سال</span>
-                          <span className="text-xl font-bold text-green-600">۶۰٪</span>
-                        </div>
-                        <div className="text-xs text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                          شرط کاهش سربار
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-1 border-r border-slate-200 pr-6 mr-6 hidden md:block">
-                      <h4 className="font-bold text-sm text-slate-700 mb-3">گلوگاه‌های تحقق هدف:</h4>
-                      <ul className="space-y-3">
-                        <li className="flex items-start gap-2 text-sm text-slate-600">
-                          <TrendingDown className="text-red-500 shrink-0" size={18} />
-                          <span>تامین نقدینگی جهت خرید مواد اولیه (به‌ویژه فوم و پارچه)</span>
-                        </li>
-                        <li className="flex items-start gap-2 text-sm text-slate-600">
-                          <TrendingDown className="text-red-500 shrink-0" size={18} />
-                          <span>رفع تعهدات ارزی جهت واردات قطعات منفصله</span>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-              <div className="flex justify-end pt-4">
-                <button 
-                  onClick={() => window.print()} 
-                  className="bg-slate-800 text-white px-8 py-3 rounded-xl flex items-center gap-3 hover:bg-slate-700 transition-all shadow-lg hover:shadow-xl print:hidden font-bold"
-                >
-                  <FileText size={20} />
-                  چاپ گزارش مدیریتی
-                </button>
-              </div>
-            </div>
-          )}
-
-        </main>
-
-        <footer className="text-center text-slate-400 text-xs py-8 border-t border-slate-200 mt-8">
-          گزارش محرمانه جهت ارائه به هیئت مدیره سازه گستر سایپا | ۱۴۰۴
-        </footer>
-      </div>
-    </div>
-  );
-}
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<SaipaAzinReport />);
+    </script>
+</body>
+</html>
