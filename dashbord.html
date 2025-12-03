@@ -6,7 +6,7 @@
     <title>گزارش جامع استراتژیک سایپا آذین</title>
     
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -26,8 +26,15 @@
     
     <style>
         body {
-            font-family: 'Vazirmatn', sans-serif;
+            font-family: 'Vazirmatn', sans-serif !important;
             background-color: #f1f5f9; /* slate-100 */
+        }
+        /* Force font on all elements including charts */
+        * {
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        .recharts-text {
+            font-family: 'Vazirmatn', sans-serif !important;
         }
         /* Hide scrollbar for nav */
         .no-scrollbar::-webkit-scrollbar {
@@ -55,6 +62,21 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        
+        /* Table Styles */
+        .crisis-table th, .crisis-table td {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.75rem;
+        }
+        .crisis-table th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+        .crisis-table td {
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 <body>
@@ -62,73 +84,29 @@
 
     <script type="text/babel">
         const { useState } = React;
-        // Ensure Recharts is loaded before destructuring
         const { 
             BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip: RechartsTooltip, Cell, ResponsiveContainer 
         } = window.Recharts || {};
         
         // --- Inline Icons (SVG) ---
-        
         const IconBase = ({ children, size = 24, className = "" }) => (
-            <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width={size} 
-                height={size} 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className={className}
-            >
-                {children}
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>
         );
-
-        const TrendingUp = (props) => (
-            <IconBase {...props}><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></IconBase>
-        );
-        const Activity = (props) => (
-            <IconBase {...props}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></IconBase>
-        );
-        const AlertTriangle = (props) => (
-            <IconBase {...props}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></IconBase>
-        );
-        const HandshakeIcon = (props) => (
-            <IconBase {...props}><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></IconBase>
-        );
-        const FileText = (props) => (
-            <IconBase {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></IconBase>
-        );
-        const ShieldAlert = (props) => (
-            <IconBase {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></IconBase>
-        );
-        const ClipboardList = (props) => (
-            <IconBase {...props}><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></IconBase>
-        );
-        const Zap = (props) => (
-            <IconBase {...props}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></IconBase>
-        );
-        const Target = (props) => (
-            <IconBase {...props}><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></IconBase>
-        );
-        const Banknote = (props) => (
-            <IconBase {...props}><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></IconBase>
-        );
-        const CreditCard = (props) => (
-            <IconBase {...props}><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></IconBase>
-        );
-        const Factory = (props) => (
-            <IconBase {...props}><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path><line x1="17" y1="18" x2="17" y2="18"></line><line x1="12" y1="18" x2="12" y2="18"></line><line x1="7" y1="18" x2="7" y2="18"></line></IconBase>
-        );
-        const ArrowRightCircle = (props) => (
-            <IconBase {...props}><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></IconBase>
-        );
-        const TrendingDown = (props) => (
-            <IconBase {...props}><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></IconBase>
-        );
-
+        const TrendingUp = (props) => <IconBase {...props}><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></IconBase>;
+        const Activity = (props) => <IconBase {...props}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></IconBase>;
+        const AlertTriangle = (props) => <IconBase {...props}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></IconBase>;
+        const HandshakeIcon = (props) => <IconBase {...props}><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></IconBase>;
+        const FileText = (props) => <IconBase {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></IconBase>;
+        const ShieldAlert = (props) => <IconBase {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></IconBase>;
+        const ClipboardList = (props) => <IconBase {...props}><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></IconBase>;
+        const Zap = (props) => <IconBase {...props}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></IconBase>;
+        const Target = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></IconBase>;
+        const Banknote = (props) => <IconBase {...props}><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></IconBase>;
+        const CreditCard = (props) => <IconBase {...props}><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></IconBase>;
+        const Factory = (props) => <IconBase {...props}><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path><line x1="17" y1="18" x2="17" y2="18"></line><line x1="12" y1="18" x2="12" y2="18"></line><line x1="7" y1="18" x2="7" y2="18"></line></IconBase>;
+        const ArrowRightCircle = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></IconBase>;
+        const TrendingDown = (props) => <IconBase {...props}><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></IconBase>;
+        const Wallet = (props) => <IconBase {...props}><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></IconBase>;
 
         // --- Data ---
 
@@ -148,41 +126,59 @@
         ];
         const totalClaimable = 9305 + 3000;
 
-        // 3. Top Suppliers Data (65%)
-        const topSuppliersData = [
-            { code: '700180', name: 'شرکت تولیدی گوهربافان', group: 'غیرفلزی', debt: 1405360 }, 
-            { code: '701019', name: 'نواندیش صنعت پرنیان', group: 'فلزی', debt: 564859 },
-            { code: '700849', name: 'مهندسی و تولیدی ورافن', group: 'فلزی', debt: 466391 },
-            { code: '700802', name: 'سازه پردازان', group: 'فلزی', debt: 367088 },
-            { code: '701086', name: 'صنایع الکترونیک شیراز', group: 'فلزی', debt: 322541 },
-            { code: '701451', name: 'نیکان قطعه', group: 'فلزی', debt: 274346 },
-            { code: '701072', name: 'کارگزاری رسمی بیمه سایپا', group: 'تدارکات', debt: 272959 },
-            { code: '700871', name: 'ماهان صنعت کاسپین', group: 'غیرفلزی', debt: 264210 },
-            { code: '700674', name: 'اندیشه ایمنی خودرو', group: 'فلزی', debt: 231412 },
-            { code: '700831', name: 'ایدکو پرس', group: 'فلزی', debt: 228038 },
-            { code: '701477', name: 'زرین صدف ماهان', group: 'تدارکات', debt: 222024 },
-            { code: '700439', name: 'سروش ثامن', group: 'فلزی', debt: 217432 },
-            { code: '701446', name: 'حمل و نقل نخل', group: 'تدارکات', debt: 180954 },
-            { code: '701407', name: 'پایا ابر مارال', group: 'غیرفلزی', debt: 172463 },
-            { code: '701176', name: 'سازه فنر پویش', group: 'فلزی', debt: 168358 },
-            { code: '701455', name: 'TIBA INTERNATIONAL', group: 'تدارکات', debt: 165501 },
-            { code: '701324', name: 'جهش فام ایرانیان', group: 'غیرفلزی', debt: 135372 },
-            { code: '701434', name: 'داریو پلیمر پارت', group: 'غیرفلزی', debt: 123536 },
-            { code: '700462', name: 'ایران قطعه', group: 'فلزی', debt: 27093 },
+        // 3. New Crisis Table Data (Raw numbers will be converted to Billion Rials in the table)
+        const crisisTableData = [
+            { row: 105, code: '701324', name: 'جهش فام ایرانیان', group: 'غیر فلزی', checks: 200000000000, zeroDay: 135372486594, total: 335372486594 },
+            { row: 1, code: '700180', name: 'شرکت تولیدی گوهربافان', group: 'غیرفلزی', checks: 0, zeroDay: 1405360857148, total: 1405360857148 },
+            { row: 5, code: '701019', name: 'نواندیش صنعت پرنیان', group: 'فلزی', checks: 0, zeroDay: 564859979295, total: 564859979295 },
+            { row: 9, code: '701407', name: 'پایا ابر مارال', group: 'غیرفلزی', checks: 0, zeroDay: 172463837103, total: 172463837103 },
+            { row: 10, code: '700462', name: 'شرکت ایران قطعه', group: 'فلزی', checks: 170000000000, zeroDay: 27093721955, total: 197093721955 },
+            { row: 12, code: '700802', name: 'سازه پردازان', group: 'فلزی', checks: 0, zeroDay: 367088512309, total: 367088512309 },
+            { row: 13, code: '701086', name: 'شرکت صنایع الکترونیک شیراز', group: 'فلزی', checks: 0, zeroDay: 322541281873, total: 322541281873 },
+            { row: 14, code: '701451', name: 'شرکت نیکان قطعه', group: 'فلزی', checks: 0, zeroDay: 274346311057, total: 274346311057 },
+            { row: 16, code: '700439', name: 'شرکت سروش ثامن', group: 'فلزی', checks: 0, zeroDay: 217432590004, total: 217432590004 },
+            { row: 17, code: '701176', name: 'شرکت سازه فنر پویش', group: 'فلزی', checks: 0, zeroDay: 168358935077, total: 168358935077 },
+            { row: 27, code: '700849', name: 'شرکت مهندسی وتولیدی ورافن', group: 'فلزی', checks: 20000000000, zeroDay: 466391455173, total: 486391455173 },
+            { row: 102, code: '700871', name: 'شرکت ماهان صنعت کاسپین', group: 'غیر فلزی', checks: 0, zeroDay: 264210784594, total: 264210784594 },
+            { row: 103, code: '700674', name: 'شرکت اندیشه ایمنی خودرو', group: 'فلزی', checks: 0, zeroDay: 231412966604, total: 231412966604 },
+            { row: 104, code: '700831', name: 'ايدكو پرس', group: 'فلزی', checks: 20000000000, zeroDay: 228038904214, total: 248038904214 },
+            { row: 106, code: '701434', name: 'شرکت داریو پلیمر پارت', group: 'غیر فلزی', checks: 80000000000, zeroDay: 123536382184, total: 203536382184 },
+            { row: 380, code: '701072', name: 'شرکت کارگزاری رسمی بیمه سایپا', group: 'تدارکات', checks: 0, zeroDay: 272959824230, total: 272959824230 },
+            { row: 381, code: '701477', name: 'شرکت زرين صدف ماهان', group: 'تدارکات', checks: 0, zeroDay: 222024884249, total: 222024884249 },
+            { row: 382, code: '701455', name: 'TIBA INTERNATIONAL TRADING', group: 'تدارکات', checks: 0, zeroDay: 165501362148, total: 165501362148 },
+            { row: 386, code: '701446', name: 'شرکت حمل و نقل نخل', group: 'تدارکات', checks: 0, zeroDay: 180954941583, total: 180954941583 },
         ];
 
-        const totalDebtDisplayed = 5809950; 
-        const totalDebtGlobal = 8958383; 
+        const totalChecks = 490000000000;
+        const totalZeroDay = 5809950017394;
+        const totalDebtDisplayed = 6299950017394;
+        
+        // Final Updated Supply Debt number (Raw value)
+        const totalDebtGlobal = 9691533691066; 
 
-        // 4. Company Debts
+        // 4. Company Debts (Updated)
+        // Supply Debt (9691) + Salary Excluded (500) + Tax (830) + Ins (300) + Ret1403 (380) + Ret1404 (2100) + Unregistered Tax (2200)
         const companyDebts = [
-            { title: 'بدهی به پیمانکاران (مجموع)', amount: 8958, unit: 'میلیارد ریال', type: 'critical' },
-            { title: 'حقوق و دستمزد (ماهانه)', amount: 500, unit: 'میلیارد ریال', type: 'high' }, 
+            { title: 'بدهی حدودی تامین کنندگان و دیون دولتی', amount: 9691, unit: 'میلیارد ریال', type: 'critical' },
             { title: 'معوقات مالیاتی', amount: 830, unit: 'میلیارد ریال', type: 'high' },
             { title: 'معوقات بیمه', amount: 300, unit: 'میلیارد ریال', type: 'high' },
+            { title: 'مالیات‌های ثبت نشده (برآوردی)', amount: 2200, unit: 'میلیارد ریال', type: 'high' }, // 220 Billion Toman
             { title: 'معوقات بازنشستگان ۱۴۰۳', amount: 380, unit: 'میلیارد ریال', type: 'warning' },
             { title: 'بدهی بازنشستگان ۱۴۰۴', amount: 2100, unit: 'میلیارد ریال', type: 'warning' },
         ];
+        
+        // Total Debt Calculation (Sum of all above items)
+        const totalLiabilities = 9691 + 830 + 300 + 2200 + 380 + 2100;
+        
+        // Salary separate
+        const monthlySalary = 500;
+
+        // --- Helper for number formatting (Converts to Billion) ---
+        const formatBillion = (num) => {
+            if (!num) return '0';
+            // Divide by 1 billion and round to nearest integer for clean display
+            return Math.round(num / 1000000000).toLocaleString('en-US');
+        };
 
         // --- Components ---
 
@@ -218,7 +214,7 @@
                 <div className={`p-4 rounded-xl border ${colors[type]} flex flex-col items-center justify-center text-center h-full min-h-[130px] transition-transform hover:scale-105 shadow-sm`}>
                     <span className={`text-sm font-medium mb-2 ${type === 'critical' ? 'text-slate-300' : 'text-slate-500'}`}>{label}</span>
                     <div className="flex items-baseline gap-1" dir="ltr">
-                        <span className="text-2xl font-black tracking-tight">{value}</span>
+                        <span className="text-2xl font-black tracking-tight font-[Vazirmatn]">{value}</span>
                     </div>
                     <span className={`text-xs ${type === 'critical' ? 'text-slate-400' : 'text-slate-400'}`}>{unit}</span>
                     {subtext && <span className={`text-xs mt-2 px-2 py-1 rounded-full ${type === 'critical' ? 'bg-slate-700' : 'bg-white/50'}`}>{subtext}</span>}
@@ -230,6 +226,23 @@
 
         function SaipaAzinReport() {
             const [activeTab, setActiveTab] = useState('overview');
+
+            // Calculate chart data based on "Total" receivables
+            const othersValue = totalDebtGlobal - totalDebtDisplayed;
+            
+            // Prepare chart data: Top suppliers + Others
+            const chartData = [
+                ...crisisTableData.map(item => ({
+                    name: item.name,
+                    value: Math.round(item.total / 1000000000), // Convert to Billion Rials
+                    fill: '#3b82f6' // Blue
+                })),
+                {
+                    name: 'سایر تأمین‌کنندگان',
+                    value: Math.round(othersValue / 1000000000),
+                    fill: '#94a3b8' // Slate (Gray) for Others
+                }
+            ].sort((a, b) => b.value - a.value); // Sort descending
 
             if (!window.Recharts) {
                 return <div className="p-8 text-center text-red-600">در حال بارگذاری کتابخانه نمودارها... لطفا صفحه را رفرش کنید یا اتصال اینترنت خود را بررسی نمایید.</div>;
@@ -293,9 +306,9 @@
                                             type="primary"
                                         />
                                         <StatBox 
-                                            label="بدهی پیمانکاران (تأمین)" 
-                                            value="8,958" 
-                                            subtext="ریسک توقف خط"
+                                            label="مجموع کل تعهدات و بدهی‌ها" 
+                                            value={totalLiabilities.toLocaleString()}
+                                            subtext="شامل تأمین، مالیات، بیمه و..."
                                             type="critical"
                                         />
                                         <StatBox 
@@ -356,15 +369,24 @@
                                             </p>
                                         </Card>
 
-                                        {/* 2. Debts Table */}
-                                        <Card className="h-full bg-slate-50 border-slate-200">
+                                        {/* 2. Debts Table (UPDATED) */}
+                                        <Card className="h-full bg-slate-50 border-slate-200 flex flex-col">
+                                            <div className="bg-slate-800 text-white p-4 rounded-xl mb-4 text-center shadow-lg border-b-4 border-slate-900">
+                                                <div className="text-xs text-slate-300 font-bold mb-1">مجموع کل تعهدات و بدهی‌ها</div>
+                                                <div className="text-3xl font-black tracking-tight" dir="ltr">
+                                                    {totalLiabilities.toLocaleString()}
+                                                </div>
+                                                <div className="text-xs text-slate-400 mt-1">میلیارد ریال (۱.۵۵ همت)</div>
+                                            </div>
+
                                             <SectionTitle 
                                                 icon={ShieldAlert} 
                                                 title="وضعیت بدهی‌های شرکت" 
                                                 subtitle="فشار تعهدات جاری و معوقات (میلیارد ریال)"
                                                 colorClass="bg-red-100 text-red-700"
                                             />
-                                            <div className="space-y-3">
+                                            
+                                            <div className="space-y-3 flex-grow">
                                                 {companyDebts.map((debt, idx) => (
                                                     <div key={idx} className="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                                                         <span className="text-sm font-bold text-slate-700">{debt.title}</span>
@@ -376,9 +398,13 @@
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div className="mt-4 p-3 bg-red-100 rounded-lg text-xs text-red-800 leading-relaxed border border-red-200 flex gap-2">
-                                                <AlertTriangle size={16} className="shrink-0" />
-                                                <strong>هشدار:</strong> کسری نقدینگی برای حقوق (۵۰۰ م.ریال) ریسک نارضایتی پرسنلی و توقف خط را تشدید کرده است.
+
+                                            <div className="mt-4 p-3 bg-red-50 rounded-lg text-xs text-red-800 leading-relaxed border border-red-200 flex items-center justify-between gap-2">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="bg-red-200 p-1.5 rounded-full"><Wallet size={16} /></div>
+                                                    <span className="font-bold">نقدینگی اضطراری ماهانه (حقوق):</span>
+                                                </div>
+                                                <span className="font-black text-lg text-red-600" dir="ltr">{monthlySalary}</span>
                                             </div>
                                         </Card>
                                     </div>
@@ -397,57 +423,104 @@
                                             <p className="opacity-90 mt-2">لیست سیاه بدهی به تامین‌کنندگان اصلی و خطر توقف ارسال</p>
                                         </div>
                                         <div className="text-left hidden md:block">
-                                            <div className="text-3xl font-black" dir="ltr">{totalDebtGlobal.toLocaleString()}</div>
-                                            <div className="text-sm opacity-75">میلیارد ریال کل بدهی تأمین</div>
+                                            <div className="text-3xl font-black" dir="ltr">{formatBillion(totalDebtGlobal)}</div>
+                                            <div className="text-sm opacity-75">میلیارد ریال - کل بدهی تأمین</div>
                                         </div>
                                     </div>
 
-                                    {/* Top Suppliers Table */}
+                                    {/* Updated Crisis Table */}
                                     <Card className="overflow-hidden">
                                         <SectionTitle 
                                             icon={ClipboardList} 
-                                            title="لیست بدهی‌های کلان (۶۵٪ وزن کل خرید)" 
-                                            subtitle="تأمین‌کنندگان استراتژیک با بیشترین حجم مطالبات صفر روزه"
+                                            title="ریز مطالبات و تعهدات کلیدی" 
+                                            subtitle="جدول تفصیلی چک‌های پاس نشده و طلب صفر روزه (مبالغ به میلیارد ریال)"
                                             colorClass="bg-orange-100 text-orange-700"
                                         />
-                                        <div className="overflow-x-auto max-h-[500px] overflow-y-auto">
-                                            <table className="w-full text-right border-collapse text-sm">
+                                        <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+                                            <table className="w-full text-right border-collapse text-sm crisis-table">
                                                 <thead className="sticky top-0 bg-slate-100 shadow-sm z-10">
-                                                    <tr className="text-slate-600">
-                                                        <th className="p-3 border-b">کد تفصیلی</th>
-                                                        <th className="p-3 border-b">نام شرکت</th>
-                                                        <th className="p-3 border-b text-center">گروه</th>
-                                                        <th className="p-3 border-b text-left pl-6">مطالبات صفر روزه (ریال)</th>
+                                                    <tr>
+                                                        <th className="text-center w-12">ردیف</th>
+                                                        <th className="text-center">کد تفصیلی</th>
+                                                        <th>شرح تفصیلی</th>
+                                                        <th className="text-center">گروه</th>
+                                                        <th className="text-center text-red-600">چک‌های پاس نشده</th>
+                                                        <th className="text-center text-blue-600">طلب صفر روزه</th>
+                                                        <th className="text-center font-black">کل مطالبات</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-slate-100">
-                                                    {topSuppliersData.map((row, idx) => (
+                                                    {crisisTableData.map((row, idx) => (
                                                         <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                                                            <td className="p-3 font-mono text-slate-500">{row.code}</td>
-                                                            <td className="p-3 font-bold text-slate-800">{row.name}</td>
-                                                            <td className="p-3 text-center">
+                                                            <td className="text-center text-slate-400">{row.row}</td>
+                                                            <td className="text-center font-mono text-slate-500">{row.code}</td>
+                                                            <td className="font-bold text-slate-800">{row.name}</td>
+                                                            <td className="text-center">
                                                                 <span className={`px-2 py-1 rounded text-xs ${
                                                                     row.group === 'فلزی' ? 'bg-blue-100 text-blue-700' :
-                                                                    row.group === 'غیرفلزی' ? 'bg-amber-100 text-amber-700' :
+                                                                    row.group.includes('غیر') ? 'bg-amber-100 text-amber-700' :
                                                                     'bg-slate-100 text-slate-600'
                                                                 }`}>
                                                                     {row.group}
                                                                 </span>
                                                             </td>
-                                                            <td className="p-3 text-left font-mono font-bold dir-ltr text-slate-700">
-                                                                {row.debt.toLocaleString()}
-                                                                <span className="text-xs text-slate-400 font-sans mr-1">میلیون</span>
+                                                            <td className="text-center font-mono text-red-600 dir-ltr text-xs md:text-sm">
+                                                                {row.checks > 0 ? formatBillion(row.checks) : '-'}
+                                                            </td>
+                                                            <td className="text-center font-mono text-blue-600 dir-ltr text-xs md:text-sm">
+                                                                {formatBillion(row.zeroDay)}
+                                                            </td>
+                                                            <td className="text-center font-mono font-bold text-slate-800 dir-ltr text-xs md:text-sm bg-slate-50">
+                                                                {formatBillion(row.total)}
                                                             </td>
                                                         </tr>
                                                     ))}
                                                     <tr className="bg-slate-800 text-white font-bold sticky bottom-0">
-                                                        <td className="p-4" colSpan="3">جمع اقلام فوق (۶۵٪ کل بدهی)</td>
-                                                        <td className="p-4 text-left font-mono dir-ltr text-yellow-400 text-lg">
-                                                            {(totalDebtDisplayed).toLocaleString()} <span className="text-xs">M</span>
-                                                        </td>
+                                                        <td colSpan="4" className="p-3 text-left pl-6">جمع کل اقلام فوق (میلیارد ریال)</td>
+                                                        <td className="text-center font-mono dir-ltr text-red-300 text-sm">{formatBillion(totalChecks)}</td>
+                                                        <td className="text-center font-mono dir-ltr text-blue-300 text-sm">{formatBillion(totalZeroDay)}</td>
+                                                        <td className="text-center font-mono dir-ltr text-yellow-400 text-base">{formatBillion(totalDebtDisplayed)}</td>
                                                     </tr>
                                                 </tbody>
                                             </table>
+                                        </div>
+                                    </Card>
+
+                                    {/* New Chart for Suppliers */}
+                                    <Card>
+                                        <SectionTitle 
+                                            icon={Activity} 
+                                            title="نمودار توزیع مطالبات فروشندگان" 
+                                            subtitle="شامل اقلام عمده (۶۵٪) و سایر تأمین‌کنندگان (میلیارد ریال)"
+                                        />
+                                        <div className="h-[600px] w-full" dir="ltr">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <BarChart 
+                                                    data={chartData} 
+                                                    layout="vertical"
+                                                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                                >
+                                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                                    <XAxis type="number" />
+                                                    <YAxis 
+                                                        type="category" 
+                                                        dataKey="name" 
+                                                        width={180} 
+                                                        tick={{fontFamily: 'Vazirmatn', fontSize: 11, fontWeight: 'bold'}} 
+                                                        interval={0}
+                                                    />
+                                                    <RechartsTooltip 
+                                                        formatter={(value) => [`${value.toLocaleString()} میلیارد ریال`, 'مطالبات']}
+                                                        contentStyle={{fontFamily: 'Vazirmatn'}}
+                                                        cursor={{fill: 'transparent'}}
+                                                    />
+                                                    <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
+                                                        {chartData.map((entry, index) => (
+                                                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                                                        ))}
+                                                    </Bar>
+                                                </BarChart>
+                                            </ResponsiveContainer>
                                         </div>
                                     </Card>
 
@@ -460,7 +533,7 @@
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-3 text-sm text-slate-700 leading-relaxed text-justify">
                                                 <p>
-                                                    <strong>۱. بحران چک‌های برگشتی:</strong> وجود <span className="text-red-600 font-black bg-red-50 px-1 rounded">۳۰۰ میلیارد تومان (معادل ۳،۰۰۰ میلیارد ریال)</span> چک برگشتی، عملاً اعتبار شرکت را در بازار ساقط کرده است. تامین‌کنندگان فلزی (مانند ورافن و نواندیش) به دلیل عدم امکان تنزیل این چک‌ها، ارسال محموله‌ها را متوقف کرده‌اند.
+                                                    <strong>۱. بحران چک‌های برگشتی:</strong> وجود <span className="text-red-600 font-black bg-red-50 px-1 rounded">۴۹۰ میلیارد ریال</span> چک برگشتی (طبق جدول فوق)، عملاً اعتبار شرکت را در بازار ساقط کرده است. تامین‌کنندگان کلیدی مانند <strong>جهش فام</strong> و <strong>ایران قطعه</strong> به دلیل عدم امکان تنزیل این چک‌ها، در آستانه قطع همکاری هستند.
                                                 </p>
                                                 <p>
                                                     <strong>۲. تمرکز ریسک:</strong> بدهی سنگین ۱.۴ همتی به شرکت <strong>گوهربافان</strong> (پارچه) و ۵۶۴ میلیارد ریالی به <strong>نواندیش</strong> (فلزی)، گلوگاه‌های اصلی خط تولید هستند. هرگونه توقف از سمت این دو تامین‌کننده، مونتاژ صندلی را ظرف ۴۸ ساعت متوقف خواهد کرد.
