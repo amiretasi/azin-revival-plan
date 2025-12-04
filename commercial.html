@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد مدیریت نقدینگی (ویژه بحران)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Vazir Font -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <!-- Google Font for English Numbers -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f8fafc;
+        }
+        .num-font {
+            font-family: 'Roboto', sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #e2e8f0; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #64748b; border-radius: 4px; }
+        
+        /* Table Styles */
+        tr.critical-row { background-color: #fef2f2; }
+        tr.critical-row:hover { background-color: #fee2e2; }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white shadow-xl sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-red-600 p-2 rounded-lg shadow-lg shadow-red-500/30">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">سامانه مدیریت بحران نقدینگی</h1>
+                    <p class="text-[10px] text-slate-400">CRITICAL DEBT MANAGEMENT DASHBOARD</p>
+                </div>
+            </div>
+            <div class="text-left text-xs font-mono text-slate-400 hidden md:block">
+                AMIR.M<br>DEPUTY CEO
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 space-y-8 flex-grow">
+
+        <!-- 1. Upload Section -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+                <h2 class="font-bold text-slate-800 text-lg">۱. بارگذاری فایل مالی</h2>
+                <p class="text-sm text-slate-500 mt-1">فرمت CSV خروجی سیستم (اعداد با فرمت 1,000,000 ریال)</p>
+            </div>
+            <label class="cursor-pointer bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold py-3 px-8 rounded-xl shadow-lg transition flex items-center gap-2 group">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:text-blue-400 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                <span>انتخاب فایل</span>
+                <input type="file" id="csvInput" class="hidden" accept=".csv">
+            </label>
+        </div>
+
+        <!-- 2. KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-white p-5 rounded-xl shadow-sm border-r-4 border-slate-700">
+                <div class="text-xs text-slate-500 font-bold mb-1">کل بدهی (میلیارد ریال)</div>
+                <div class="text-3xl font-black text-slate-800 num-font" id="kpiTotalDebt">0</div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border-r-4 border-red-600 bg-red-50/30">
+                <div class="text-xs text-red-700 font-bold mb-1">بدهی بحرانی (اولویت پرداخت)</div>
+                <div class="text-3xl font-black text-red-600 num-font" id="kpiCriticalDebt">0</div>
+                <div class="text-[10px] text-red-400 mt-1 num-font" id="kpiCriticalCount">0 شرکت</div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border-r-4 border-amber-500">
+                <div class="text-xs text-slate-500 font-bold mb-1">بدهی قابل کنترل</div>
+                <div class="text-3xl font-black text-amber-600 num-font" id="kpiControlDebt">0</div>
+            </div>
+            <div class="bg-white p-5 rounded-xl shadow-sm border-r-4 border-emerald-500">
+                <div class="text-xs text-slate-500 font-bold mb-1">بدهی نرمال</div>
+                <div class="text-3xl font-black text-emerald-600 num-font" id="kpiNormalDebt">0</div>
+            </div>
+        </div>
+
+        <!-- 3. Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-4 border-b pb-2">
+                    <h3 class="font-bold text-slate-700 text-sm">۲۰ بدهکار عمده (میلیارد ریال)</h3>
+                </div>
+                <div class="h-72">
+                    <canvas id="topDebtorsChart"></canvas>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-4 border-b pb-2">
+                    <h3 class="font-bold text-slate-700 text-sm">وضعیت ریسک پورتفوی</h3>
+                </div>
+                <div class="h-72 flex justify-center">
+                    <canvas id="riskChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. ALLOCATION PANEL -->
+        <div class="bg-slate-800 text-white rounded-xl shadow-xl p-6 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-2 h-full bg-emerald-500"></div>
+            <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                پنل هوشمند تخصیص (فقط بحرانی‌ها)
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+                <div>
+                    <label class="block text-xs text-slate-300 mb-2">بودجه کل (میلیارد ریال)</label>
+                    <input type="number" id="inpBudget" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-emerald-300 font-bold num-font text-center focus:outline-none focus:border-emerald-500" placeholder="مثلا 1000">
+                </div>
+                <div>
+                    <label class="block text-xs text-slate-300 mb-2">کف پرداخت (میلیارد ریال)</label>
+                    <input type="number" id="inpMinPay" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-white font-bold num-font text-center focus:outline-none focus:border-blue-500" value="1" placeholder="مثلا 1">
+                    <p class="text-[9px] text-slate-400 mt-1">تخصیص‌های کمتر از این مبلغ، صفر می‌شوند.</p>
+                </div>
+                <div>
+                    <button onclick="autoAllocate()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg shadow-lg transition flex justify-center items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                        محاسبه تخصیص بحرانی
+                    </button>
+                </div>
+                <div class="bg-slate-900/50 p-3 rounded-lg border border-slate-600 text-center">
+                    <div class="text-xs text-slate-400">جمع نهایی (خروجی صندوق)</div>
+                    <div class="text-2xl font-black text-emerald-400 num-font mt-1" id="lblTotalAllocated">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. CRITICAL SUPPLIERS TABLE -->
+        <div class="bg-white rounded-xl shadow-lg border-2 border-red-100 overflow-hidden hidden" id="criticalSection">
+            <div class="p-4 bg-red-50 border-b border-red-200 flex justify-between items-center">
+                <h3 class="font-bold text-red-800 text-sm flex items-center gap-2">
+                    <span class="w-2 h-6 bg-red-600 rounded-sm animate-pulse"></span>
+                    لیست پرداخت به تامین‌کنندگان بحرانی
+                </h3>
+                <button onclick="downloadCriticalExcel()" class="bg-white text-red-700 border border-red-200 hover:bg-red-100 px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    دانلود لیست پرداخت (اکسل)
+                </button>
+            </div>
+            <div class="overflow-x-auto custom-scrollbar" style="max-height: 400px;">
+                <table class="w-full text-sm text-right text-gray-700">
+                    <thead class="bg-red-100 text-red-800 font-bold sticky top-0 shadow-sm">
+                        <tr>
+                            <th class="px-6 py-3 w-12 text-center">#</th>
+                            <th class="px-6 py-3">نام تامین‌کننده</th>
+                            <th class="px-6 py-3 w-32">گروه</th>
+                            <th class="px-6 py-3 text-left w-40">طلب کل (م.ر)</th>
+                            <th class="px-6 py-3 text-center w-32">وضعیت</th>
+                            <th class="px-6 py-3 w-48 bg-emerald-100 text-emerald-900 border-b-2 border-emerald-400">مبلغ تخصیص (ویرایش)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="criticalTableBody" class="divide-y divide-red-50"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 6. COMPREHENSIVE LIST (Read Only) -->
+        <div class="bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+            <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                <h3 class="font-bold text-slate-800 text-sm">لیست جامع تمام مطالبات (جهت اطلاع)</h3>
+                <input type="text" id="tableSearch" class="block w-full md:w-64 p-2 text-xs border border-gray-300 rounded-lg" placeholder="جستجو در لیست جامع...">
+            </div>
+            
+            <div class="overflow-x-auto custom-scrollbar" style="max-height: 600px;">
+                <table class="w-full text-sm text-right text-gray-700">
+                    <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0 shadow-sm z-10">
+                        <tr>
+                            <th class="px-4 py-3 w-12 text-center">#</th>
+                            <th class="px-4 py-3">نام ذینفع</th>
+                            <th class="px-4 py-3 w-32">گروه</th>
+                            <th class="px-4 py-3 text-left">طلب کل (م.ر)</th>
+                            <th class="px-4 py-3 text-left text-slate-500">طلب ۱۲۰ روزه</th>
+                            <th class="px-4 py-3 text-center w-24">وضعیت</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mainTableBody" class="divide-y divide-slate-100">
+                        <tr><td colspan="6" class="text-center py-10 text-slate-400">لطفاً فایل را بارگذاری کنید</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- CONSTANTS ---
+        const CRITICAL_LIMIT = 50; 
+        const CONTROLLABLE_LIMIT = 10;
+        
+        let globalData = [];
+        let chartTop = null;
+        let chartRisk = null;
+
+        // --- UTILS ---
+        function parseCleanNumber(str) {
+            if (!str) return 0;
+            const clean = str.toString().replace(/["',]/g, '');
+            const num = parseFloat(clean);
+            return isNaN(num) ? 0 : (num / 1000000000); 
+        }
+
+        const formatNum = (n) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 2 }).format(n);
+
+        // --- CSV ENGINE ---
+        function splitCSVLine(line) {
+            const arr = [];
+            let current = '';
+            let inQuote = false;
+            for (let i = 0; i < line.length; i++) {
+                const c = line[i];
+                if (c === '"') { inQuote = !inQuote; continue; }
+                if (c === ',' && !inQuote) { arr.push(current.trim()); current = ''; }
+                else { current += c; }
+            }
+            arr.push(current.trim());
+            return arr;
+        }
+
+        document.getElementById('csvInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => processCSV(e.target.result);
+            reader.readAsText(file);
+        });
+
+        function processCSV(text) {
+            const lines = text.split('\n').filter(l => l.trim().length > 0);
+            let headerIdx = -1;
+            let headers = [];
+
+            for(let i=0; i<Math.min(lines.length, 30); i++) {
+                const row = splitCSVLine(lines[i]);
+                if(row.some(c => c.includes('شرح') || c.includes('نام'))) {
+                    headerIdx = i;
+                    headers = row;
+                    break;
+                }
+            }
+
+            if(headerIdx === -1) return alert('هدر فایل یافت نشد');
+
+            const iName = headers.findIndex(h => h.includes('شرح') || h.includes('نام'));
+            const iGroup = headers.findIndex(h => h.includes('گروه'));
+            const iTotal = headers.findIndex(h => h.includes('کل') || h.includes('مانده'));
+            const i120 = headers.findIndex(h => h.includes('120') || h.includes('حال شده'));
+            const iStatus = headers.findIndex(h => h.includes('وضعیت'));
+
+            let rawData = [];
+            for(let i = headerIdx + 1; i < lines.length; i++) {
+                const row = splitCSVLine(lines[i]);
+                if(row.length <= iName) continue;
+
+                const name = row[iName];
+                if(!name || name.includes('جمع') || name.includes('مکرر')) continue;
+
+                const group = iGroup > -1 ? row[iGroup] || 'سایر' : 'سایر';
+                const fileStatus = iStatus > -1 ? row[iStatus] : '';
+                
+                let debt = 0;
+                let d120 = 0;
+                
+                if(iTotal > -1) debt = Math.abs(parseCleanNumber(row[iTotal]));
+                if(i120 > -1) d120 = Math.abs(parseCleanNumber(row[i120]));
+
+                let calculatedStatus = 'نرمال';
+                if (fileStatus.includes('بحرانی') || debt >= CRITICAL_LIMIT) {
+                    calculatedStatus = 'بحرانی';
+                } else if (debt >= CONTROLLABLE_LIMIT) {
+                    calculatedStatus = 'قابل کنترل';
+                }
+
+                if(debt > 0.001) {
+                    rawData.push({
+                        id: i,
+                        name, group, 
+                        debt, d120, 
+                        status: calculatedStatus,
+                        allocation: 0
+                    });
+                }
+            }
+
+            rawData.sort((a,b) => b.debt - a.debt);
+            globalData = rawData;
+            
+            updateDashboard();
+        }
+
+        // --- DASHBOARD UPDATES ---
+        function updateDashboard() {
+            const total = globalData.reduce((a,b)=>a+b.debt, 0);
+            const crit = globalData.filter(x=>x.status==='بحرانی');
+            const cont = globalData.filter(x=>x.status==='قابل کنترل');
+            const norm = globalData.filter(x=>x.status==='نرمال');
+
+            document.getElementById('kpiTotalDebt').innerText = formatNum(total);
+            document.getElementById('kpiCriticalDebt').innerText = formatNum(crit.reduce((a,b)=>a+b.debt,0));
+            document.getElementById('kpiCriticalCount').innerText = `${crit.length} شرکت`;
+            document.getElementById('kpiControlDebt').innerText = formatNum(cont.reduce((a,b)=>a+b.debt,0));
+            document.getElementById('kpiNormalDebt').innerText = formatNum(norm.reduce((a,b)=>a+b.debt,0));
+
+            renderCharts(globalData);
+            renderTables(globalData);
+            
+            // Show Critical Section if exists
+            const sec = document.getElementById('criticalSection');
+            if(crit.length > 0) sec.classList.remove('hidden');
+            else sec.classList.add('hidden');
+        }
+
+        function renderTables(data) {
+            const critBody = document.getElementById('criticalTableBody');
+            const mainBody = document.getElementById('mainTableBody');
+            
+            critBody.innerHTML = '';
+            mainBody.innerHTML = '';
+
+            // Critical Table (With Allocation Input)
+            data.filter(d => d.status === 'بحرانی').forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "critical-row border-b border-red-100 transition";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-center text-slate-400 font-mono text-xs">${idx+1}</td>
+                    <td class="px-4 py-3 font-bold text-slate-800 text-sm truncate max-w-[200px]" title="${item.name}">${item.name}</td>
+                    <td class="px-4 py-3 text-xs text-slate-500">${item.group}</td>
+                    <td class="px-4 py-3 text-left font-bold num-font text-slate-700">${formatNum(item.debt)}</td>
+                    <td class="px-4 py-3 text-center"><span class="bg-red-100 text-red-700 border border-red-200 px-2 py-0.5 rounded text-[10px] font-bold">بحرانی</span></td>
+                    <td class="px-4 py-3">
+                        <input type="text" 
+                               class="w-full bg-white border border-slate-300 rounded px-2 py-1 text-center font-bold text-emerald-600 num-font focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                               value="${item.allocation > 0 ? formatNum(item.allocation) : ''}"
+                               onchange="updateAllocation(${item.id}, this.value)"
+                               placeholder="0">
+                    </td>
+                `;
+                critBody.appendChild(tr);
+            });
+
+            // Main Table (Read Only - No Allocation Column)
+            const term = document.getElementById('tableSearch').value.toLowerCase();
+            const filtered = data.filter(d => d.name.toLowerCase().includes(term) || d.group.toLowerCase().includes(term));
+            
+            filtered.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "bg-white border-b border-slate-100 hover:bg-slate-50 transition";
+                
+                let badgeClass = "bg-slate-100 text-slate-600";
+                if(item.status === 'بحرانی') badgeClass = "bg-red-100 text-red-700";
+                if(item.status === 'قابل کنترل') badgeClass = "bg-amber-100 text-amber-700";
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-center text-slate-400 font-mono text-xs">${idx+1}</td>
+                    <td class="px-4 py-3 font-bold text-slate-700 text-xs truncate max-w-[200px]" title="${item.name}">${item.name}</td>
+                    <td class="px-4 py-3 text-[10px] text-gray-500">${item.group}</td>
+                    <td class="px-4 py-3 text-left font-bold num-font text-blue-900 text-xs">${formatNum(item.debt)}</td>
+                    <td class="px-4 py-3 text-left num-font text-slate-400 text-xs">${formatNum(item.d120)}</td>
+                    <td class="px-4 py-3 text-center"><span class="${badgeClass} px-2 py-0.5 rounded text-[10px] font-bold">${item.status}</span></td>
+                `;
+                mainBody.appendChild(tr);
+            });
+        }
+
+        // --- ALLOCATION LOGIC (CRITICAL ONLY) ---
+        function autoAllocate() {
+            const budget = parseFloat(document.getElementById('inpBudget').value);
+            const minPay = parseFloat(document.getElementById('inpMinPay').value) || 0;
+
+            if(!budget || budget <= 0) return alert('لطفاً بودجه معتبر وارد کنید');
+
+            const criticals = globalData.filter(d => d.status === 'بحرانی');
+            const totalCriticalDebt = criticals.reduce((sum, d) => sum + d.debt, 0);
+            
+            if(totalCriticalDebt === 0) return alert('هیچ بدهی بحرانی برای تخصیص وجود ندارد.');
+
+            // Reset everyone first
+            globalData.forEach(d => d.allocation = 0);
+
+            // Distribute Budget proportionally ONLY to Criticals
+            criticals.forEach(d => {
+                let share = (d.debt / totalCriticalDebt) * budget;
+                
+                // Cap at Debt Amount (Can't pay more than owed)
+                if(share > d.debt) share = d.debt;
+                
+                // Apply Min Threshold (If calculated share is too small, pay 0)
+                if(share < minPay) share = 0;
+                
+                d.allocation = parseFloat(share.toFixed(2));
+            });
+
+            renderTables(globalData);
+            calculateTotalAllocated();
+        }
+
+        function updateAllocation(id, value) {
+            const val = parseFloat(value.replace(/,/g, '')) || 0;
+            const item = globalData.find(d => d.id === id);
+            if(item) {
+                item.allocation = val;
+                calculateTotalAllocated();
+            }
+        }
+
+        function calculateTotalAllocated() {
+            const total = globalData.reduce((a,b) => a + (b.allocation||0), 0);
+            document.getElementById('lblTotalAllocated').innerText = formatNum(total);
+        }
+
+        // --- CHARTS ---
+        function renderCharts(data) {
+            Chart.defaults.font.family = "'Vazirmatn', sans-serif";
+            
+            const top20 = data.slice(0, 20);
+            
+            if(chartTop) chartTop.destroy();
+            chartTop = new Chart(document.getElementById('topDebtorsChart'), {
+                type: 'bar',
+                data: {
+                    labels: top20.map(d => d.name.substring(0,15)+'...'),
+                    datasets: [{
+                        label: 'میزان بدهی',
+                        data: top20.map(d => d.debt),
+                        backgroundColor: top20.map(d => d.status==='بحرانی'?'#dc2626':(d.status==='قابل کنترل'?'#d97706':'#2563eb')),
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { font: { family: 'Roboto', weight: 'bold' } } }, x: { grid: { display: false } } }
+                }
+            });
+
+            const sums = {
+                crit: data.filter(d=>d.status==='بحرانی').reduce((a,b)=>a+b.debt,0),
+                cont: data.filter(d=>d.status==='قابل کنترل').reduce((a,b)=>a+b.debt,0),
+                norm: data.filter(d=>d.status==='نرمال').reduce((a,b)=>a+b.debt,0)
+            };
+
+            if(chartRisk) chartRisk.destroy();
+            chartRisk = new Chart(document.getElementById('riskChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['بحرانی', 'قابل کنترل', 'نرمال'],
+                    datasets: [{
+                        data: [sums.crit, sums.cont, sums.norm],
+                        backgroundColor: ['#dc2626', '#d97706', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { maintainAspectRatio: false, cutout: '65%' }
+            });
+        }
+
+        // --- EXPORT CRITICAL LIST ---
+        function downloadCriticalExcel() {
+            const criticals = globalData.filter(d => d.status === 'بحرانی');
+            if(criticals.length === 0) return alert('لیست بحرانی خالی است.');
+
+            let csv = "Name,Group,Total_Debt_Billion,Status,Allocated_Payment_Billion\n";
+            criticals.forEach(d => {
+                csv += `"${d.name}","${d.group}",${d.debt},${d.status},${d.allocation}\n`;
+            });
+            
+            const link = document.createElement("a");
+            link.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURI(csv);
+            link.download = "Critical_Payment_List.csv";
+            link.click();
+        }
+
+        document.getElementById('tableSearch').addEventListener('keyup', () => renderTables(globalData));
+
+    </script>
+</body>
+</html>
