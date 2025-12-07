@@ -42,14 +42,16 @@
         // A. Liquidity & Banking Data
         const sourcesData = [ { name: 'دریافتی از سازه‌گستر (جاری)', value: 3407, fill: '#3b82f6' }, { name: 'دریافتی از سازه (حقوق)', value: 2908, fill: '#60a5fa' }, { name: 'اوراق گام (غیرنقد)', value: 1250, fill: '#f59e0b' }, { name: 'دریافت مستقیم سایپا', value: 680, fill: '#10b981' }, { name: 'سایر (LC، ضایعات، ...)', value: 562, fill: '#94a3b8' } ];
         const forecastData = [ { month: 'آبان', salaries: 410, insurance: 120, loans: 28, total: 558 }, { month: 'آذر', salaries: 410, insurance: 120, loans: 30, total: 888 }, { month: 'دی', salaries: 410, insurance: 120, loans: 0, total: 672 }, { month: 'بهمن', salaries: 410, insurance: 120, loans: 0, total: 530 }, { month: 'اسفند', salaries: 410, insurance: 120, loans: 0, total: 740 } ];
+        const bankStatusSummary = [ { name: 'مسدود/غیرقابل برداشت', value: 12, fill: '#ef4444' }, { name: 'راکد', value: 5, fill: '#f97316' }, { name: 'فعال', value: 4, fill: '#10b981' } ];
         const blockedFundsData = [ { bank: 'بانک شهر', amount: 21134, status: 'مسدود' }, { bank: 'بانک مهر ایران', amount: 7613, status: 'مسدود' }, { bank: 'بانک رسالت', amount: 672, status: 'راکد' }, { bank: 'بانک سپه', amount: 12, status: 'راکد' } ];
+        // This is for legacy/summary, but we use payableDocsData for dynamic calculation now
         const bouncedChecksData = [ { id: 1, beneficiary: 'سازمان امور مالیاتی (ارزش افزوده ۱۴۰۱)', amount: 79250, due: '1404/08/20', bank: 'شهر', status: 'اقدام اجرایی' }, { id: 2, beneficiary: 'سازمان امور مالیاتی (ارزش افزوده ۱۴۰۳)', amount: 79250, due: '1404/08/24', bank: 'شهر', status: 'اقدام اجرایی' }, { id: 3, beneficiary: 'سازمان امور مالیاتی (عملکرد ۱۴۰۳)', amount: 36505, due: '1404/08/24', bank: 'شهر', status: 'برگشتی' } ];
 
         // B. Strategic Data
         const historicalTrendData = [ { name: '۱۲م ۱۴۰۱', revenue: 20927, cost: 19238, net: 850 }, { name: '۱۲م ۱۴۰۲', revenue: 20972, cost: 19548, net: -1055 }, { name: '۱۲م ۱۴۰۳', revenue: 32813, cost: 32737, net: -3580 }, { name: 'پیش‌بینی ۱۴۰۴', revenue: 21300, cost: 23220, net: -7100 } ];
         const gapAnalysisData = [ { name: '۶م ۱۴۰۱', revenue: 9200, cost: 8450 }, { name: '۶م ۱۴۰۲', revenue: 9400, cost: 8900 }, { name: '۶م ۱۴۰۳', revenue: 14052, cost: 15094 }, { name: '۶م ۱۴۰۴', revenue: 10650, cost: 11611 } ];
 
-        // C. Payable Documents Data
+        // C. Payable Documents Data (UPDATED)
         const payableDocsData = [
             { id: 24, desc: "شرکت ایمن خودرو شرق", amount: 10000000000, checkNo: "249111", bank: "شهر - صیادی", date: "1404.03.05", status: "ثبت نشده" },
             { id: 25, desc: "شرکت ورافن", amount: 10000000000, checkNo: "249132", bank: "شهر - صیادی", date: "1404.03.30", status: "ثبت نشده" },
@@ -60,7 +62,8 @@
             { id: 30, desc: "شرکت جهش فام ایرانیان", amount: 100000000000, checkNo: "249105", bank: "شهر - صیادی", date: "1404.04.20", status: "ثبت نشده" },
             { id: 31, desc: "صنایع مفتولی اشتهارد", amount: 2000000000, checkNo: "249110", bank: "شهر - صیادی", date: "1404.04.25", status: "ثبت نشده" },
             { id: 32, desc: "ایران قطعه", amount: 50000000000, checkNo: "249107", bank: "شهر - صیادی", date: "1404.04.30", status: "ثبت نشده" },
-            { id: 33, desc: "جهش فام ایرانیان", amount: 100000000000, checkNo: "249135", bank: "شهر - صیادی", date: "1404.05.12", status: "ثبت شده" },
+            // UPDATED: Changed status to "برگشتی"
+            { id: 33, desc: "جهش فام ایرانیان", amount: 100000000000, checkNo: "249135", bank: "شهر - صیادی", date: "1404.05.12", status: "برگشتی" },
             { id: 35, desc: "ایران قطعه", amount: 70000000000, checkNo: "249108", bank: "شهر - صیادی", date: "1404.05.20", status: "ثبت نشده" },
             { id: 36, desc: "حفاری آبراه", amount: 1390000000, checkNo: "249146", bank: "شهر - صیادی", date: "1404.05.30", status: "ثبت نشده" },
             { id: 37, desc: "شرکت ایتراک", amount: 4633237000, checkNo: "249134", bank: "شهر - صیادی", date: "1404.06.15", status: "ثبت شده" },
@@ -223,7 +226,7 @@
                     React.createElement('div', { className: "bg-red-50 rounded-2xl shadow-sm border border-red-100 overflow-hidden" },
                         React.createElement('div', { className: "p-4 bg-red-100 border-b border-red-200 flex items-center gap-2" },
                             React.createElement(AlertTriangle, { className: "h-6 w-6 text-red-700" }),
-                            React.createElement('h3', { className: "font-bold text-red-800 text-lg" }, "هشدار: لیست چک‌های برگشتی نزد سازمان امور مالیاتی")
+                            React.createElement('h3', { className: "font-bold text-red-800 text-lg" }, "هشدار: لیست چک‌های برگشتی (اضطراری)")
                         ),
                         React.createElement(Table, {
                             headers: ["ردیف", "ذینفع", "مبلغ (ریال)", "شماره چک", "بانک", "سررسید"],
@@ -296,10 +299,11 @@
                 )
             };
 
-            // --- TAB 3: STRATEGIC REPORT ---
+            // --- TAB 3: STRATEGIC REPORT (HTML Replication) ---
             const renderStrategicTab = () => (
                 React.createElement('div', { className: "space-y-8 animate-fade-in pb-12" },
-                    // 1. Dashboard Section
+                    // ... (Identical to previous response for Strategic Report) ...
+                    // 1. Dashboard Section (Replicated from HTML)
                     React.createElement('div', { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" },
                         React.createElement(Card, { title: "درآمد عملیاتی (۶ ماهه)", value: "۱۰,۶۵۰ م.ر", subtext: "۲۴٪ کاهش نسبت به سال قبل", icon: TrendingDown, alertLevel: "critical", borderLeft: true }),
                         React.createElement(Card, { title: "زیان خالص (۶ ماهه)", value: "(۳,۵۶۴) م.ر", subtext: "۸۰٪ سرمایه شرکت از دست رفت", icon: AlertTriangle, alertLevel: "critical", borderLeft: true }),
@@ -474,7 +478,7 @@
                         React.createElement('p', { className: "text-slate-500 text-lg" }, "شرکت سایپا آذین - گزارش ۶ ماهه ۱۴۰۴")
                     ),
                     React.createElement('div', { className: "text-left" },
-                        React.createElement('div', { className: "text-sm font-bold text-slate-700" }, "تاریخ گزارش: ۱۴۰۴/۰۹/۰۸"),
+                        React.createElement('div', { className: "text-sm font-bold text-slate-700" }, "تاریخ گزارش: ۱۴۰۴/۰۹/۱۶"),
                         React.createElement('div', { className: "text-xs text-slate-400" }, "تهیه شده جهت استحضار هیئت مدیره")
                     )
                 ),
