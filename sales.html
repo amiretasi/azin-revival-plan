@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد فروش و مطالبات - نسخه داینامیک</title>
+    <title>داشبورد فروش و مطالبات - نسخه هوشمند</title>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -37,7 +37,10 @@
         <div class="card border-r-4 border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6">
             <div>
                 <h1 class="text-3xl font-black text-slate-800 tracking-tight">داشبورد جامع فروش و مطالبات</h1>
-                <p class="text-slate-500 mt-2 font-bold text-sm">محاسبه هوشمند مطالبات (۱۲۰ روزه) | تاریخ گزارش: آذر ۱۴۰۴</p>
+                <p class="text-slate-500 mt-2 font-bold text-sm">
+                    محاسبه هوشمند مطالبات (۱۲۰ روزه) | 
+                    <span id="reportDateLabel" class="text-blue-600">تاریخ گزارش: در حال محاسبه...</span>
+                </p>
             </div>
             
             <div class="flex flex-col items-end gap-3 w-full md:w-auto">
@@ -66,7 +69,7 @@
             </div>
         </div>
 
-        <!-- KPIs (Dynamic based on Customer Selection) -->
+        <!-- KPIs (Dynamic based on Customer & Year Selection) -->
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div class="card border-t-4 border-gray-400 transform transition hover:scale-105">
                 <p class="text-xs font-bold text-gray-500 mb-1">فروش کل ۱۴۰۳</p>
@@ -124,7 +127,7 @@
             <div class="flex justify-between items-center mb-6">
                 <h3 class="font-bold text-slate-800 text-lg">ریز داده‌های فروش و وضعیت وصول</h3>
                 <div class="flex gap-2">
-                    <span class="text-xs bg-slate-100 text-slate-500 px-3 py-1 rounded-full border border-slate-200">تاریخ مبنا: ۱۶ آذر ۱۴۰۴</span>
+                    <span class="text-xs bg-slate-100 text-slate-500 px-3 py-1 rounded-full border border-slate-200" id="tableDateLabel">مبنا: امروز</span>
                     <span class="text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full border border-indigo-200 font-bold">شرط وصول: ۴ ماه</span>
                 </div>
             </div>
@@ -171,10 +174,33 @@
 
         const monthsList = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
         
-        // --- LOGIC: REPORT DATE (CURRENT DATE FOR CALCULATION) ---
-        // Assuming current date is 1404/09 (Azar)
-        const REPORT_YEAR = 1404;
-        const REPORT_MONTH_IDX = 8; // Azar is index 8 (0-11)
+        // --- AUTOMATIC DATE LOGIC ---
+        // Get today's date in Persian Calendar
+        const today = new Date();
+        const persianFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        const persianPartsFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+            year: 'numeric',
+            month: 'numeric'
+        });
+        
+        const dateString = persianFormatter.format(today);
+        const partsStr = persianPartsFormatter.format(today); // e.g. "1404/9"
+        
+        // Convert Persian digits to English for calculation
+        const toEnglishDigits = (str) => str.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+        const [curYearStr, curMonthStr] = toEnglishDigits(partsStr).split('/');
+        
+        const CURRENT_YEAR = parseInt(curYearStr);
+        const CURRENT_MONTH_IDX = parseInt(curMonthStr) - 1; // 0-based index
+
+        // Update UI Labels with Current Date
+        document.getElementById('reportDateLabel').innerText = `تاریخ گزارش: ${dateString}`;
+        document.getElementById('tableDateLabel').innerText = `مبنا: ${dateString}`;
+
 
         let globalData = [];
         let currentFilteredData = [];
@@ -405,7 +431,7 @@
                 if (mIndex !== -1) {
                     let saleAbsMonth = (year * 12) + mIndex;
                     let dueAbsMonth = saleAbsMonth + 4; // +120 days
-                    let currentAbsMonth = (REPORT_YEAR * 12) + REPORT_MONTH_IDX;
+                    let currentAbsMonth = (CURRENT_YEAR * 12) + CURRENT_MONTH_IDX;
 
                     if (dueAbsMonth <= currentAbsMonth) {
                         dueAmount = amountBillion; 
@@ -444,30 +470,31 @@
             document.getElementById('employerSelect').addEventListener('change', applyFilters);
             document.getElementById('yearSelect').addEventListener('change', applyFilters);
 
-            applyFilters(); // Calculate KPI & Table based on filters
+            applyFilters();
         }
 
         function applyFilters() {
             const empVal = document.getElementById('employerSelect').value;
             const yearVal = document.getElementById('yearSelect').value;
 
-            // 1. Calculate Dataset for KPIs (Only Filter by Customer, ignore Year for yearly KPIs)
-            const kpiData = empVal === 'all' ? globalData : globalData.filter(d => d.source === empVal);
-            updateKPIs(kpiData);
-            
-            // 2. Update Charts (Only Filter by Customer to show trends)
-            updateAllCharts(empVal);
-
-            // 3. Update Table (Filter by BOTH Customer AND Year)
-            currentFilteredData = globalData.filter(d => {
+            // 1. FILTER DATA FOR KPI and TABLE
+            // Filter by Customer AND Year
+            const filteredForKPI = globalData.filter(d => {
                 const empMatch = empVal === 'all' || d.source === empVal;
                 const yearMatch = yearVal === 'all' || d.year.toString() === yearVal;
                 return empMatch && yearMatch;
             });
-            renderTable(currentFilteredData);
+
+            updateKPIs(filteredForKPI);
+            renderTable(filteredForKPI);
+            
+            // 2. UPDATE CHARTS (Charts need to show comparison, so ignore year filter usually)
+            // But if you want charts to update per customer, pass empVal
+            updateAllCharts(empVal); 
         }
 
         function updateKPIs(data) {
+            // Note: If year filter is active, some of these might be 0, which is correct for a dashboard behavior
             const t1403 = data.filter(d => d.year === 1403).reduce((s,d) => s + d.amount, 0);
             const t1404 = data.filter(d => d.year === 1404).reduce((s,d) => s + d.amount, 0);
             const count = data.reduce((s,d) => s + d.count, 0);
