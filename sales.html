@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد فروش و مطالبات ۱۲۰ روزه</title>
+    <title>داشبورد فروش و مطالبات - نسخه داینامیک</title>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -37,7 +37,7 @@
         <div class="card border-r-4 border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6">
             <div>
                 <h1 class="text-3xl font-black text-slate-800 tracking-tight">داشبورد جامع فروش و مطالبات</h1>
-                <p class="text-slate-500 mt-2 font-bold text-sm">مبنای محاسبه مطالبات: قرارداد ۱۲۰ روزه | تاریخ مبنا: آذر ۱۴۰۴</p>
+                <p class="text-slate-500 mt-2 font-bold text-sm">محاسبه هوشمند مطالبات (۱۲۰ روزه) | تاریخ گزارش: آذر ۱۴۰۴</p>
             </div>
             
             <div class="flex flex-col items-end gap-3 w-full md:w-auto">
@@ -66,29 +66,29 @@
             </div>
         </div>
 
-        <!-- KPIs (Fixed Grid: 5 Columns) -->
+        <!-- KPIs (Dynamic based on Customer Selection) -->
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div class="card border-t-4 border-gray-400">
+            <div class="card border-t-4 border-gray-400 transform transition hover:scale-105">
                 <p class="text-xs font-bold text-gray-500 mb-1">فروش کل ۱۴۰۳</p>
                 <p class="text-xl font-black text-gray-700 dir-ltr" id="kpi1403">0</p>
                 <p class="text-xs text-gray-400 mt-1">میلیارد ریال</p>
             </div>
-            <div class="card border-t-4 border-red-500">
+            <div class="card border-t-4 border-red-500 transform transition hover:scale-105">
                 <p class="text-xs font-bold text-red-500 mb-1">فروش ۱۴۰۴ (تاکنون)</p>
                 <p class="text-xl font-black text-red-700 dir-ltr" id="kpi1404">0</p>
                 <p class="text-xs text-red-400 mt-1">میلیارد ریال</p>
             </div>
-            <div class="card border-t-4 border-emerald-500">
+            <div class="card border-t-4 border-emerald-500 transform transition hover:scale-105">
                 <p class="text-xs font-bold text-emerald-600 mb-1">تعداد کل ست‌ها</p>
                 <p class="text-xl font-black text-emerald-800 dir-ltr" id="kpiCount">0</p>
                 <p class="text-xs text-emerald-500 mt-1">ست / قطعه</p>
             </div>
-            <div class="card border-t-4 border-indigo-600 bg-indigo-50">
+            <div class="card border-t-4 border-indigo-600 bg-indigo-50 transform transition hover:scale-105">
                 <p class="text-xs font-bold text-indigo-800 mb-1">مطالبات سررسید شده</p>
                 <p class="text-xl font-black text-indigo-900 dir-ltr" id="kpiDueTotal">0</p>
-                <p class="text-xs text-indigo-600 mt-1">قرارداد ۱۲۰ روزه</p>
+                <p class="text-xs text-indigo-600 mt-1">قرارداد ۱۲۰ روزه (قابل وصول)</p>
             </div>
-            <div class="card border-t-4 border-amber-500">
+            <div class="card border-t-4 border-amber-500 transform transition hover:scale-105">
                 <p class="text-xs font-bold text-amber-600 mb-1">مجموع سهم شرکت</p>
                 <p class="text-xl font-black text-amber-800 dir-ltr" id="kpiShare">0</p>
                 <p class="text-xs text-amber-500 mt-1">میلیارد ریال</p>
@@ -122,10 +122,10 @@
         <!-- Data Table -->
         <div class="card overflow-hidden">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="font-bold text-slate-800 text-lg">ریز داده‌های فروش و وضعیت وصول مطالبات</h3>
+                <h3 class="font-bold text-slate-800 text-lg">ریز داده‌های فروش و وضعیت وصول</h3>
                 <div class="flex gap-2">
                     <span class="text-xs bg-slate-100 text-slate-500 px-3 py-1 rounded-full border border-slate-200">تاریخ مبنا: ۱۶ آذر ۱۴۰۴</span>
-                    <span class="text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full border border-indigo-200 font-bold">شرط وصول: ۴ ماه پس از فروش</span>
+                    <span class="text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full border border-indigo-200 font-bold">شرط وصول: ۴ ماه</span>
                 </div>
             </div>
             <div class="overflow-x-auto h-[600px] border rounded-xl relative">
@@ -138,8 +138,7 @@
                             <th onclick="sortTable('count')">تعداد (ست) ↕</th>
                             <th onclick="sortTable('amount')">مبلغ کل ↕</th>
                             <th onclick="sortTable('share')">مبلغ سهم ↕</th>
-                            <!-- NEW COLUMN -->
-                            <th class="bg-indigo-900 text-indigo-100 border-r border-indigo-700 w-48" onclick="sortTable('receivable')">مطالبات سررسید شده (۱۲۰ روزه) ↕</th>
+                            <th class="bg-indigo-900 text-indigo-100 border-r border-indigo-700 w-48" onclick="sortTable('receivable')">مطالبات سررسید شده ↕</th>
                         </tr>
                     </thead>
                     <tbody id="dataTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
@@ -149,7 +148,6 @@
                             <td class="p-4 dir-ltr text-amber-400 font-mono text-lg" id="sumCount">0</td>
                             <td class="p-4 dir-ltr text-blue-400 font-mono text-lg" id="sumAmount">0</td>
                             <td class="p-4 dir-ltr text-emerald-400 font-mono text-lg" id="sumShare">0</td>
-                            <!-- SUM for Receivables -->
                             <td class="p-4 dir-ltr text-indigo-300 font-mono text-lg bg-indigo-950 border-r border-indigo-800" id="sumDue">0</td>
                         </tr>
                     </tfoot>
@@ -446,34 +444,39 @@
             document.getElementById('employerSelect').addEventListener('change', applyFilters);
             document.getElementById('yearSelect').addEventListener('change', applyFilters);
 
-            updateKPIs();
-            applyFilters();
+            applyFilters(); // Calculate KPI & Table based on filters
         }
 
         function applyFilters() {
             const empVal = document.getElementById('employerSelect').value;
             const yearVal = document.getElementById('yearSelect').value;
 
-            // Fix: Update KPI based on new filters
-            const filteredForTable = globalData.filter(d => {
+            // 1. Calculate Dataset for KPIs (Only Filter by Customer, ignore Year for yearly KPIs)
+            const kpiData = empVal === 'all' ? globalData : globalData.filter(d => d.source === empVal);
+            updateKPIs(kpiData);
+            
+            // 2. Update Charts (Only Filter by Customer to show trends)
+            updateAllCharts(empVal);
+
+            // 3. Update Table (Filter by BOTH Customer AND Year)
+            currentFilteredData = globalData.filter(d => {
                 const empMatch = empVal === 'all' || d.source === empVal;
                 const yearMatch = yearVal === 'all' || d.year.toString() === yearVal;
                 return empMatch && yearMatch;
             });
-            renderTable(filteredForTable);
-            updateAllCharts(empVal); 
+            renderTable(currentFilteredData);
         }
 
-        function updateKPIs() {
-            const t1403 = globalData.filter(d => d.year === 1403).reduce((s,d) => s + d.amount, 0);
-            const t1404 = globalData.filter(d => d.year === 1404).reduce((s,d) => s + d.amount, 0);
-            const count = globalData.reduce((s,d) => s + d.count, 0);
-            const share = globalData.reduce((s,d) => s + d.share, 0);
-            const totalDue = globalData.reduce((s,d) => s + d.receivable, 0);
+        function updateKPIs(data) {
+            const t1403 = data.filter(d => d.year === 1403).reduce((s,d) => s + d.amount, 0);
+            const t1404 = data.filter(d => d.year === 1404).reduce((s,d) => s + d.amount, 0);
+            const count = data.reduce((s,d) => s + d.count, 0);
+            const share = data.reduce((s,d) => s + d.share, 0);
+            const totalDue = data.reduce((s,d) => s + d.receivable, 0);
             
             document.getElementById('kpi1403').innerText = t1403.toLocaleString(undefined, {maximumFractionDigits: 1});
             document.getElementById('kpi1404').innerText = t1404.toLocaleString(undefined, {maximumFractionDigits: 1});
-            if(document.getElementById('kpiCount')) document.getElementById('kpiCount').innerText = count.toLocaleString();
+            document.getElementById('kpiCount').innerText = count.toLocaleString();
             document.getElementById('kpiShare').innerText = share.toLocaleString(undefined, {maximumFractionDigits: 1});
             document.getElementById('kpiDueTotal').innerText = totalDue.toLocaleString(undefined, {maximumFractionDigits: 1});
         }
