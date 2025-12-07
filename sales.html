@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد فروش و مطالبات - نسخه هوشمند</title>
+    <title>داشبورد فروش - نسخه نهایی اصلاح شده</title>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -16,14 +16,47 @@
         }
         body { font-family: 'Vazirmatn', sans-serif; background-color: var(--bg-color); color: var(--text-main); }
         .card { background-color: var(--card-bg); border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); padding: 1.5rem; border: 1px solid #e2e8f0; }
-        .section-title { font-size: 1.25rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 2px solid #e2e8f0; display: flex; align-items: center; gap: 0.5rem; }
         
-        th { position: sticky; top: 0; background-color: var(--primary); color: white; z-index: 10; padding: 1rem; cursor: pointer; user-select: none; }
-        th:hover { background-color: #334155; }
-        td { padding: 1rem; border-bottom: 1px solid #f1f5f9; }
-        
-        tfoot { position: sticky; bottom: 0; background-color: #1e293b; color: white; font-weight: bold; z-index: 10; box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.1); }
-        
+        /* Fixed Table Layout */
+        .table-wrapper {
+            overflow-y: auto;
+            height: 500px;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate; 
+            border-spacing: 0;
+        }
+        th {
+            position: sticky;
+            top: 0;
+            background-color: var(--primary);
+            color: white;
+            z-index: 10;
+            padding: 1rem;
+            text-align: right;
+            font-size: 0.875rem;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.875rem;
+            background-color: white;
+        }
+        /* Footer Sticky */
+        tfoot th, tfoot td {
+            position: sticky;
+            bottom: 0;
+            background-color: #0f172a;
+            color: white;
+            z-index: 10;
+            font-weight: bold;
+            padding: 1rem;
+            border-top: 2px solid #cbd5e1;
+        }
+
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #e2e8f0; }
         ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
@@ -38,8 +71,7 @@
             <div>
                 <h1 class="text-3xl font-black text-slate-800 tracking-tight">داشبورد جامع فروش و مطالبات</h1>
                 <p class="text-slate-500 mt-2 font-bold text-sm">
-                    محاسبه هوشمند مطالبات (۱۲۰ روزه) | 
-                    <span id="reportDateLabel" class="text-blue-600">تاریخ گزارش: در حال محاسبه...</span>
+                    تاریخ مبنای محاسبه: <span class="text-blue-600 font-bold">۱۶ آذر ۱۴۰۴</span>
                 </p>
             </div>
             
@@ -69,38 +101,46 @@
             </div>
         </div>
 
-        <!-- KPIs (Dynamic based on Customer & Year Selection) -->
+        <!-- KPIs -->
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div class="card border-t-4 border-gray-400 transform transition hover:scale-105">
+            <div class="card border-t-4 border-gray-400">
                 <p class="text-xs font-bold text-gray-500 mb-1">فروش کل ۱۴۰۳</p>
                 <p class="text-xl font-black text-gray-700 dir-ltr" id="kpi1403">0</p>
                 <p class="text-xs text-gray-400 mt-1">میلیارد ریال</p>
             </div>
-            <div class="card border-t-4 border-red-500 transform transition hover:scale-105">
+            <div class="card border-t-4 border-red-500">
                 <p class="text-xs font-bold text-red-500 mb-1">فروش ۱۴۰۴ (تاکنون)</p>
                 <p class="text-xl font-black text-red-700 dir-ltr" id="kpi1404">0</p>
                 <p class="text-xs text-red-400 mt-1">میلیارد ریال</p>
             </div>
-            <div class="card border-t-4 border-emerald-500 transform transition hover:scale-105">
+            <div class="card border-t-4 border-emerald-500">
                 <p class="text-xs font-bold text-emerald-600 mb-1">تعداد کل ست‌ها</p>
                 <p class="text-xl font-black text-emerald-800 dir-ltr" id="kpiCount">0</p>
                 <p class="text-xs text-emerald-500 mt-1">ست / قطعه</p>
             </div>
-            <div class="card border-t-4 border-indigo-600 bg-indigo-50 transform transition hover:scale-105">
-                <p class="text-xs font-bold text-indigo-800 mb-1">مطالبات سررسید شده</p>
+            <div class="card border-t-4 border-indigo-600 bg-indigo-50">
+                <p class="text-xs font-bold text-indigo-800 mb-1">کل مطالبات وصول شده</p>
                 <p class="text-xl font-black text-indigo-900 dir-ltr" id="kpiDueTotal">0</p>
-                <p class="text-xs text-indigo-600 mt-1">قرارداد ۱۲۰ روزه (قابل وصول)</p>
+                <p class="text-xs text-indigo-600 mt-1">طبق قرارداد ۱۲۰ روزه</p>
             </div>
-            <div class="card border-t-4 border-amber-500 transform transition hover:scale-105">
+            <div class="card border-t-4 border-amber-500">
                 <p class="text-xs font-bold text-amber-600 mb-1">مجموع سهم شرکت</p>
                 <p class="text-xl font-black text-amber-800 dir-ltr" id="kpiShare">0</p>
-                <p class="text-xs text-amber-500 mt-1">میلیارد ریال</p>
+                <!-- CORRECTED FONT & LAYOUT -->
+                <div class="text-xs mt-1 font-bold flex items-center gap-1 text-slate-600">
+                    <span>(سررسید شده: </span>
+                    <span class="dir-ltr font-mono" id="kpiShareDue">0</span>
+                    <span>)</span>
+                </div>
             </div>
         </div>
 
         <!-- SECTION 1: Total Amount -->
         <div>
-            <h2 class="section-title"><span class="w-2 h-8 bg-slate-800 rounded mr-2"></span>۱. تحلیل جامع مبلغ کل فروش (میلیارد ریال)</h2>
+            <div class="flex items-center gap-2 mb-4 border-b-2 border-slate-200 pb-2">
+                <span class="w-2 h-8 bg-slate-800 rounded"></span>
+                <h2 class="text-xl font-bold text-slate-800">۱. تحلیل جامع مبلغ کل فروش (میلیارد ریال)</h2>
+            </div>
             <div class="card h-[500px]">
                 <canvas id="chartAmountCombo"></canvas>
             </div>
@@ -108,7 +148,10 @@
 
         <!-- SECTION 2: Count -->
         <div>
-            <h2 class="section-title"><span class="w-2 h-8 bg-emerald-600 rounded mr-2"></span>۲. تحلیل جامع تعداد فروش (ست)</h2>
+             <div class="flex items-center gap-2 mb-4 border-b-2 border-slate-200 pb-2">
+                <span class="w-2 h-8 bg-emerald-600 rounded"></span>
+                <h2 class="text-xl font-bold text-slate-800">۲. تحلیل جامع تعداد فروش (ست)</h2>
+            </div>
             <div class="card h-[500px]">
                 <canvas id="chartCountCombo"></canvas>
             </div>
@@ -116,42 +159,45 @@
 
         <!-- SECTION 3: Share Amount -->
         <div>
-            <h2 class="section-title"><span class="w-2 h-8 bg-amber-500 rounded mr-2"></span>۳. تحلیل جامع مبلغ سهم (میلیارد ریال)</h2>
+             <div class="flex items-center gap-2 mb-4 border-b-2 border-slate-200 pb-2">
+                <span class="w-2 h-8 bg-amber-500 rounded"></span>
+                <h2 class="text-xl font-bold text-slate-800">۳. تحلیل جامع مبلغ سهم (میلیارد ریال)</h2>
+            </div>
             <div class="card h-[500px]">
                 <canvas id="chartShareCombo"></canvas>
             </div>
         </div>
 
         <!-- Data Table -->
-        <div class="card overflow-hidden">
+        <div class="card">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="font-bold text-slate-800 text-lg">ریز داده‌های فروش و وضعیت وصول</h3>
                 <div class="flex gap-2">
-                    <span class="text-xs bg-slate-100 text-slate-500 px-3 py-1 rounded-full border border-slate-200" id="tableDateLabel">مبنا: امروز</span>
-                    <span class="text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full border border-indigo-200 font-bold">شرط وصول: ۴ ماه</span>
+                    <span class="text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full border border-indigo-200 font-bold">شرط وصول: ۱۲۰ روز</span>
                 </div>
             </div>
-            <div class="overflow-x-auto h-[600px] border rounded-xl relative">
-                <table class="w-full text-right text-sm border-collapse">
-                    <thead class="bg-slate-800 text-white font-medium sticky top-0 z-10">
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
                         <tr>
-                            <th class="w-24" onclick="sortTable('year')">سال ↕</th>
-                            <th onclick="sortTable('month')">ماه فروش ↕</th>
-                            <th onclick="sortTable('source')">مشتری ↕</th>
-                            <th onclick="sortTable('count')">تعداد (ست) ↕</th>
-                            <th onclick="sortTable('amount')">مبلغ کل ↕</th>
-                            <th onclick="sortTable('share')">مبلغ سهم ↕</th>
-                            <th class="bg-indigo-900 text-indigo-100 border-r border-indigo-700 w-48" onclick="sortTable('receivable')">مطالبات سررسید شده ↕</th>
+                            <th onclick="sortTable('year')" style="width: 10%">سال ↕</th>
+                            <th onclick="sortTable('month')" style="width: 10%">ماه ↕</th>
+                            <th onclick="sortTable('source')" style="width: 20%">مشتری ↕</th>
+                            <th onclick="sortTable('count')" style="width: 10%">تعداد (ست) ↕</th>
+                            <th onclick="sortTable('amount')" style="width: 15%">مبلغ کل ↕</th>
+                            <th onclick="sortTable('share')" style="width: 15%">مبلغ سهم ↕</th>
+                            <th class="bg-indigo-900 text-indigo-100" onclick="sortTable('receivable')" style="width: 20%">وضعیت وصول (۱۲۰ روز) ↕</th>
                         </tr>
                     </thead>
-                    <tbody id="dataTableBody" class="divide-y divide-slate-100 bg-white"></tbody>
-                    <tfoot class="sticky bottom-0 bg-slate-900 text-white font-bold z-10">
+                    <tbody id="dataTableBody"></tbody>
+                    <tfoot>
                         <tr>
-                            <td colspan="3" class="p-4 text-center">جمع کل (فیلتر شده)</td>
-                            <td class="p-4 dir-ltr text-amber-400 font-mono text-lg" id="sumCount">0</td>
-                            <td class="p-4 dir-ltr text-blue-400 font-mono text-lg" id="sumAmount">0</td>
-                            <td class="p-4 dir-ltr text-emerald-400 font-mono text-lg" id="sumShare">0</td>
-                            <td class="p-4 dir-ltr text-indigo-300 font-mono text-lg bg-indigo-950 border-r border-indigo-800" id="sumDue">0</td>
+                            <td colspan="3" class="text-center">جمع کل (فیلتر شده)</td>
+                            <td class="dir-ltr text-emerald-400" id="sumCount">0</td>
+                            <td class="dir-ltr text-blue-400" id="sumAmount">0</td>
+                            <td class="dir-ltr text-amber-400" id="sumShare">0</td>
+                            <td class="dir-ltr text-indigo-300 bg-indigo-950" id="sumDue">0</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -174,33 +220,9 @@
 
         const monthsList = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
         
-        // --- AUTOMATIC DATE LOGIC ---
-        // Get today's date in Persian Calendar
-        const today = new Date();
-        const persianFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-        const persianPartsFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
-            year: 'numeric',
-            month: 'numeric'
-        });
-        
-        const dateString = persianFormatter.format(today);
-        const partsStr = persianPartsFormatter.format(today); // e.g. "1404/9"
-        
-        // Convert Persian digits to English for calculation
-        const toEnglishDigits = (str) => str.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
-        const [curYearStr, curMonthStr] = toEnglishDigits(partsStr).split('/');
-        
-        const CURRENT_YEAR = parseInt(curYearStr);
-        const CURRENT_MONTH_IDX = parseInt(curMonthStr) - 1; // 0-based index
-
-        // Update UI Labels with Current Date
-        document.getElementById('reportDateLabel').innerText = `تاریخ گزارش: ${dateString}`;
-        document.getElementById('tableDateLabel').innerText = `مبنا: ${dateString}`;
-
+        // --- FIXED DATE LOGIC ---
+        const REPORT_YEAR = 1404;
+        const REPORT_MONTH_IDX = 8; // Azar (Index 8)
 
         let globalData = [];
         let currentFilteredData = [];
@@ -256,18 +278,18 @@
 46,1403,دی,قالب ها,"3,440","21,435","1,961"
 47,1403,بهمن,قالب ها,"1,572","103,780",896
 48,1403,اسفند,قالب ها,0,0,0
-49,1403,فروردین,سودیکو - ضایعات,0,466,466
-50,1403,اردیبهشت,سودیکو - ضایعات,0,"16,604","16,604"
-51,1403,خرداد,سودیکو - ضایعات,0,"7,907","7,907"
-52,1403,تیر,سودیکو - ضایعات,0,"11,937","11,937"
-53,1403,مرداد,سودیکو - ضایعات,0,"29,180","29,180"
-54,1403,شهریور,سودیکو - ضایعات,0,"7,690","7,690"
-55,1403,مهر,سودیکو - ضایعات,0,"8,378","8,378"
-56,1403,ابان,سودیکو - ضایعات,,"9,611","9,611"
-57,1403,اذر,سودیکو - ضایعات,,"10,635","10,635"
-58,1403,دی,سودیکو - ضایعات,,"7,371","7,371"
-59,1403,بهمن,سودیکو - ضایعات,,"29,716","29,716"
-60,1403,اسفند,سودیکو - ضایعات,,"11,873","11,873"
+49,1403,فروردین,سودیکو,0,"2,899","2,899"
+50,1403,اردیبهشت,سودیکو,0,"16,604","16,604"
+51,1403,خرداد,سودیکو,0,"7,907","7,907"
+52,1403,تیر,سودیکو,0,"11,937","11,937"
+53,1403,مرداد,سودیکو,0,"29,180","29,180"
+54,1403,شهریور,سودیکو,0,"7,690","7,690"
+55,1403,مهر,سودیکو,0,"8,378","8,378"
+56,1403,ابان,سودیکو,,"9,611","9,611"
+57,1403,اذر,سودیکو,,"10,635","10,635"
+58,1403,دی,سودیکو,,"7,371","7,371"
+59,1403,بهمن,سودیکو,,"29,716","29,716"
+60,1403,اسفند,سودیکو,,"11,873","11,873"
 61,1403,فروردین,سودیکو - ورق,0,0,0
 62,1403,اردیبهشت,سودیکو - ورق,0,0,0
 63,1403,خرداد,سودیکو - ورق,0,0,0
@@ -423,24 +445,27 @@
                 let amountBillion = (parseFloat((parts[5] || "0").replace(/["',]/g, '')) || 0) / 1000;
                 let shareBillion = (parseFloat((parts[6] || "0").replace(/["',]/g, '')) || 0) / 1000;
 
-                // --- 120-DAY RECEIVABLE LOGIC ---
+                // --- 120-DAY DUE LOGIC ---
                 let mIndex = monthsList.indexOf(month); 
-                let dueAmount = 0;
+                let shareDue = 0;
+                let receivableAmount = 0;
                 let dueText = "---";
 
                 if (mIndex !== -1) {
                     let saleAbsMonth = (year * 12) + mIndex;
                     let dueAbsMonth = saleAbsMonth + 4; // +120 days
-                    let currentAbsMonth = (CURRENT_YEAR * 12) + CURRENT_MONTH_IDX;
+                    let currentAbsMonth = (REPORT_YEAR * 12) + REPORT_MONTH_IDX;
 
                     if (dueAbsMonth <= currentAbsMonth) {
-                        dueAmount = amountBillion; 
+                        shareDue = shareBillion; // Paid
+                        receivableAmount = amountBillion;
                         dueText = "قابل وصول";
                     } else {
-                        dueAmount = 0; 
+                        // Future Due Date
                         let dYear = Math.floor(dueAbsMonth / 12);
                         let dMonthIdx = dueAbsMonth % 12;
-                        dueText = `سررسید: ${monthsList[dMonthIdx]} ${dYear}`;
+                        let dMonthName = monthsList[dMonthIdx];
+                        dueText = `${dMonthName} ${dYear}`;
                     }
                 }
 
@@ -448,7 +473,8 @@
                     id, year, month, source, count,
                     amount: amountBillion,
                     share: shareBillion,
-                    receivable: dueAmount, 
+                    shareDue: shareDue,
+                    receivable: receivableAmount,
                     dueText: dueText
                 });
             }
@@ -477,35 +503,36 @@
             const empVal = document.getElementById('employerSelect').value;
             const yearVal = document.getElementById('yearSelect').value;
 
-            // 1. FILTER DATA FOR KPI and TABLE
-            // Filter by Customer AND Year
-            const filteredForKPI = globalData.filter(d => {
+            // Filter for KPI & Table
+            const filteredForTable = globalData.filter(d => {
                 const empMatch = empVal === 'all' || d.source === empVal;
                 const yearMatch = yearVal === 'all' || d.year.toString() === yearVal;
                 return empMatch && yearMatch;
             });
 
-            updateKPIs(filteredForKPI);
-            renderTable(filteredForKPI);
+            updateKPIs(filteredForTable);
+            renderTable(filteredForTable);
             
-            // 2. UPDATE CHARTS (Charts need to show comparison, so ignore year filter usually)
-            // But if you want charts to update per customer, pass empVal
+            // Charts update (Year Independent)
             updateAllCharts(empVal); 
         }
 
         function updateKPIs(data) {
-            // Note: If year filter is active, some of these might be 0, which is correct for a dashboard behavior
             const t1403 = data.filter(d => d.year === 1403).reduce((s,d) => s + d.amount, 0);
             const t1404 = data.filter(d => d.year === 1404).reduce((s,d) => s + d.amount, 0);
             const count = data.reduce((s,d) => s + d.count, 0);
             const share = data.reduce((s,d) => s + d.share, 0);
+            const shareDue = data.reduce((s,d) => s + d.shareDue, 0);
             const totalDue = data.reduce((s,d) => s + d.receivable, 0);
             
             document.getElementById('kpi1403').innerText = t1403.toLocaleString(undefined, {maximumFractionDigits: 1});
             document.getElementById('kpi1404').innerText = t1404.toLocaleString(undefined, {maximumFractionDigits: 1});
             document.getElementById('kpiCount').innerText = count.toLocaleString();
-            document.getElementById('kpiShare').innerText = share.toLocaleString(undefined, {maximumFractionDigits: 1});
             document.getElementById('kpiDueTotal').innerText = totalDue.toLocaleString(undefined, {maximumFractionDigits: 1});
+            
+            // Share KPI
+            document.getElementById('kpiShare').innerText = share.toLocaleString(undefined, {maximumFractionDigits: 1});
+            document.getElementById('kpiShareDue').innerText = shareDue.toLocaleString(undefined, {maximumFractionDigits: 1});
         }
 
         // --- CHARTS ---
@@ -580,12 +607,12 @@
                 const yrClass = d.year === 1404 ? 'text-red-600 bg-red-50' : 'text-gray-500 bg-gray-50';
                 
                 let recClass = "text-slate-400"; 
-                let recVal = "0";
+                let recVal = "---";
                 if (d.receivable > 0) {
                     recClass = "text-indigo-700 font-bold bg-indigo-50";
-                    recVal = d.receivable.toLocaleString(undefined, {maximumFractionDigits: 3});
+                    recVal = d.amount.toLocaleString(undefined, {maximumFractionDigits: 3});
                 } else {
-                    recVal = `<span class="text-xs italic text-slate-400">${d.dueText}</span>`;
+                    recVal = `<span class="text-xs italic text-slate-500">${d.dueText}</span>`;
                 }
 
                 tr.innerHTML = `
