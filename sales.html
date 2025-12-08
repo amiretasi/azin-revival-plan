@@ -17,27 +17,24 @@
         body { font-family: 'Vazirmatn', sans-serif; background-color: var(--bg-color); color: var(--text-main); }
         .card { background-color: var(--card-bg); border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); padding: 1.5rem; border: 1px solid #e2e8f0; }
         
-        /* Fixed Table Layout */
+        /* Table Layout */
         .table-wrapper {
             overflow-y: auto;
             height: 500px;
             border: 1px solid #e2e8f0;
             border-radius: 0.5rem;
+            position: relative;
         }
-        table {
-            width: 100%;
-            border-collapse: separate; 
-            border-spacing: 0;
-        }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
         th {
-            position: sticky;
-            top: 0;
+            position: sticky; top: 0;
             background-color: var(--primary);
             color: white;
-            z-index: 10;
+            z-index: 20;
             padding: 1rem;
             text-align: right;
             font-size: 0.875rem;
+            white-space: nowrap;
         }
         td {
             padding: 1rem;
@@ -45,13 +42,11 @@
             font-size: 0.875rem;
             background-color: white;
         }
-        /* Footer Sticky */
         tfoot th, tfoot td {
-            position: sticky;
-            bottom: 0;
+            position: sticky; bottom: 0;
             background-color: #0f172a;
             color: white;
-            z-index: 10;
+            z-index: 20;
             font-weight: bold;
             padding: 1rem;
             border-top: 2px solid #cbd5e1;
@@ -71,7 +66,8 @@
             <div>
                 <h1 class="text-3xl font-black text-slate-800 tracking-tight">داشبورد جامع فروش و مطالبات</h1>
                 <p class="text-slate-500 mt-2 font-bold text-sm">
-                    تاریخ مبنای محاسبه: <span class="text-blue-600 font-bold">۱۶ آذر ۱۴۰۴</span>
+                    تاریخ مبنا: <span class="text-blue-600 font-bold">۱۶ آذر ۱۴۰۴</span> |
+                    <span class="text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">زامیاد (۹۰ روز)</span>
                 </p>
             </div>
             
@@ -121,13 +117,12 @@
             <div class="card border-t-4 border-indigo-600 bg-indigo-50">
                 <p class="text-xs font-bold text-indigo-800 mb-1">کل مطالبات وصول شده</p>
                 <p class="text-xl font-black text-indigo-900 dir-ltr" id="kpiDueTotal">0</p>
-                <p class="text-xs text-indigo-600 mt-1">طبق قرارداد ۱۲۰ روزه</p>
+                <p class="text-xs text-indigo-600 mt-1">سررسید شده (۹۰/۱۲۰ روز)</p>
             </div>
             <div class="card border-t-4 border-amber-500">
                 <p class="text-xs font-bold text-amber-600 mb-1">مجموع سهم شرکت</p>
                 <p class="text-xl font-black text-amber-800 dir-ltr" id="kpiShare">0</p>
-                <!-- CORRECTED FONT & LAYOUT -->
-                <div class="text-xs mt-1 font-bold flex items-center gap-1 text-slate-600">
+                <div class="text-xs mt-1 font-bold flex items-center gap-1 text-slate-600 bg-amber-50 px-2 py-1 rounded w-fit">
                     <span>(سررسید شده: </span>
                     <span class="dir-ltr font-mono" id="kpiShareDue">0</span>
                     <span>)</span>
@@ -173,7 +168,7 @@
             <div class="flex justify-between items-center mb-6">
                 <h3 class="font-bold text-slate-800 text-lg">ریز داده‌های فروش و وضعیت وصول</h3>
                 <div class="flex gap-2">
-                    <span class="text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full border border-indigo-200 font-bold">شرط وصول: ۱۲۰ روز</span>
+                    <span class="text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full border border-indigo-200 font-bold">محاسبه هوشمند سررسید</span>
                 </div>
             </div>
             
@@ -187,17 +182,17 @@
                             <th onclick="sortTable('count')" style="width: 10%">تعداد (ست) ↕</th>
                             <th onclick="sortTable('amount')" style="width: 15%">مبلغ کل ↕</th>
                             <th onclick="sortTable('share')" style="width: 15%">مبلغ سهم ↕</th>
-                            <th class="bg-indigo-900 text-indigo-100" onclick="sortTable('receivable')" style="width: 20%">وضعیت وصول (۱۲۰ روز) ↕</th>
+                            <th class="bg-indigo-900 text-indigo-100 border-r border-indigo-700" onclick="sortTable('receivable')" style="width: 20%">مطالبات وصولی ↕</th>
                         </tr>
                     </thead>
                     <tbody id="dataTableBody"></tbody>
                     <tfoot>
                         <tr>
                             <td colspan="3" class="text-center">جمع کل (فیلتر شده)</td>
-                            <td class="dir-ltr text-emerald-400" id="sumCount">0</td>
-                            <td class="dir-ltr text-blue-400" id="sumAmount">0</td>
-                            <td class="dir-ltr text-amber-400" id="sumShare">0</td>
-                            <td class="dir-ltr text-indigo-300 bg-indigo-950" id="sumDue">0</td>
+                            <td class="dir-ltr text-emerald-400 font-mono" id="sumCount">0</td>
+                            <td class="dir-ltr text-blue-400 font-mono" id="sumAmount">0</td>
+                            <td class="dir-ltr text-amber-400 font-mono" id="sumShare">0</td>
+                            <td class="dir-ltr text-indigo-300 bg-indigo-950 border-r border-indigo-800 font-mono" id="sumDue">0</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -212,10 +207,10 @@
         Chart.defaults.color = '#64748b';
         
         const STYLES = {
-            bar1403: '#cbd5e1',       // Gray Bar
-            bar1404: '#f87171',       // Red Bar
-            line1403: '#3b82f6',      // Blue Dashed Line
-            line1404: '#b91c1c'       // Red Solid Line
+            bar1403: '#cbd5e1',       // Gray
+            bar1404: '#f87171',       // Red
+            line1403: '#3b82f6',      // Blue Dashed
+            line1404: '#b91c1c'       // Red Solid
         };
 
         const monthsList = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
@@ -278,18 +273,18 @@
 46,1403,دی,قالب ها,"3,440","21,435","1,961"
 47,1403,بهمن,قالب ها,"1,572","103,780",896
 48,1403,اسفند,قالب ها,0,0,0
-49,1403,فروردین,سودیکو,0,"2,899","2,899"
-50,1403,اردیبهشت,سودیکو,0,"16,604","16,604"
-51,1403,خرداد,سودیکو,0,"7,907","7,907"
-52,1403,تیر,سودیکو,0,"11,937","11,937"
-53,1403,مرداد,سودیکو,0,"29,180","29,180"
-54,1403,شهریور,سودیکو,0,"7,690","7,690"
-55,1403,مهر,سودیکو,0,"8,378","8,378"
-56,1403,ابان,سودیکو,,"9,611","9,611"
-57,1403,اذر,سودیکو,,"10,635","10,635"
-58,1403,دی,سودیکو,,"7,371","7,371"
-59,1403,بهمن,سودیکو,,"29,716","29,716"
-60,1403,اسفند,سودیکو,,"11,873","11,873"
+49,1403,فروردین,سودیکو - ضایعات,0,466,466
+50,1403,اردیبهشت,سودیکو - ضایعات,0,"16,604","16,604"
+51,1403,خرداد,سودیکو - ضایعات,0,"7,907","7,907"
+52,1403,تیر,سودیکو - ضایعات,0,"11,937","11,937"
+53,1403,مرداد,سودیکو - ضایعات,0,"29,180","29,180"
+54,1403,شهریور,سودیکو - ضایعات,0,"7,690","7,690"
+55,1403,مهر,سودیکو - ضایعات,0,"8,378","8,378"
+56,1403,ابان,سودیکو - ضایعات,,"9,611","9,611"
+57,1403,اذر,سودیکو - ضایعات,,"10,635","10,635"
+58,1403,دی,سودیکو - ضایعات,,"7,371","7,371"
+59,1403,بهمن,سودیکو - ضایعات,,"29,716","29,716"
+60,1403,اسفند,سودیکو - ضایعات,,"11,873","11,873"
 61,1403,فروردین,سودیکو - ورق,0,0,0
 62,1403,اردیبهشت,سودیکو - ورق,0,0,0
 63,1403,خرداد,سودیکو - ورق,0,0,0
@@ -423,7 +418,26 @@
 191,1404,بهمن,سایپا یدک,0,0,0
 192,1404,اسفند,سایپا یدک,0,0,0`;
 
-        // --- DATA PARSING & LOGIC ---
+        // --- IMPROVED DATA PARSER (Handles quoted commas & empty fields correctly) ---
+        function parseCSVLine(text) {
+            const result = [];
+            let cur = '';
+            let inQuote = false;
+            for (let i = 0; i < text.length; i++) {
+                const c = text[i];
+                if (c === '"') {
+                    inQuote = !inQuote;
+                } else if (c === ',' && !inQuote) {
+                    result.push(cur.trim());
+                    cur = '';
+                } else {
+                    cur += c;
+                }
+            }
+            result.push(cur.trim());
+            return result;
+        }
+
         function parseCSV(text) {
             const rows = [];
             const lines = text.split('\n');
@@ -433,19 +447,20 @@
                 let line = lines[i].trim();
                 if(!line) continue;
                 
-                const parts = line.match(/(".*?"|[^,]+)(?=\s*,|\s*$)/g);
-                if(!parts || parts.length < 6) continue;
+                const parts = parseCSVLine(line);
+                if(parts.length < 6) continue;
 
-                let id = parts[0].trim();
-                let year = parseInt(parts[1].trim());
-                let month = parts[2].trim().replace('ابان', 'آبان');
-                let source = parts[3].trim();
+                let id = parts[0];
+                let year = parseInt(parts[1]);
+                let month = parts[2].replace('ابان', 'آبان');
+                let source = parts[3]; // Now correctly gets the customer name
                 
+                // Conversions (Million -> Billion)
                 let count = parseFloat((parts[4] || "0").replace(/["',]/g, '')) || 0;
                 let amountBillion = (parseFloat((parts[5] || "0").replace(/["',]/g, '')) || 0) / 1000;
                 let shareBillion = (parseFloat((parts[6] || "0").replace(/["',]/g, '')) || 0) / 1000;
 
-                // --- 120-DAY DUE LOGIC ---
+                // --- SMART DUE LOGIC ---
                 let mIndex = monthsList.indexOf(month); 
                 let shareDue = 0;
                 let receivableAmount = 0;
@@ -453,19 +468,18 @@
 
                 if (mIndex !== -1) {
                     let saleAbsMonth = (year * 12) + mIndex;
-                    let dueAbsMonth = saleAbsMonth + 4; // +120 days
+                    let addMonths = source.includes("زامیاد") ? 3 : 4;
+                    let dueAbsMonth = saleAbsMonth + addMonths;
                     let currentAbsMonth = (REPORT_YEAR * 12) + REPORT_MONTH_IDX;
 
                     if (dueAbsMonth <= currentAbsMonth) {
-                        shareDue = shareBillion; // Paid
+                        shareDue = shareBillion;
                         receivableAmount = amountBillion;
                         dueText = "قابل وصول";
                     } else {
-                        // Future Due Date
                         let dYear = Math.floor(dueAbsMonth / 12);
                         let dMonthIdx = dueAbsMonth % 12;
-                        let dMonthName = monthsList[dMonthIdx];
-                        dueText = `${dMonthName} ${dYear}`;
+                        dueText = `${monthsList[dMonthIdx]} ${dYear}`;
                     }
                 }
 
@@ -481,10 +495,11 @@
             return rows;
         }
 
-        // --- INIT ---
+        // --- LOGIC ---
         function init(csv) {
             globalData = parseCSV(csv);
             
+            // Dropdown
             const employers = [...new Set(globalData.map(d => d.source))].sort();
             const select = document.getElementById('employerSelect');
             select.innerHTML = '<option value="all">همه مشتریان (کل پورتفو)</option>';
@@ -503,17 +518,17 @@
             const empVal = document.getElementById('employerSelect').value;
             const yearVal = document.getElementById('yearSelect').value;
 
-            // Filter for KPI & Table
-            const filteredForTable = globalData.filter(d => {
+            // KPI & Table Filter
+            const filteredForKPI = globalData.filter(d => {
                 const empMatch = empVal === 'all' || d.source === empVal;
                 const yearMatch = yearVal === 'all' || d.year.toString() === yearVal;
                 return empMatch && yearMatch;
             });
 
-            updateKPIs(filteredForTable);
-            renderTable(filteredForTable);
+            updateKPIs(filteredForKPI);
+            renderTable(filteredForKPI);
             
-            // Charts update (Year Independent)
+            // Charts (Always compare years, only filter customer)
             updateAllCharts(empVal); 
         }
 
@@ -529,8 +544,6 @@
             document.getElementById('kpi1404').innerText = t1404.toLocaleString(undefined, {maximumFractionDigits: 1});
             document.getElementById('kpiCount').innerText = count.toLocaleString();
             document.getElementById('kpiDueTotal').innerText = totalDue.toLocaleString(undefined, {maximumFractionDigits: 1});
-            
-            // Share KPI
             document.getElementById('kpiShare').innerText = share.toLocaleString(undefined, {maximumFractionDigits: 1});
             document.getElementById('kpiShareDue').innerText = shareDue.toLocaleString(undefined, {maximumFractionDigits: 1});
         }
@@ -612,13 +625,13 @@
                     recClass = "text-indigo-700 font-bold bg-indigo-50";
                     recVal = d.amount.toLocaleString(undefined, {maximumFractionDigits: 3});
                 } else {
-                    recVal = `<span class="text-xs italic text-slate-500">${d.dueText}</span>`;
+                    recVal = `<span class="text-xs italic text-slate-400">${d.dueText}</span>`;
                 }
 
                 tr.innerHTML = `
                     <td class="font-bold text-center"><span class="px-2 py-1 rounded ${yrClass}">${d.year}</span></td>
                     <td class="text-slate-700">${d.month}</td>
-                    <td class="font-bold text-slate-800">${d.source}</td>
+                    <td class="font-bold text-slate-800 text-right">${d.source}</td>
                     <td class="font-mono dir-ltr text-emerald-600">${d.count.toLocaleString()}</td>
                     <td class="font-mono dir-ltr font-bold text-blue-700">${d.amount.toLocaleString(undefined, {maximumFractionDigits: 3})}</td>
                     <td class="font-mono dir-ltr text-amber-600 text-sm">${d.share.toLocaleString(undefined, {maximumFractionDigits: 3})}</td>
