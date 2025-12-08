@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد جامع سایپا آذین - نسخه نهایی</title>
+    <title>داشبورد جامع سایپا آذین - نسخه نهایی و هوشمند</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@100;300;400;500;700;900&display=swap');
@@ -167,7 +167,6 @@
         ];
 
         // --- 3. DYNAMIC DATA PROVIDER ---
-        // Wrapped in a function to avoid scope/hoisting issues
         function getRawCsvData() {
             return `ماه واریزی,کارفرما,وضعیت,شرح پرداخت,مبلغ ورودی,تاریخ
 فروردین,سازه گستر,پرداخت,سازه گستر - مطالبات ,"24,996,905,512",1403.01.21
@@ -518,6 +517,16 @@
             return rows;
         };
 
+        const statusColors = {
+            'پرداخت': 'rgba(16, 185, 129, 0.7)',
+            'تهاتر': 'rgba(245, 158, 11, 0.7)',
+            'خرید دین': 'rgba(139, 92, 246, 0.8)',
+            'اعتبارات اسنادی': 'rgba(249, 115, 22, 0.8)',
+            'اوراق گام': 'rgba(236, 72, 153, 0.7)',
+            'چک': 'rgba(59, 130, 246, 0.7)',
+            'نامشخص': 'rgba(156, 163, 175, 0.5)'
+        };
+
         const getStatusBadge = (status) => {
             if(status === 'پرداخت') return 'bg-emerald-100 text-emerald-800';
             if(status === 'تهاتر') return 'bg-amber-100 text-amber-800';
@@ -536,7 +545,7 @@
             const [dynamicData, setDynamicData] = useState([]);
             const [filteredData, setFilteredData] = useState([]); 
             const [filters, setFilters] = useState({ year: 'all', employer: 'all', status: 'all' });
-            const [deepAnalysisEmployer, setDeepAnalysisEmployer] = useState('all'); // NEW STATE
+            const [deepAnalysisEmployer, setDeepAnalysisEmployer] = useState('all'); 
             const [sortConfig, setSortConfig] = useState({ field: 'id', dir: 'asc' });
 
             // Load initial data
@@ -546,7 +555,7 @@
                 setFilteredData(data); 
             }, []);
 
-            // Apply Filters
+            // Apply Filters (Logic fixed to update charts too)
             useEffect(() => {
                 let res = dynamicData;
                 if (filters.year !== 'all') res = res.filter(d => d.year.toString() === filters.year);
@@ -890,71 +899,93 @@
                 const labels = fullMonthOrder.map(t => `${t.m} ${t.y}`);
 
                 // Data for "Deep Analysis" Chart (based on filteredData)
+                // Filtered by employerSelect specifically for this chart context
                 const currentDeepEmployer = deepAnalysisEmployer; // Use STATE directly
-                let deepChartData = dynamicData;
+                let deepChartData = filteredData; // Use FILTERED data as base for accurate drill-down
                 if (currentDeepEmployer !== 'all') {
-                    deepChartData = dynamicData.filter(d => d.source === currentDeepEmployer);
+                    deepChartData = filteredData.filter(d => d.source === currentDeepEmployer);
                 }
 
                 // Stats for Side Panel
                 const deepTotal = deepChartData.reduce((s, d) => s + d.rawAmount, 0);
-                const globalTotal = dynamicData.reduce((s, d) => s + d.rawAmount, 0);
-                const share = globalTotal ? ((deepTotal / globalTotal) * 100).toFixed(1) : 0;
+                const currentViewTotal = total; // Total of filteredData
+                const share = currentViewTotal > 0 ? ((deepTotal / currentViewTotal) * 100).toFixed(1) : 0;
 
-                const monthlyMap = {};
-                deepChartData.forEach(d => {
-                    const k = `${d.year}-${d.month}`;
-                    monthlyMap[k] = (monthlyMap[k] || 0) + d.amount;
+                // Group by MONTH + STATUS for Stacked Bar Chart
+                const groupedData = {};
+                fullMonthOrder.forEach(t => {
+                    groupedData[`${t.y}-${t.m}`] = { total: 0 }; 
+                    // Initialize all statuses to 0 for stacking alignment
+                    ['پرداخت', 'تهاتر', 'خرید دین', 'اعتبارات اسنادی', 'اوراق گام', 'چک'].forEach(s => {
+                        groupedData[`${t.y}-${t.m}`][s] = 0;
+                    });
                 });
 
-                const monthlyValues = [];
+                deepChartData.forEach(d => {
+                    const key = `${d.year}-${d.month}`;
+                    if (groupedData[key]) {
+                        groupedData[key][d.status] = (groupedData[key][d.status] || 0) + d.amount; // Use Billion amount
+                        groupedData[key].total += d.amount;
+                    }
+                });
+
+                // Prepare Datasets for Chart.js
+                // 1. Stacked Bars for each status
+                const uniqueStatuses = ['پرداخت', 'تهاتر', 'خرید دین', 'اعتبارات اسنادی', 'اوراق گام', 'چک'];
+                const statusDatasets = uniqueStatuses.map(status => ({
+                    type: 'bar',
+                    label: status,
+                    data: fullMonthOrder.map(t => groupedData[`${t.y}-${t.m}`][status]),
+                    backgroundColor: statusColors[status],
+                    stack: 'Stack 0',
+                    yAxisID: 'y'
+                }));
+
+                // 2. Cumulative Line Logic
                 const cumulativeValues = [];
                 let runningSum = 0;
-
                 fullMonthOrder.forEach(t => {
-                    const val = monthlyMap[`${t.y}-${t.m}`] || 0;
-                    monthlyValues.push(val);
-                    runningSum += val;
+                    runningSum += groupedData[`${t.y}-${t.m}`].total;
                     cumulativeValues.push(runningSum);
                 });
 
+                const cumulativeDataset = {
+                    type: 'line',
+                    label: 'روند تجمعی کل',
+                    data: cumulativeValues,
+                    borderColor: '#f59e0b',
+                    borderWidth: 3,
+                    tension: 0.3,
+                    pointRadius: 2,
+                    yAxisID: 'y1'
+                };
+
                 const deepChartConfig = {
                     labels: labels,
-                    datasets: [
-                        {
-                            type: 'bar',
-                            label: 'پرداخت ماهانه',
-                            data: monthlyValues,
-                            backgroundColor: 'rgba(59, 130, 246, 0.7)',
-                            borderRadius: 4,
-                            order: 2,
-                            yAxisID: 'y'
-                        },
-                        {
-                            type: 'line',
-                            label: 'روند تجمعی کل',
-                            data: cumulativeValues,
-                            borderColor: '#f59e0b',
-                            borderWidth: 3,
-                            tension: 0.3,
-                            pointRadius: 2,
-                            order: 1,
-                            yAxisID: 'y1'
-                        }
-                    ]
+                    datasets: [...statusDatasets, cumulativeDataset]
                 };
 
                 const deepChartOptions = {
                     interaction: { mode: 'index', intersect: false },
                     scales: {
-                        y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'ماهانه (میلیارد ریال)' } },
-                        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'تجمعی' } }
+                        y: { type: 'linear', display: true, position: 'left', stacked: true, title: { display: true, text: 'ماهانه (میلیارد ریال)' } },
+                        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'تجمعی' } },
+                        x: { stacked: true }
                     }
                 };
 
-                // Data for "Cumulative Comparison" Chart (Global Data)
+                // Data for "Cumulative Comparison" Chart (Based on filteredData but ignoring YEAR filter)
                 const globalMonthlyMap = {};
-                dynamicData.forEach(d => {
+                // Re-calculate based on global dynamicData to show FULL comparison even if filtered
+                // OR adhere to filters? Usually Comparison charts ignore Time filters to show comparison.
+                // Let's stick to user request logic: "filteredData" drives everything.
+                // BUT user wants 1403 vs 1404 comparison. If filter is 1404, 1403 line disappears. 
+                // To keep comparison useful, we should use 'dynamicData' filtered by Employer/Status but NOT Year.
+                let comparisonBaseData = dynamicData;
+                if (filters.employer !== 'all') comparisonBaseData = comparisonBaseData.filter(d => d.source === filters.employer);
+                if (filters.status !== 'all') comparisonBaseData = comparisonBaseData.filter(d => d.status === filters.status);
+
+                comparisonBaseData.forEach(d => {
                     const k = `${d.year}-${d.month}`;
                     globalMonthlyMap[k] = (globalMonthlyMap[k] || 0) + d.amount;
                 });
@@ -962,8 +993,17 @@
                 let s1403 = 0, s1404 = 0;
                 const d1403 = [], d1404 = [];
                 fullMonthOrder.forEach(t => {
-                    if (t.y === 1403) { s1403 += (globalMonthlyMap[`${t.y}-${t.m}`] || 0); d1403.push(s1403); d1404.push(null); }
-                    else { d1403.push(null); s1404 += (globalMonthlyMap[`${t.y}-${t.m}`] || 0); d1404.push(s1404); }
+                    if (t.y === 1403) { 
+                        const val = globalMonthlyMap[`${t.y}-${t.m}`] || 0;
+                        s1403 += val; 
+                        d1403.push(s1403); 
+                        d1404.push(null); 
+                    } else { 
+                        const val = globalMonthlyMap[`${t.y}-${t.m}`] || 0;
+                        s1404 += val; 
+                        d1403.push(null); 
+                        d1404.push(s1404); 
+                    }
                 });
 
                 const comparisonData = {
@@ -974,7 +1014,7 @@
                     ]
                 };
 
-                // Data for Pie Chart
+                // Data for Pie Chart (Based on filteredData)
                 const sourceTotals = {};
                 filteredData.forEach(d => { sourceTotals[d.source] = (sourceTotals[d.source] || 0) + d.amount; });
                 const pieData = {
@@ -982,8 +1022,12 @@
                     datasets: [{ data: Object.values(sourceTotals), backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b', '#ec4899', '#6366f1'] }]
                 };
 
+                // Dropdown Options (derived from dynamicData to show all possibilities)
                 const employers = [...new Set(dynamicData.map(d => d.source))].sort();
                 const statuses = [...new Set(dynamicData.map(d => d.status))].sort();
+
+                // Current Date
+                const today = new Date().toLocaleDateString('fa-IR');
 
                 return React.createElement('div', { className: "space-y-8 animate-fade-in" },
                     // Top Bar
@@ -1000,7 +1044,7 @@
                             ),
                             React.createElement('div', { className: "text-left hidden md:block" },
                                 React.createElement('p', { className: "text-xs text-gray-400" }, "تاریخ گزارش"),
-                                React.createElement('p', { className: "text-lg font-bold text-gray-700 font-mono dir-ltr" }, "1404/09/16")
+                                React.createElement('p', { className: "text-lg font-bold text-gray-700 font-mono dir-ltr" }, today)
                             )
                         )
                     ),
@@ -1023,10 +1067,10 @@
                                 React.createElement('label', { className: "block text-sm font-medium text-gray-700 mb-1" }, "انتخاب کارفرما (بروزرسانی کل داشبورد):"),
                                 React.createElement('select', { 
                                     className: "w-full border-gray-300 rounded-lg shadow-sm p-2 border bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 custom-select",
-                                    value: deepAnalysisEmployer, // FIXED: Using State Variable
+                                    value: deepAnalysisEmployer,
                                     id: 'employerSelect', 
                                     onChange: (e) => {
-                                        setDeepAnalysisEmployer(e.target.value); // FIXED: Using State Setter
+                                        setDeepAnalysisEmployer(e.target.value); 
                                     }
                                 },
                                     React.createElement('option', { value: "all" }, "همه موارد"),
@@ -1169,7 +1213,7 @@
                         React.createElement('p', { className: "text-slate-500 text-lg" }, "شرکت سایپا آذین - گزارش ۶ ماهه ۱۴۰۴")
                     ),
                     React.createElement('div', { className: "text-left" },
-                        React.createElement('div', { className: "text-sm font-bold text-slate-700" }, "تاریخ گزارش: ۱۴۰۴/۰۹/۱۶"),
+                        React.createElement('div', { className: "text-sm font-bold text-slate-700" }, "تاریخ گزارش: " + new Date().toLocaleDateString('fa-IR')),
                         React.createElement('div', { className: "text-xs text-slate-400" }, "تهیه شده جهت استحضار هیئت مدیره")
                     )
                 ),
