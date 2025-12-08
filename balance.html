@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد پیشرفته نقدینگی (Rev.03)</title>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --font-main: 'Vazirmatn', sans-serif; }
+        body { font-family: var(--font-main); background-color: #f8fafc; color: #334155; }
+        
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .card { background: white; border-radius: 16px; box-shadow: 0 4px 20px -2px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; padding: 1.5rem; }
+        .btn-upload { transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .btn-upload:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .font-num { font-feature-settings: "ss01"; font-family: var(--font-main); }
+        
+        /* Table Styling */
+        th { position: sticky; top: 0; z-index: 10; background-color: #1e293b; color: white; padding: 14px; font-size: 0.8rem; font-weight: 700; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; white-space: nowrap; transition: background 0.15s; }
+        tr:hover td { background-color: #f8fafc; }
+        tfoot th, tfoot td { position: sticky; bottom: 0; z-index: 10; background-color: #f1f5f9; border-top: 2px solid #cbd5e1; font-weight: 800; color: #1e293b; box-shadow: 0 -2px 4px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="p-4 md:p-8 space-y-6 bg-slate-50">
+
+    <!-- Header Section -->
+    <div class="card border-r-4 border-slate-800 flex flex-col lg:flex-row justify-between items-center gap-6">
+        <div>
+            <h1 class="text-2xl font-black text-slate-800 tracking-tight">داشبورد هوشمند جریان نقدینگی</h1>
+            <p class="text-xs text-slate-500 mt-2 font-bold bg-slate-100 px-3 py-1 rounded-full inline-block">
+                منطق سررسید: زامیاد ۹۰ روز | سایرین ۱۲۰ روز
+            </p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+            <label class="btn-upload bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 cursor-pointer">
+                <input type="file" id="fileSales" accept=".csv" class="hidden" />
+                <span id="lblSales">📂 فایل فروش (Sales)</span>
+            </label>
+            <label class="btn-upload bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 cursor-pointer">
+                <input type="file" id="fileReceipts" accept=".csv" class="hidden" />
+                <span id="lblReceipts">📂 فایل ورودی (Receipts)</span>
+            </label>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="card bg-white sticky top-2 z-30 shadow-md py-3 border-b border-slate-200">
+        <div class="flex flex-wrap items-end gap-4">
+            <div class="w-full md:w-32">
+                <label class="block text-[10px] font-extrabold text-slate-400 uppercase mb-1">فیلتر سال</label>
+                <select id="yearSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    <option value="all">تمام سال‌ها</option>
+                    <option value="1403">۱۴۰۳</option>
+                    <option value="1404">۱۴۰۴</option>
+                </select>
+            </div>
+            <div class="w-full md:w-64">
+                <label class="block text-[10px] font-extrabold text-slate-400 uppercase mb-1">فیلتر کارفرما</label>
+                <select id="clientSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    <option value="all">همه کارفرمایان (تجمعی)</option>
+                </select>
+            </div>
+            <div class="flex-grow hidden lg:flex justify-end items-center gap-4 text-xs font-medium text-slate-500">
+                <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-500"></span>فروش</div>
+                <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500"></span>وصول</div>
+                <div class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-red-500 opacity-80"></span>سررسید (تعهد)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card h-[420px] relative flex flex-col">
+            <h3 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2 border-b pb-2">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                مقایسه ماهانه: فروش، وصول و تعهدات
+            </h3>
+            <div class="flex-grow relative w-full h-full">
+                <canvas id="chartMonthly"></canvas>
+            </div>
+        </div>
+        <div class="card h-[420px] relative flex flex-col">
+            <h3 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2 border-b pb-2">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                روند تجمعی و تحلیل شکاف (Gap Analysis)
+            </h3>
+            <div class="flex-grow relative w-full h-full">
+                <canvas id="chartCumulative"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card p-0 overflow-hidden flex flex-col h-[500px]">
+        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-20">
+            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <span>📋</span> جدول جریان نقدینگی ماهانه
+            </h3>
+            <span class="text-xs font-medium bg-slate-100 text-slate-500 px-2 py-1 rounded">واحد: میلیارد ریال</span>
+        </div>
+        
+        <div class="flex-grow overflow-auto custom-scroll relative">
+            <table class="w-full text-right border-collapse">
+                <thead>
+                    <tr>
+                        <th class="w-20 text-center">سال</th>
+                        <th class="w-24 text-center">ماه</th>
+                        <th class="text-left dir-ltr">میزان فروش (Invoice)</th>
+                        <th class="text-left dir-ltr text-red-300 bg-slate-900 border-l border-slate-700">تعهد سررسید شده<br><span class="text-[9px] font-light text-slate-400">(زامیاد ۹۰، بقیه ۱۲۰ روز)</span></th>
+                        <th class="text-left dir-ltr">میزان وصول (Receipt)</th>
+                        <th class="text-left dir-ltr">تراز (Net Flow)</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody" class="font-num font-bold text-slate-600">
+                    <!-- JS Rows -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2" class="text-center py-4 text-slate-600">جمع کل دوره</td>
+                        <td class="text-left dir-ltr text-blue-600" id="sumSales">0</td>
+                        <td class="text-left dir-ltr text-red-600 bg-slate-200 border-l border-white" id="sumDue">0</td>
+                        <td class="text-left dir-ltr text-emerald-600" id="sumReceipts">0</td>
+                        <td class="text-left dir-ltr text-slate-800" id="sumBalance">0</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // --- CONSTANTS ---
+        const MONTH_MAP = {
+            "فروردین": 1, "اردیبهشت": 2, "خرداد": 3, "تیر": 4, "مرداد": 5, "شهریور": 6,
+            "مهر": 7, "آبان": 8, "ابان": 8, "آذر": 9, "اذر": 9, "دی": 10, "بهمن": 11, "اسفند": 12
+        };
+        const CURRENT_DATE_IDX = (1404 * 12) + 9; // Assume Azar 1404
+        
+        let rawSales = [];
+        let rawReceipts = [];
+        let uniqueClients = new Set();
+        let charts = {};
+
+        // --- CORE LOGIC: DYNAMIC AGING ---
+        // Zamyad: 90 Days (3 Months), Others: 120 Days (4 Months)
+        function getLagForClient(clientName) {
+            if (clientName && clientName.includes('زامیاد')) return 3;
+            return 4;
+        }
+
+        // --- PARSER ---
+        function parseFile(file, type) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const text = e.target.result;
+                    const lines = text.split('\n');
+                    const parsed = [];
+                    const startRow = 1; 
+
+                    for (let i = startRow; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+                        const parts = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                        if (!parts) continue;
+                        const clean = (val) => val ? val.replace(/["',]/g, '').trim() : "";
+                        
+                        try {
+                            if (type === 'sales') {
+                                if (parts.length < 7) continue;
+                                const y = parseInt(clean(parts[1]));
+                                const mStr = clean(parts[2]);
+                                const client = clean(parts[3]);
+                                const shareVal = parseFloat(clean(parts[6]));
+                                
+                                if (!isNaN(y) && !isNaN(shareVal)) {
+                                    parsed.push({ 
+                                        y, m: mStr, client, 
+                                        amount: shareVal / 1000, 
+                                        idx: (y * 12) + MONTH_MAP[mStr] 
+                                    });
+                                    uniqueClients.add(client);
+                                }
+                            } else {
+                                if (parts.length < 6) continue;
+                                const mStr = clean(parts[0]);
+                                const client = clean(parts[1]);
+                                const valRaw = parseFloat(clean(parts[4]));
+                                const dateStr = clean(parts[5]);
+                                
+                                let y = 1403;
+                                if (dateStr.includes('.')) y = parseInt(dateStr.split('.')[0]);
+                                else if (dateStr.includes('/')) y = parseInt(dateStr.split('/')[0]);
+                                
+                                if (!isNaN(valRaw)) {
+                                    parsed.push({ 
+                                        y, m: mStr, client, 
+                                        amount: valRaw / 1000000000, 
+                                        idx: (y * 12) + MONTH_MAP[mStr] 
+                                    });
+                                    uniqueClients.add(client);
+                                }
+                            }
+                        } catch (err) { console.error(err); }
+                    }
+                    resolve(parsed);
+                };
+                reader.readAsText(file);
+            });
+        }
+
+        // --- ANALYSIS ---
+        function runAnalysis() {
+            const selectedClient = document.getElementById('clientSelect').value;
+            const selectedYear = document.getElementById('yearSelect').value;
+            
+            // Filters
+            let salesFiltered = selectedClient === 'all' ? rawSales : rawSales.filter(d => d.client === selectedClient);
+            let receiptsFiltered = selectedClient === 'all' ? rawReceipts : rawReceipts.filter(d => d.client === selectedClient);
+            
+            // Data Range for Timeline
+            // We use ALL data to construct the timeline to ensure "Due" calculations (which look back in time) are correct
+            // Filtering by year happens mainly for display
+            
+            const timeMap = {};
+            const allIdx = new Set([...rawSales.map(d=>d.idx), ...rawReceipts.map(d=>d.idx)]);
+            const sortedAllIdx = Array.from(allIdx).sort((a,b)=>a-b);
+
+            sortedAllIdx.forEach(idx => {
+                const y = Math.floor((idx-1)/12);
+                const mIdx = ((idx-1)%12) + 1;
+                const mName = Object.keys(MONTH_MAP).find(k => MONTH_MAP[k] === mIdx && k !== 'ابان' && k !== 'اذر');
+                
+                timeMap[idx] = { 
+                    y, m: mName, 
+                    s: 0, r: 0, due: 0 
+                };
+            });
+
+            // Populate Sales & Receipts (Filtered Scope)
+            salesFiltered.forEach(d => { if(timeMap[d.idx]) timeMap[d.idx].s += d.amount; });
+            receiptsFiltered.forEach(d => { if(timeMap[d.idx]) timeMap[d.idx].r += d.amount; });
+
+            // Populate Due (Complex Logic)
+            // Due Amount for Month T = Sum of Sales where (SaleMonth + Lag) == T
+            // Note: We search in salesFiltered. If 'All' selected, we sum zamyad(T-3) + others(T-4)
+            // If specific client selected, we just do that client's logic
+            
+            salesFiltered.forEach(s => {
+                const lag = getLagForClient(s.client);
+                const dueIdx = s.idx + lag;
+                if (timeMap[dueIdx]) {
+                    timeMap[dueIdx].due += s.amount;
+                }
+            });
+
+            // Prepare Arrays for Chart/Table
+            const labels = [];
+            const dS = [], dR = [], dDue = []; // Monthly
+            const cS = [], cR = [], cDue = []; // Cumulative
+            const tableData = [];
+
+            let accS=0, accR=0, accDue=0;
+
+            sortedAllIdx.forEach(idx => {
+                const item = timeMap[idx];
+                
+                // Cumulative Calcs (Always run on full timeline)
+                accS += item.s;
+                accR += item.r;
+                accDue += item.due;
+
+                // Display Filter: Year
+                if (selectedYear !== 'all' && item.y !== parseInt(selectedYear)) return;
+
+                labels.push(`${item.m} ${item.y}`);
+                dS.push(item.s);
+                dR.push(item.r);
+                dDue.push(item.due);
+
+                cS.push(accS);
+                cR.push(accR);
+                cDue.push(accDue);
+
+                tableData.push({
+                    y: item.y, m: item.m,
+                    s: item.s, r: item.r, due: item.due,
+                    net: item.r - item.s
+                });
+            });
+
+            renderCharts(labels, dS, dR, dDue, cS, cR, cDue);
+            renderTable(tableData);
+        }
+
+        function renderCharts(labels, dS, dR, dDue, cS, cR, cDue) {
+            // 1. Monthly Bar Chart
+            const ctx1 = document.getElementById('chartMonthly').getContext('2d');
+            if (charts.monthly) charts.monthly.destroy();
+            charts.monthly = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'فروش', data: dS, backgroundColor: '#3b82f6', borderRadius: 4, order: 2 },
+                        { label: 'وصول', data: dR, backgroundColor: '#10b981', borderRadius: 4, order: 3 },
+                        { 
+                            label: 'سررسید (تعهد)', 
+                            data: dDue, 
+                            type: 'bar', // Can be bar or line depending on preference. Red bar stands out for comparison.
+                            backgroundColor: '#ef4444',
+                            borderRadius: 4,
+                            barThickness: 10, // Thinner to distinguish
+                            order: 1
+                        }
+                    ]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }
+                }
+            });
+
+            // 2. Cumulative Line Chart
+            const ctx2 = document.getElementById('chartCumulative').getContext('2d');
+            if (charts.cum) charts.cum.destroy();
+            charts.cum = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'فروش تجمعی', data: cS, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3 },
+                        { label: 'وصول تجمعی', data: cR, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 },
+                        { 
+                            label: 'تعهدات سررسید شده', 
+                            data: cDue, 
+                            borderColor: '#ef4444', 
+                            borderDash: [5, 5], 
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        function renderTable(rows) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            let totS=0, totR=0, totDue=0;
+
+            rows.forEach(row => {
+                totS += row.s; totR += row.r; totDue += row.due;
+                const netClass = row.net >= 0 ? 'text-emerald-600' : 'text-red-500';
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="text-center font-bold text-slate-800">${row.y}</td>
+                    <td class="text-center text-slate-500">${row.m}</td>
+                    <td class="dir-ltr text-blue-600">${row.s.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits: 1})}</td>
+                    <td class="dir-ltr text-red-500 bg-slate-50 font-bold border-l border-slate-100">${row.due.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits: 1})}</td>
+                    <td class="dir-ltr text-emerald-600 font-bold">${row.r.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits: 1})}</td>
+                    <td class="dir-ltr font-bold ${netClass}">${row.net.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits: 1})}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('sumSales').innerText = totS.toLocaleString(undefined, {maximumFractionDigits: 1});
+            document.getElementById('sumReceipts').innerText = totR.toLocaleString(undefined, {maximumFractionDigits: 1});
+            document.getElementById('sumDue').innerText = totDue.toLocaleString(undefined, {maximumFractionDigits: 1});
+            document.getElementById('sumBalance').innerText = (totS - totR).toLocaleString(undefined, {maximumFractionDigits: 1});
+        }
+
+        // --- INIT ---
+        const fileSales = document.getElementById('fileSales');
+        const fileReceipts = document.getElementById('fileReceipts');
+
+        async function handleUpload(e, type) {
+            if(!e.target.files[0]) return;
+            const data = await parseFile(e.target.files[0], type);
+            if(type === 'sales') {
+                rawSales = data;
+                document.getElementById('lblSales').innerText = "✅ فروش بارگذاری شد";
+                document.getElementById('lblSales').parentElement.classList.replace('bg-blue-600', 'bg-slate-700');
+            } else {
+                rawReceipts = data;
+                document.getElementById('lblReceipts').innerText = "✅ ورودی بارگذاری شد";
+                document.getElementById('lblReceipts').parentElement.classList.replace('bg-emerald-600', 'bg-slate-700');
+            }
+            updateClientSelect();
+            if(rawSales.length && rawReceipts.length) runAnalysis();
+        }
+
+        fileSales.addEventListener('change', (e) => handleUpload(e, 'sales'));
+        fileReceipts.addEventListener('change', (e) => handleUpload(e, 'receipts'));
+
+        function updateClientSelect() {
+            const sel = document.getElementById('clientSelect');
+            sel.innerHTML = '<option value="all">همه کارفرمایان (تجمعی)</option>';
+            Array.from(uniqueClients).sort().forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c; opt.innerText = c; sel.appendChild(opt);
+            });
+        }
+
+        document.getElementById('clientSelect').addEventListener('change', runAnalysis);
+        document.getElementById('yearSelect').addEventListener('change', runAnalysis);
+
+    </script>
+</body>
+</html>
