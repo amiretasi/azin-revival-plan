@@ -3,699 +3,875 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>گزارش جامع استراتژیک سایپا آذین</title>
-    
-    <!-- Fonts -->
-    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
-    
-    <!-- Tailwind CSS -->
+    <title>داشبورد مدیریت نقدینگی - نسخه نهایی و هوشمند</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- React & ReactDOM (Stable Versions) -->
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    
-    <!-- Prop Types (Required dependency for Recharts) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js"></script>
-    
-    <!-- Recharts (Stable Version) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.7/Recharts.min.js"></script>
-    
-    <!-- Babel for JSX -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <style>
-        body {
-            font-family: 'Vazirmatn', sans-serif !important;
-            background-color: #f1f5f9; /* slate-100 */
-        }
-        /* Force font on all elements including charts */
-        * {
-            font-family: 'Vazirmatn', sans-serif;
-        }
-        .recharts-text {
-            font-family: 'Vazirmatn', sans-serif !important;
-        }
-        /* Hide scrollbar for nav */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        @media print {
-            .print\:hidden {
-                display: none !important;
-            }
-            body {
-                background-color: white;
-            }
-            .shadow-lg, .shadow-md, .shadow-sm {
-                box-shadow: none !important;
-            }
-        }
-        .animate-fadeIn {
-            animation: fadeIn 0.5s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f8fafc; color: #334155; }
+        .card { background-color: white; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); padding: 1.5rem; border: 1px solid #e2e8f0; }
+        th { cursor: pointer; position: sticky; top: 0; background-color: #1e293b; color: white; z-index: 10; user-select: none; }
+        th:hover { background-color: #334155; }
+        select { background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: left 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; padding-left: 2.5rem; }
         
-        /* Table Styles */
-        .crisis-table th, .crisis-table td {
-            border-bottom: 1px solid #e2e8f0;
-            padding: 0.75rem;
-        }
-        .crisis-table th {
-            background-color: #f8fafc;
-            color: #475569;
-            font-weight: 700;
-            font-size: 0.8rem;
-        }
-        .crisis-table td {
-            font-size: 0.85rem;
-        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body>
-    <div id="root"></div>
+<body class="p-4 md:p-8">
 
-    <script type="text/babel">
-        const { useState } = React;
-        const { 
-            BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip: RechartsTooltip, Cell, ResponsiveContainer 
-        } = window.Recharts || {};
+    <div class="max-w-7xl mx-auto space-y-8">
         
-        // --- Inline Icons (SVG) ---
-        const IconBase = ({ children, size = 24, className = "" }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>
-        );
-        const TrendingUp = (props) => <IconBase {...props}><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></IconBase>;
-        const Activity = (props) => <IconBase {...props}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></IconBase>;
-        const AlertTriangle = (props) => <IconBase {...props}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></IconBase>;
-        const HandshakeIcon = (props) => <IconBase {...props}><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></IconBase>;
-        const FileText = (props) => <IconBase {...props}><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></IconBase>;
-        const ShieldAlert = (props) => <IconBase {...props}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></IconBase>;
-        const ClipboardList = (props) => <IconBase {...props}><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></IconBase>;
-        const Zap = (props) => <IconBase {...props}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></IconBase>;
-        const Target = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></IconBase>;
-        const Banknote = (props) => <IconBase {...props}><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></IconBase>;
-        const CreditCard = (props) => <IconBase {...props}><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></IconBase>;
-        const Factory = (props) => <IconBase {...props}><path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path><line x1="17" y1="18" x2="17" y2="18"></line><line x1="12" y1="18" x2="12" y2="18"></line><line x1="7" y1="18" x2="7" y2="18"></line></IconBase>;
-        const ArrowRightCircle = (props) => <IconBase {...props}><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></IconBase>;
-        const TrendingDown = (props) => <IconBase {...props}><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></IconBase>;
-        const Wallet = (props) => <IconBase {...props}><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></IconBase>;
-
-        // --- Data ---
-
-        // 1. Receivables Data
-        const receivablesData = [
-            { name: 'فروش محصول', value: 9974, fill: '#10B981' }, 
-            { name: 'ارزش افزوده', value: 997, fill: '#34D399' }, 
-            { name: 'خرید ریل و مکانیزم', value: -2277, fill: '#EF4444' }, 
-            { name: 'دریافتی‌ها', value: -10065, fill: '#F59E0B' }, 
-        ];
-
-        // 2. Saze Gostar Receivables
-        const sazeGostarReceivables = [
-            { id: 1, title: 'میزان بدهی صفر روزه', amount: 9305, type: 'receivable' },
-            { id: 2, title: 'طلب حال شده (۱۲۰ روز)', amount: 5834, type: 'info' },
-            { id: 3, title: 'چک‌های برگشتی سازه گستر', amount: 3000, type: 'critical' },
-        ];
-        const totalClaimable = 9305 + 3000;
-
-        // 3. New Crisis Table Data (Raw numbers will be converted to Billion Rials in the table)
-        const crisisTableData = [
-            { row: 105, code: '701324', name: 'جهش فام ایرانیان', group: 'غیر فلزی', checks: 200000000000, zeroDay: 135372486594, total: 335372486594 },
-            { row: 1, code: '700180', name: 'شرکت تولیدی گوهربافان', group: 'غیرفلزی', checks: 0, zeroDay: 1405360857148, total: 1405360857148 },
-            { row: 5, code: '701019', name: 'نواندیش صنعت پرنیان', group: 'فلزی', checks: 0, zeroDay: 564859979295, total: 564859979295 },
-            { row: 9, code: '701407', name: 'پایا ابر مارال', group: 'غیرفلزی', checks: 0, zeroDay: 172463837103, total: 172463837103 },
-            { row: 10, code: '700462', name: 'شرکت ایران قطعه', group: 'فلزی', checks: 170000000000, zeroDay: 27093721955, total: 197093721955 },
-            { row: 12, code: '700802', name: 'سازه پردازان', group: 'فلزی', checks: 0, zeroDay: 367088512309, total: 367088512309 },
-            { row: 13, code: '701086', name: 'شرکت صنایع الکترونیک شیراز', group: 'فلزی', checks: 0, zeroDay: 322541281873, total: 322541281873 },
-            { row: 14, code: '701451', name: 'شرکت نیکان قطعه', group: 'فلزی', checks: 0, zeroDay: 274346311057, total: 274346311057 },
-            { row: 16, code: '700439', name: 'شرکت سروش ثامن', group: 'فلزی', checks: 0, zeroDay: 217432590004, total: 217432590004 },
-            { row: 17, code: '701176', name: 'شرکت سازه فنر پویش', group: 'فلزی', checks: 0, zeroDay: 168358935077, total: 168358935077 },
-            { row: 27, code: '700849', name: 'شرکت مهندسی وتولیدی ورافن', group: 'فلزی', checks: 20000000000, zeroDay: 466391455173, total: 486391455173 },
-            { row: 102, code: '700871', name: 'شرکت ماهان صنعت کاسپین', group: 'غیر فلزی', checks: 0, zeroDay: 264210784594, total: 264210784594 },
-            { row: 103, code: '700674', name: 'شرکت اندیشه ایمنی خودرو', group: 'فلزی', checks: 0, zeroDay: 231412966604, total: 231412966604 },
-            { row: 104, code: '700831', name: 'ايدكو پرس', group: 'فلزی', checks: 20000000000, zeroDay: 228038904214, total: 248038904214 },
-            { row: 106, code: '701434', name: 'شرکت داریو پلیمر پارت', group: 'غیر فلزی', checks: 80000000000, zeroDay: 123536382184, total: 203536382184 },
-            { row: 380, code: '701072', name: 'شرکت کارگزاری رسمی بیمه سایپا', group: 'تدارکات', checks: 0, zeroDay: 272959824230, total: 272959824230 },
-            { row: 381, code: '701477', name: 'شرکت زرين صدف ماهان', group: 'تدارکات', checks: 0, zeroDay: 222024884249, total: 222024884249 },
-            { row: 382, code: '701455', name: 'TIBA INTERNATIONAL TRADING', group: 'تدارکات', checks: 0, zeroDay: 165501362148, total: 165501362148 },
-            { row: 386, code: '701446', name: 'شرکت حمل و نقل نخل', group: 'تدارکات', checks: 0, zeroDay: 180954941583, total: 180954941583 },
-        ];
-
-        const totalChecks = 490000000000;
-        const totalZeroDay = 5809950017394;
-        const totalDebtDisplayed = 6299950017394;
-        
-        // Final Updated Supply Debt number (Raw value)
-        const totalDebtGlobal = 9691533691066; 
-
-        // 4. Company Debts (Updated)
-        // Supply Debt (9691) + Salary Excluded (500) + Tax (830) + Ins (300) + Ret1403 (380) + Ret1404 (2100) + Unregistered Tax (2200)
-        const companyDebts = [
-            { title: 'بدهی حدودی تامین کنندگان و دیون دولتی', amount: 9691, unit: 'میلیارد ریال', type: 'critical' },
-            { title: 'معوقات مالیاتی', amount: 830, unit: 'میلیارد ریال', type: 'high' },
-            { title: 'معوقات بیمه', amount: 300, unit: 'میلیارد ریال', type: 'high' },
-            { title: 'مالیات‌های ثبت نشده (برآوردی)', amount: 2200, unit: 'میلیارد ریال', type: 'high' }, // 220 Billion Toman
-            { title: 'معوقات بازنشستگان ۱۴۰۳', amount: 380, unit: 'میلیارد ریال', type: 'warning' },
-            { title: 'بدهی بازنشستگان ۱۴۰۴', amount: 2100, unit: 'میلیارد ریال', type: 'warning' },
-        ];
-        
-        // Total Debt Calculation (Sum of all above items)
-        const totalLiabilities = 9691 + 830 + 300 + 2200 + 380 + 2100;
-        
-        // Salary separate
-        const monthlySalary = 500;
-
-        // --- Helper for number formatting (Converts to Billion) ---
-        const formatBillion = (num) => {
-            if (!num) return '0';
-            // Divide by 1 billion and round to nearest integer for clean display
-            return Math.round(num / 1000000000).toLocaleString('en-US');
-        };
-
-        // --- Components ---
-
-        const Card = ({ children, className = "" }) => (
-            <div className={`bg-white rounded-xl shadow-lg p-6 border border-slate-100 ${className}`}>
-                {children}
+        <!-- Header & Upload -->
+        <div class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800 tracking-tight">داشبورد مدیریت نقدینگی</h1>
+                <p class="text-slate-500 mt-1 text-sm">تحلیل جامع با تفکیک اعتبارات اسنادی و خرید دین</p>
             </div>
-        );
-
-        const SectionTitle = ({ icon: Icon, title, subtitle, colorClass = "bg-blue-50 text-blue-700" }) => (
-            <div className="flex items-start gap-3 mb-6">
-                <div className={`p-3 rounded-lg ${colorClass}`}>
-                    <Icon size={24} />
-                </div>
-                <div>
-                    <h2 className="text-xl font-bold text-slate-800">{title}</h2>
-                    {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
+            <div class="mt-4 md:mt-0 flex items-center gap-4">
+                <label class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-medium transition-all shadow-lg shadow-blue-600/20 flex items-center gap-2">
+                    <input type="file" id="csvFileInput" accept=".csv" class="hidden" />
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                    بارگذاری فایل جدید
+                </label>
+                <div class="text-left hidden md:block">
+                    <p class="text-xs text-gray-400">تاریخ گزارش</p>
+                    <p class="text-lg font-bold text-gray-700 font-mono dir-ltr" id="currentDate">1404/09/16</p>
                 </div>
             </div>
-        );
+        </div>
 
-        const StatBox = ({ label, value, unit = "میلیارد ریال", subtext, type = "neutral" }) => {
-            const colors = {
-                neutral: "bg-slate-50 text-slate-800 border-slate-200",
-                danger: "bg-red-50 text-red-800 border-red-200",
-                success: "bg-green-50 text-green-800 border-green-200",
-                warning: "bg-amber-50 text-amber-800 border-amber-200",
-                primary: "bg-blue-50 text-blue-800 border-blue-200",
-                critical: "bg-slate-800 text-white border-slate-900",
-            };
+        <!-- KPIs -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="card border-r-4 border-blue-500">
+                <p class="text-slate-500 text-sm font-medium">کل ورودی (انتخاب شده)</p>
+                <p class="text-3xl font-extrabold text-slate-800 mt-2 font-mono tracking-tight" id="kpiTotal">0</p>
+                <p class="text-xs text-slate-400 mt-1">میلیارد ریال</p>
+            </div>
+            <div class="card border-r-4 border-emerald-500">
+                <p class="text-slate-500 text-sm font-medium">ورودی سال ۱۴۰۳</p>
+                <p class="text-2xl font-bold text-slate-800 mt-2 font-mono" id="kpi1403">0</p>
+                <p class="text-xs text-emerald-600 mt-1">میلیارد ریال</p>
+            </div>
+             <div class="card border-r-4 border-indigo-500">
+                <p class="text-slate-500 text-sm font-medium">ورودی سال ۱۴۰۴</p>
+                <p class="text-2xl font-bold text-slate-800 mt-2 font-mono" id="kpi1404">0</p>
+                <p class="text-xs text-indigo-600 mt-1">میلیارد ریال</p>
+            </div>
+            <div class="card border-r-4 border-amber-500">
+                <p class="text-slate-500 text-sm font-medium">تعداد تراکنش‌ها</p>
+                <p class="text-2xl font-bold text-slate-800 mt-2 font-mono" id="kpiCount">0</p>
+                <p class="text-xs text-amber-600 mt-1">ردیف سند</p>
+            </div>
+        </div>
 
-            return (
-                <div className={`p-4 rounded-xl border ${colors[type]} flex flex-col items-center justify-center text-center h-full min-h-[130px] transition-transform hover:scale-105 shadow-sm`}>
-                    <span className={`text-sm font-medium mb-2 ${type === 'critical' ? 'text-slate-300' : 'text-slate-500'}`}>{label}</span>
-                    <div className="flex items-baseline gap-1" dir="ltr">
-                        <span className="text-2xl font-black tracking-tight font-[Vazirmatn]">{value}</span>
-                    </div>
-                    <span className={`text-xs ${type === 'critical' ? 'text-slate-400' : 'text-slate-400'}`}>{unit}</span>
-                    {subtext && <span className={`text-xs mt-2 px-2 py-1 rounded-full ${type === 'critical' ? 'bg-slate-700' : 'bg-white/50'}`}>{subtext}</span>}
+        <!-- DEEP ANALYSIS SECTION -->
+        <div class="card border border-blue-100 shadow-md bg-white">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 border-b border-gray-100 pb-4">
+                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="text-2xl">🔍</span>
+                    تحلیل عمیق محصول (میله‌ای ماهانه + خطی تجمعی)
+                </h2>
+                <div class="mt-4 md:mt-0 w-full md:w-1/3">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">انتخاب کارفرما (بروزرسانی کل داشبورد):</label>
+                    <select id="employerSelect" class="w-full border-gray-300 rounded-lg shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 border bg-slate-50">
+                        <option value="all">همه موارد</option>
+                    </select>
                 </div>
-            );
-        };
-
-        // --- Main App ---
-
-        function SaipaAzinReport() {
-            const [activeTab, setActiveTab] = useState('overview');
-
-            // Calculate chart data based on "Total" receivables
-            const othersValue = totalDebtGlobal - totalDebtDisplayed;
+            </div>
             
-            // Prepare chart data: Top suppliers + Others
-            const chartData = [
-                ...crisisTableData.map(item => ({
-                    name: item.name,
-                    value: Math.round(item.total / 1000000000), // Convert to Billion Rials
-                    fill: '#3b82f6' // Blue
-                })),
-                {
-                    name: 'سایر تأمین‌کنندگان',
-                    value: Math.round(othersValue / 1000000000),
-                    fill: '#94a3b8' // Slate (Gray) for Others
-                }
-            ].sort((a, b) => b.value - a.value); // Sort descending
-
-            if (!window.Recharts) {
-                return <div className="p-8 text-center text-red-600">در حال بارگذاری کتابخانه نمودارها... لطفا صفحه را رفرش کنید یا اتصال اینترنت خود را بررسی نمایید.</div>;
-            }
-
-            return (
-                <div className="min-h-screen p-4 md:p-8 font-sans text-right" dir="rtl">
-                    <div className="max-w-6xl mx-auto space-y-6">
-                        
-                        {/* Header */}
-                        <header className="bg-white rounded-2xl shadow-sm p-6 flex flex-col md:flex-row justify-between items-center gap-4 border-b-4 border-blue-800">
-                            <div className="flex items-center gap-4">
-                                <div className="bg-blue-800 text-white p-3 rounded-xl shadow-lg animate-pulse">
-                                    <TrendingUp size={32} />
-                                </div>
-                                <div>
-                                    <h1 className="text-2xl font-black text-slate-800 tracking-tight">گزارش راهبردی و مدیریت بحران</h1>
-                                    <p className="text-slate-500 font-medium mt-1">سایپا آذین (سهامی عام) | صورت وضعیت و گلوگاه‌های تولید</p>
-                                </div>
-                            </div>
-                            <div className="text-left bg-slate-50 p-3 rounded-lg border border-slate-200">
-                                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Date</div>
-                                <div className="text-lg font-mono font-bold text-slate-700">1404/09/11</div>
-                            </div>
-                        </header>
-
-                        {/* Navigation */}
-                        <nav className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                            {[
-                                { id: 'overview', label: 'داشبورد مطالبات و بدهی‌ها', icon: Activity },
-                                { id: 'crisis', label: 'بحران زنجیره تأمین', icon: AlertTriangle, activeColor: 'bg-red-600' },
-                                { id: 'proposal', label: 'درخواست‌ها و راهکارها', icon: HandshakeIcon },
-                            ].map((tab) => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center gap-2 px-6 py-4 rounded-xl transition-all whitespace-nowrap font-bold text-sm shadow-sm ${
-                                        activeTab === tab.id 
-                                            ? `${tab.activeColor || 'bg-blue-800'} text-white transform scale-105 shadow-md ring-2 ring-offset-2 ring-blue-200` 
-                                            : 'bg-white text-slate-600 hover:bg-slate-50'
-                                    }`}
-                                >
-                                    <tab.icon size={18} />
-                                    {tab.label}
-                                </button>
-                            ))}
-                        </nav>
-
-                        {/* Content Area */}
-                        <main className="min-h-[500px] animate-fadeIn">
-                        
-                            {/* TAB 1: OVERVIEW */}
-                            {activeTab === 'overview' && (
-                                <div className="space-y-6">
-                                    {/* Top Stats Row */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                        <StatBox 
-                                            label="مانده کل مطالبات (صفر روزه)" 
-                                            value="9,305" 
-                                            subtext="تایید شده نهایی"
-                                            type="primary"
-                                        />
-                                        <StatBox 
-                                            label="مجموع کل تعهدات و بدهی‌ها" 
-                                            value={totalLiabilities.toLocaleString()}
-                                            subtext="شامل تأمین، مالیات، بیمه و..."
-                                            type="critical"
-                                        />
-                                        <StatBox 
-                                            label="حقوق و دستمزد (ماهانه)" 
-                                            value="500" 
-                                            subtext="نیاز فوری نقدینگی"
-                                            type="danger"
-                                        />
-                                        <StatBox 
-                                            label="قدرت نقدینگی مورد نیاز" 
-                                            value={totalClaimable.toLocaleString()}
-                                            subtext="طلب صفر روزه + چک برگشتی"
-                                            type="warning"
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                        
-                                        {/* 1. Receivables from Saze Gostar Table */}
-                                        <Card className="bg-blue-50/50 border-blue-100">
-                                            <SectionTitle 
-                                                icon={FileText} 
-                                                title="وضعیت مطالبات از سازه گستر" 
-                                                subtitle="آنالیز تعهدات مالی سازه گستر به سایپا آذین (میلیارد ریال)"
-                                                colorClass="bg-blue-100 text-blue-700"
-                                            />
-                                            <div className="overflow-hidden rounded-xl border border-blue-200 shadow-sm bg-white">
-                                                <table className="w-full text-sm">
-                                                    <thead className="bg-blue-50 text-blue-800">
-                                                        <tr>
-                                                            <th className="p-4 text-right">شرح اقلام</th>
-                                                            <th className="p-4 text-center">مبلغ (میلیارد ریال)</th>
-                                                            <th className="p-4 text-center">وضعیت</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="divide-y divide-blue-50">
-                                                        {sazeGostarReceivables.map((item) => (
-                                                            <tr key={item.id} className={item.type === 'critical' ? 'bg-red-50' : ''}>
-                                                                <td className="p-4 font-bold text-slate-700">{item.title}</td>
-                                                                <td className="p-4 text-center font-mono font-bold text-lg" dir="ltr">{item.amount.toLocaleString()}</td>
-                                                                <td className="p-4 text-center">
-                                                                    {item.type === 'critical' && <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">هشدار</span>}
-                                                                    {item.type === 'receivable' && <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">قابل وصول</span>}
-                                                                    {item.type === 'info' && <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs">اطلاع</span>}
-                                                                </td>
-                                                            </tr>
-                                                        ))}
-                                                        <tr className="bg-slate-800 text-white">
-                                                            <td className="p-4 font-bold">جمع کل (طلب صفر روزه + چک برگشتی)</td>
-                                                            <td className="p-4 text-center font-mono font-black text-xl" dir="ltr">{totalClaimable.toLocaleString()}</td>
-                                                            <td className="p-4 text-center text-yellow-400 text-xs">نقدینگی لازم</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                            <p className="text-xs text-slate-500 mt-3 mr-1">
-                                                * طلب ۱۲۰ روزه (۵،۸۳۴ میلیارد ریال) در جمع کل فوق لحاظ نشده و به عنوان ذخیره احتساب می‌گردد.
-                                            </p>
-                                        </Card>
-
-                                        {/* 2. Debts Table (UPDATED) */}
-                                        <Card className="h-full bg-slate-50 border-slate-200 flex flex-col">
-                                            <div className="bg-slate-800 text-white p-4 rounded-xl mb-4 text-center shadow-lg border-b-4 border-slate-900">
-                                                <div className="text-xs text-slate-300 font-bold mb-1">مجموع کل تعهدات و بدهی‌ها</div>
-                                                <div className="text-3xl font-black tracking-tight" dir="ltr">
-                                                    {totalLiabilities.toLocaleString()}
-                                                </div>
-                                                <div className="text-xs text-slate-400 mt-1">میلیارد ریال (۱.۵۵ همت)</div>
-                                            </div>
-
-                                            <SectionTitle 
-                                                icon={ShieldAlert} 
-                                                title="وضعیت بدهی‌های شرکت" 
-                                                subtitle="فشار تعهدات جاری و معوقات (میلیارد ریال)"
-                                                colorClass="bg-red-100 text-red-700"
-                                            />
-                                            
-                                            <div className="space-y-3 flex-grow">
-                                                {companyDebts.map((debt, idx) => (
-                                                    <div key={idx} className="flex justify-between items-center p-3 bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                                                        <span className="text-sm font-bold text-slate-700">{debt.title}</span>
-                                                        <div className="text-left">
-                                                            <span className={`text-sm font-black ml-1 ${debt.type === 'critical' ? 'text-red-600' : 'text-slate-800'}`} dir="ltr">
-                                                                {debt.amount.toLocaleString()}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-
-                                            <div className="mt-4 p-3 bg-red-50 rounded-lg text-xs text-red-800 leading-relaxed border border-red-200 flex items-center justify-between gap-2">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="bg-red-200 p-1.5 rounded-full"><Wallet size={16} /></div>
-                                                    <span className="font-bold">نقدینگی اضطراری ماهانه (حقوق):</span>
-                                                </div>
-                                                <span className="font-black text-lg text-red-600" dir="ltr">{monthlySalary}</span>
-                                            </div>
-                                        </Card>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* TAB 2: CRISIS */}
-                            {activeTab === 'crisis' && (
-                                <div className="space-y-6">
-                                    <div className="bg-red-600 text-white p-6 rounded-2xl shadow-lg flex items-center justify-between">
-                                        <div>
-                                            <h2 className="text-2xl font-bold flex items-center gap-2">
-                                                <AlertTriangle className="animate-bounce" />
-                                                وضعیت قرمز زنجیره تأمین
-                                            </h2>
-                                            <p className="opacity-90 mt-2">لیست سیاه بدهی به تامین‌کنندگان اصلی و خطر توقف ارسال</p>
-                                        </div>
-                                        <div className="text-left hidden md:block">
-                                            <div className="text-3xl font-black" dir="ltr">{formatBillion(totalDebtGlobal)}</div>
-                                            <div className="text-sm opacity-75">میلیارد ریال - کل بدهی تأمین</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Updated Crisis Table */}
-                                    <Card className="overflow-hidden">
-                                        <SectionTitle 
-                                            icon={ClipboardList} 
-                                            title="ریز مطالبات و تعهدات کلیدی" 
-                                            subtitle="جدول تفصیلی چک‌های پاس نشده و طلب صفر روزه (مبالغ به میلیارد ریال)"
-                                            colorClass="bg-orange-100 text-orange-700"
-                                        />
-                                        <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
-                                            <table className="w-full text-right border-collapse text-sm crisis-table">
-                                                <thead className="sticky top-0 bg-slate-100 shadow-sm z-10">
-                                                    <tr>
-                                                        <th className="text-center w-12">ردیف</th>
-                                                        <th className="text-center">کد تفصیلی</th>
-                                                        <th>شرح تفصیلی</th>
-                                                        <th className="text-center">گروه</th>
-                                                        <th className="text-center text-red-600">چک‌های پاس نشده</th>
-                                                        <th className="text-center text-blue-600">طلب صفر روزه</th>
-                                                        <th className="text-center font-black">کل مطالبات</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-slate-100">
-                                                    {crisisTableData.map((row, idx) => (
-                                                        <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                                                            <td className="text-center text-slate-400">{row.row}</td>
-                                                            <td className="text-center font-mono text-slate-500">{row.code}</td>
-                                                            <td className="font-bold text-slate-800">{row.name}</td>
-                                                            <td className="text-center">
-                                                                <span className={`px-2 py-1 rounded text-xs ${
-                                                                    row.group === 'فلزی' ? 'bg-blue-100 text-blue-700' :
-                                                                    row.group.includes('غیر') ? 'bg-amber-100 text-amber-700' :
-                                                                    'bg-slate-100 text-slate-600'
-                                                                }`}>
-                                                                    {row.group}
-                                                                </span>
-                                                            </td>
-                                                            <td className="text-center font-mono text-red-600 dir-ltr text-xs md:text-sm">
-                                                                {row.checks > 0 ? formatBillion(row.checks) : '-'}
-                                                            </td>
-                                                            <td className="text-center font-mono text-blue-600 dir-ltr text-xs md:text-sm">
-                                                                {formatBillion(row.zeroDay)}
-                                                            </td>
-                                                            <td className="text-center font-mono font-bold text-slate-800 dir-ltr text-xs md:text-sm bg-slate-50">
-                                                                {formatBillion(row.total)}
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                    <tr className="bg-slate-800 text-white font-bold sticky bottom-0">
-                                                        <td colSpan="4" className="p-3 text-left pl-6">جمع کل اقلام فوق (میلیارد ریال)</td>
-                                                        <td className="text-center font-mono dir-ltr text-red-300 text-sm">{formatBillion(totalChecks)}</td>
-                                                        <td className="text-center font-mono dir-ltr text-blue-300 text-sm">{formatBillion(totalZeroDay)}</td>
-                                                        <td className="text-center font-mono dir-ltr text-yellow-400 text-base">{formatBillion(totalDebtDisplayed)}</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </Card>
-
-                                    {/* New Chart for Suppliers */}
-                                    <Card>
-                                        <SectionTitle 
-                                            icon={Activity} 
-                                            title="نمودار توزیع مطالبات فروشندگان" 
-                                            subtitle="شامل اقلام عمده (۶۵٪) و سایر تأمین‌کنندگان (میلیارد ریال)"
-                                        />
-                                        <div className="h-[600px] w-full" dir="ltr">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <BarChart 
-                                                    data={chartData} 
-                                                    layout="vertical"
-                                                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                                                >
-                                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                                    <XAxis type="number" />
-                                                    <YAxis 
-                                                        type="category" 
-                                                        dataKey="name" 
-                                                        width={180} 
-                                                        tick={{fontFamily: 'Vazirmatn', fontSize: 11, fontWeight: 'bold'}} 
-                                                        interval={0}
-                                                    />
-                                                    <RechartsTooltip 
-                                                        formatter={(value) => [`${value.toLocaleString()} میلیارد ریال`, 'مطالبات']}
-                                                        contentStyle={{fontFamily: 'Vazirmatn'}}
-                                                        cursor={{fill: 'transparent'}}
-                                                    />
-                                                    <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={20}>
-                                                        {chartData.map((entry, index) => (
-                                                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                                                        ))}
-                                                    </Bar>
-                                                </BarChart>
-                                            </ResponsiveContainer>
-                                        </div>
-                                    </Card>
-
-                                    {/* Risk Analysis */}
-                                    <div className="bg-white p-6 rounded-xl border-l-8 border-red-500 shadow-md">
-                                        <h3 className="font-bold text-red-700 flex items-center gap-2 mb-4 text-lg">
-                                            <Zap size={24} />
-                                            تحلیل ریسک توقف خط و بحران اعتباری
-                                        </h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="space-y-3 text-sm text-slate-700 leading-relaxed text-justify">
-                                                <p>
-                                                    <strong>۱. بحران چک‌های برگشتی:</strong> وجود <span className="text-red-600 font-black bg-red-50 px-1 rounded">۴۹۰ میلیارد ریال</span> چک برگشتی (طبق جدول فوق)، عملاً اعتبار شرکت را در بازار ساقط کرده است. تامین‌کنندگان کلیدی مانند <strong>جهش فام</strong> و <strong>ایران قطعه</strong> به دلیل عدم امکان تنزیل این چک‌ها، در آستانه قطع همکاری هستند.
-                                                </p>
-                                                <p>
-                                                    <strong>۲. تمرکز ریسک:</strong> بدهی سنگین ۱.۴ همتی به شرکت <strong>گوهربافان</strong> (پارچه) و ۵۶۴ میلیارد ریالی به <strong>نواندیش</strong> (فلزی)، گلوگاه‌های اصلی خط تولید هستند. هرگونه توقف از سمت این دو تامین‌کننده، مونتاژ صندلی را ظرف ۴۸ ساعت متوقف خواهد کرد.
-                                                </p>
-                                            </div>
-                                            <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 text-sm">
-                                                <h4 className="font-bold text-slate-800 mb-2">اقدامات فوری مورد نیاز:</h4>
-                                                <ul className="list-disc list-inside space-y-2 text-slate-600">
-                                                    <li>تخصیص ۳۰٪ نقدینگی درخواستی صرفاً برای تسویه چک‌های برگشتی.</li>
-                                                    <li>جلسه اضطراری با گوهربافان جهت تقسیط بدهی ۱.۴ همتی.</li>
-                                                    <li>جایگزینی خرید دین با "ال‌سی داخلی" برای خریدهای آتی.</li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* TAB 3: PROPOSAL */}
-                            {activeTab === 'proposal' && (
-                                <div className="space-y-6">
-                                    
-                                    {/* Header Card */}
-                                    <div className="bg-white border-l-8 border-blue-800 text-slate-800 p-8 rounded-2xl shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                        <div>
-                                            <h2 className="text-3xl font-black mb-2 flex items-center gap-3">
-                                                <Target className="text-blue-700" size={32} />
-                                                بسته پیشنهادی خروج از بحران
-                                            </h2>
-                                            <p className="text-slate-500 font-medium">اولویت‌بندی اقدامات اجرایی جهت پایداری تولید</p>
-                                        </div>
-                                        <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl text-center min-w-[200px]">
-                                            <div className="text-xs text-blue-500 font-bold mb-1">هدف‌گذاری نقدینگی فوری</div>
-                                            <div className="text-2xl font-black text-blue-800">۳،۰۰۰ میلیارد ریال</div>
-                                            <div className="text-xs text-blue-400 mt-1">مهلت: ۲ ماه</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        
-                                        {/* 1. Cash Injection */}
-                                        <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-                                            <div className="absolute top-0 left-0 w-2 h-full bg-red-500 group-hover:bg-red-600 transition-colors"></div>
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <div className="bg-red-100 text-red-600 p-3 rounded-lg"><Banknote size={24} /></div>
-                                                <div>
-                                                    <h3 className="font-bold text-xl text-slate-800">۱. تزریق نقدینگی فوری</h3>
-                                                    <span className="text-xs font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded">بسیار فوری</span>
-                                                </div>
-                                            </div>
-                                            <p className="text-sm text-slate-600 leading-relaxed text-justify">
-                                                پرداخت مبلغ <strong>۳۰۰ میلیارد تومان (۳ همت ریال)</strong> به صورت نقد ظرف حداکثر ۲ ماه. این مبلغ جهت جلوگیری از توقف خط، پرداخت حقوق و دستمزد معوقه پرسنل و تسویه بدهی‌های اضطراری بیمه و مالیات حیاتی است.
-                                            </p>
-                                        </div>
-
-                                        {/* 2. Credit Instruments */}
-                                        <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-                                            <div className="absolute top-0 left-0 w-2 h-full bg-blue-500 group-hover:bg-blue-600 transition-colors"></div>
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <div className="bg-blue-100 text-blue-600 p-3 rounded-lg"><CreditCard size={24} /></div>
-                                                <h3 className="font-bold text-xl text-slate-800">۲. اوراق اعتباری (ال‌سی / گام)</h3>
-                                            </div>
-                                            <p className="text-sm text-slate-600 leading-relaxed text-justify">
-                                                جایگزینی روش‌های سنتی و چک‌های خرید دین (که اعتبار شرکت را تخریب کرده‌اند) با <strong>LC (اعتبار اسنادی داخلی)</strong>. اولویت با ال‌سی است چرا که قابلیت انتقال در زنجیره تامین را دارد و مشکل نقدشوندگی کمتری نسبت به اوراق گام با سررسید طولانی دارد.
-                                            </p>
-                                        </div>
-
-                                        {/* 3. Financial Discipline */}
-                                        <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-                                            <div className="absolute top-0 left-0 w-2 h-full bg-green-500 group-hover:bg-green-600 transition-colors"></div>
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <div className="bg-green-100 text-green-600 p-3 rounded-lg"><Activity size={24} /></div>
-                                                <h3 className="font-bold text-xl text-slate-800">۳. انضباط مالی و تعهدات</h3>
-                                            </div>
-                                            <p className="text-sm text-slate-600 leading-relaxed text-justify">
-                                                برقراری نظم در پرداخت‌ها از طریق تعیین <strong>سررسیدهای منظم (هفتگی/ماهانه)</strong>. این انضباط مالی پیش‌نیاز هرگونه برنامه‌ریزی تولید است. همچنین کمک به رفع تعهد ارزی و تسریع در ثبت سفارش‌های بانک مرکزی جهت تأمین مواد وارداتی.
-                                            </p>
-                                        </div>
-
-                                        {/* 4. Article 141 (Updated Short Term) */}
-                                        <div className="bg-white border border-slate-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-                                            <div className="absolute top-0 left-0 w-2 h-full bg-amber-500 group-hover:bg-amber-600 transition-colors"></div>
-                                            <div className="flex items-center gap-3 mb-4">
-                                                <div className="bg-amber-100 text-amber-600 p-3 rounded-lg"><ShieldAlert size={24} /></div>
-                                                <div>
-                                                    <h3 className="font-bold text-xl text-slate-800">۴. خروج از ماده ۱۴۱</h3>
-                                                    <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">راهکار کوتاه‌مدت</span>
-                                                </div>
-                                            </div>
-                                            <p className="text-sm text-slate-600 leading-relaxed text-justify">
-                                                جهت خروج فوری از شمول ماده ۱۴۱ و جلوگیری از ورشکستگی، تصویب <strong>تعدیلات نرخ فروش ویژه (بیشتر از سایر شرکت‌ها)</strong> برای دوره ۶ ماهه پیش‌رو الزامی است. این اقدام اورژانسی جهت جبران زیان انباشته تا زمان اصلاح ساختار تولید ضروری می‌باشد.
-                                            </p>
-                                        </div>
-
-                                        {/* 5. Production Strategy (New Separate Section) */}
-                                        <div className="md:col-span-2 bg-slate-50 border-2 border-slate-200 p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-                                            <div className="flex flex-col md:flex-row gap-6">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-3 mb-4">
-                                                        <div className="bg-slate-200 text-slate-700 p-3 rounded-lg"><Factory size={24} /></div>
-                                                        <h3 className="font-bold text-xl text-slate-800">۵. استراتژی تولید و مدیریت سربار</h3>
-                                                    </div>
-                                                    <p className="text-sm text-slate-600 leading-relaxed text-justify mb-4">
-                                                        افزایش شدید هزینه‌های سربار و زیان‌دهی تولید، نتیجه مستقیم <strong>کاهش سهم بازار از ۸۰٪ به ۵۰٪</strong> در سبد محصولات سایپا است. کاهش تیراژ باعث شده هزینه‌های ثابت بر تعداد کمتری محصول سرشکن شود.
-                                                    </p>
-                                                    <div className="bg-white p-4 rounded-lg border border-slate-200 flex items-center justify-between gap-4">
-                                                        <div className="text-center">
-                                                            <span className="block text-xs text-slate-400">سهم فعلی</span>
-                                                            <span className="text-xl font-bold text-red-600">۵۰٪</span>
-                                                        </div>
-                                                        <ArrowRightCircle className="text-slate-300" />
-                                                        <div className="text-center">
-                                                            <span className="block text-xs text-slate-400">هدف پایان سال</span>
-                                                            <span className="text-xl font-bold text-green-600">۶۰٪</span>
-                                                        </div>
-                                                        <div className="text-xs text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                                                            شرط کاهش سربار
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="flex-1 border-r border-slate-200 pr-6 mr-6 hidden md:block">
-                                                    <h4 className="font-bold text-sm text-slate-700 mb-3">گلوگاه‌های تحقق هدف:</h4>
-                                                    <ul className="space-y-3">
-                                                        <li className="flex items-start gap-2 text-sm text-slate-600">
-                                                            <TrendingDown className="text-red-500 shrink-0" size={18} />
-                                                            <span>تامین نقدینگی جهت خرید مواد اولیه (به‌ویژه فوم و پارچه)</span>
-                                                        </li>
-                                                        <li className="flex items-start gap-2 text-sm text-slate-600">
-                                                            <TrendingDown className="text-red-500 shrink-0" size={18} />
-                                                            <span>رفع تعهدات ارزی جهت واردات قطعات منفصله</span>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    </div>
-
-                                    <div className="flex justify-end pt-4">
-                                        <button 
-                                            onClick={() => window.print()} 
-                                            className="bg-slate-800 text-white px-8 py-3 rounded-xl flex items-center gap-3 hover:bg-slate-700 transition-all shadow-lg hover:shadow-xl print:hidden font-bold"
-                                        >
-                                            <FileText size={20} />
-                                            چاپ گزارش مدیریتی
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-
-                        </main>
-
-                        <footer className="text-center text-slate-400 text-xs py-8 border-t border-slate-200 mt-8">
-                            گزارش محرمانه جهت ارائه به هیئت مدیره سازه گستر سایپا | ۱۴۰۴
-                        </footer>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Stacked Bar Chart with Cumulative Line -->
+                <div class="lg:col-span-2 h-96 relative">
+                    <canvas id="deepAnalysisChart"></canvas>
+                </div>
+                <!-- Employer Stats -->
+                <div class="bg-slate-50 rounded-xl p-6 flex flex-col justify-center space-y-8 border border-slate-100">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">مجموع پرداختی این کارفرما</p>
+                        <p class="text-3xl font-bold text-blue-700 font-mono" id="selectedEmpTotal">0</p>
+                        <p class="text-xs text-gray-400 mt-1">میلیارد ریال</p>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-end mb-1">
+                            <p class="text-sm text-gray-500">سهم از کل نقدینگی شرکت</p>
+                            <span class="text-2xl font-bold text-emerald-600 font-mono" id="selectedEmpShare">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-emerald-600 h-2.5 rounded-full" id="shareProgressBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">تعداد پرداختی</p>
+                        <p class="text-2xl font-bold text-slate-700 font-mono" id="selectedEmpCount">0</p>
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap gap-2 mt-4">
+                            <span class="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded">خرید دین: بنفش</span>
+                            <span class="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded">LC: نارنجی</span>
+                            <span class="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs rounded">پرداخت: سبز</span>
+                        </div>
                     </div>
                 </div>
-            );
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="card overflow-hidden flex flex-col h-[600px]">
+            <div class="flex flex-col space-y-4 mb-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-bold text-slate-700">ریز تراکنش‌های فیلتر شده</h2>
+                    <span class="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">مرتب‌سازی فعال است</span>
+                </div>
+                
+                <!-- Filters -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 block mb-1">فیلتر سال</label>
+                        <select id="filterYear" class="w-full text-sm border-gray-300 rounded p-2">
+                            <option value="all">همه سال‌ها</option>
+                            <option value="1403">۱۴۰۳</option>
+                            <option value="1404">۱۴۰۴</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 block mb-1">فیلتر کارفرما</label>
+                        <select id="filterEmployer" class="w-full text-sm border-gray-300 rounded p-2">
+                            <option value="all">همه کارفرماها</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 block mb-1">فیلتر وضعیت</label>
+                        <select id="filterStatus" class="w-full text-sm border-gray-300 rounded p-2">
+                            <option value="all">همه وضعیت‌ها</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button id="applyFiltersBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 rounded shadow transition-colors">
+                            اعمال فیلترها
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-auto flex-grow border rounded-xl shadow-inner bg-white relative">
+                <table class="min-w-full text-right text-sm relative border-collapse">
+                    <thead class="bg-slate-800 text-white font-medium sticky top-0 z-20">
+                        <tr>
+                            <th class="p-4 whitespace-nowrap" id="sortId">ردیف ↕</th>
+                            <th class="p-4 whitespace-nowrap" id="sortDate">تاریخ ↕</th>
+                            <th class="p-4 whitespace-nowrap" id="sortYear">سال ↕</th>
+                            <th class="p-4 whitespace-nowrap" id="sortMonth">ماه ↕</th>
+                            <th class="p-4 whitespace-nowrap" id="sortSource">کارفرما ↕</th>
+                            <th class="p-4 whitespace-nowrap" id="sortStatus">وضعیت ↕</th>
+                            <th class="p-4 whitespace-nowrap" id="sortDesc">شرح سند ↕</th>
+                            <th class="p-4 whitespace-nowrap" id="sortAmount">مبلغ (میلیارد ریال) ↕</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTableBody" class="divide-y divide-gray-200 bg-white"></tbody>
+                    <tfoot class="bg-gray-100 font-bold text-slate-800 sticky bottom-0 z-20 shadow-[0_-2px_4px_rgba(0,0,0,0.1)]">
+                        <tr>
+                            <td colspan="7" class="p-4 text-left border-t border-gray-300">جمع کل ستون (فیلتر شده):</td>
+                            <td class="p-4 dir-ltr text-left font-mono text-blue-700 border-t border-gray-300" id="tableFooterTotal">0</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Secondary Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="card">
+                <h2 class="text-lg font-bold text-slate-700 mb-4">مقایسه تجمعی ۱۴۰۳ و ۱۴۰۴ (کلی)</h2>
+                <div class="h-80">
+                    <canvas id="cumulativeChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h2 class="text-lg font-bold text-slate-700 mb-4">ترکیب منابع (سهم بازار)</h2>
+                <div class="h-80 flex justify-center">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        Chart.defaults.font.family = 'Vazirmatn';
+        Chart.defaults.color = '#64748b';
+        
+        let globalData = [];
+        let filteredData = [];
+        let deepAnalysisChartInstance = null;
+        let cumulativeChartInstance = null;
+        let pieChartInstance = null;
+
+        const csvDataRaw = `ماه واریزی,کارفرما,وضعیت,شرح پرداخت,مبلغ ورودی,تاریخ
+فروردین,سازه گستر,پرداخت,سازه گستر - مطالبات ,"24,996,905,512",1403.01.21
+فروردین,سازه گستر,پرداخت,سازه گستر - مطالبات ,"17,600,840,607",1403.01.26
+فروردین,سازه گستر,پرداخت,سازه گستر - مطالبات ,"32,365,655,867",1403.01.26
+فروردین,سازه گستر,پرداخت,سایپا - تحویل چک شماره 794183 بانک مهر ایران,"100,000,000,000",1403/01/29
+اردیبهشت,سازه گستر,پرداخت,سازه گستر - مطالبات ,"20,000,000,000",1403.02.01
+اردیبهشت,زامیاد,پرداخت,زامیاد,"12,000,000,000",1403/02/02
+اردیبهشت,سازه گستر,پرداخت,سایپا - تحویل چک شماره 924986 -سپه,"100,000,000,000",1403.02.03
+اردیبهشت,سازه گستر,پرداخت,سازه گستر - مطالبات,"49,852,832,702",1403.02.03
+اردیبهشت,سایپا یدک,پرداخت,سایپا یدک,"15,000,000,000",1403.02.03
+اردیبهشت,سازه گستر,پرداخت,سایپا - از محل مطالبات سازه گستر - چک شماره 593053 - حواله ارزی,"120,000,000,000",1403.02.04
+اردیبهشت,سازه گستر,پرداخت,سازه گستر - حقوق فروردین,"53,266,755,373",1403.02.06
+اردیبهشت,سازه گستر,پرداخت,سازه گستر - حقوق فروردین,"174,733,244,627",1403.02.06
+اردیبهشت,سازه گستر,پرداخت,سازه گستر - کسری حقوق فروردین,"75,000,000,000",1403.02.08
+اردیبهشت,زامیاد,پرداخت,زامیاد,"5,000,000,000",1403.02.08
+اردیبهشت,سازه گستر,پرداخت,سازه گستر - مطالبات,"12,359,309,864",1403.02.16
+اردیبهشت,سازه گستر,پرداخت,سازه گستر - مطالبات,"37,640,690,136",1403.02.16
+اردیبهشت,سازه گستر,پرداخت,سازه گستر - مطالبات,"39,998,237,300",1403.02.20
+اردیبهشت,سازه گستر,پرداخت,سازه گستر - مطالبات,"39,997,289,786",1403.02.20
+اردیبهشت,سازه گستر,پرداخت,سازه گستر - SCF اردیبهشت,"500,000,000,000",1403.02.22
+اردیبهشت,زامیاد,پرداخت,زامیاد,"8,000,000,000",1403.02.25
+اردیبهشت,سازه گستر,پرداخت,سازه گستر - مطالبات,"79,999,928,045",1403.02.25
+خرداد,سازه گستر,پرداخت,سازه گستر - مطالبات,"99,999,321,409",1403.03.03
+خرداد,سایپا یدک,پرداخت,واریز طی دوره - سایپا یدک - بازارگاه,"2,014,060,424",1403.03.05
+خرداد,سازه گستر,پرداخت,سازه گستر - حقوق اردیبهشت,"256,461,080,843",1403.03.06
+خرداد,سازه گستر,پرداخت,سازه گستر - حقوق اردیبهشت,"45,000,000,000",1403.03.06
+خرداد,سازه گستر,پرداخت,سازه گستر - مطالبات,"79,921,706,274",1403.03.19
+خرداد,سایر,پرداخت,گروه صنعتی برنز,"1,660,000,000",1403.03.20
+خرداد,سازه گستر,پرداخت,سازه گستر - مطالبات,"149,999,512,139",1403/03/24
+خرداد,سایر,پرداخت,مبلغ مسدود شده بابت 2 نفر - تسویه سنوات,"1,800,000,000",1403.03.27
+تیر,سازه گستر,پرداخت,سازه گستر - مطالبات,"69,999,233,744",1403.04.04
+تیر,سازه گستر,پرداخت,سازه گستر - حقوق خرداد,"251,767,513,507",1403.04.04
+تیر,سازه گستر,پرداخت,سازه گستر - مطالبات,"49,972,036,278",1403.04.09
+تیر,سازه گستر,پرداخت,سازه گستر - مطالبات,"59,982,040,651",1403.04.16
+تیر,ضایعات,پرداخت,سودیکو,"10,000,000,000",1403.04.18
+تیر,ضایعات,پرداخت,سودیکو,"30,000,000,000",1403.04.20
+تیر,سازه گستر,پرداخت,سازه گستر - مطالبات,"59,618,377,734",1403.04.23
+تیر,سازه گستر,خرید دین,سایپا - چک اول خرید دین به سررسید 1403.04.25,"65,600,000,000",1403.04.27
+تیر,سازه گستر,اوراق گام,سازه گستر - تخصیص scf به سررسید 1403.04.30,"250,000,000,000",1403.04.27
+مرداد,سازه گستر,تهاتر,سازه گستر - بدهی بیمه,"119,908,274,722",1403.05.03
+مرداد,سازه گستر,پرداخت,سازه گستر - حقوق تیر ماه,"291,397,039,563",1403.05.04
+مرداد,سازه گستر,پرداخت,سازه گستر - کسری حقوق,"37,602,888,705",1403.05.04
+مرداد,سازه گستر,خرید دین,سایپا - گشایش اعتبار ( بانک صادرات ),"400,000,007,080",1403.05.08
+مرداد,سازه گستر,پرداخت,پارس خودرو - از محل مطالبالت سازه گستر,"200,000,000,000",1403.05.22
+مرداد,سایر,پرداخت,صنایع مفتولی اشتهارد - جبران کسری چک شماره 44634,"850,000,000",1403.05.25
+مرداد,ضایعات,پرداخت,سودیکو,"15,000,000,000",1403.05.29
+مرداد,سایپا یدک,پرداخت,سایپا یدک,"10,066,207,818",1403.05.31
+شهریور,سازه گستر,پرداخت,سازه گستر - مطالبات,"30,000,000,000",1403.06.01
+شهریور,سایپا یدک,پرداخت,واریز طی دوره - سایپا یدک - بازارگاه,"790,000,000",1403.06.01
+شهریور,سازه گستر,پرداخت,سازه گستر - حقوق مرداد,"291,918,703,599",1403.06.06
+شهریور,سایر,پرداخت,امیر رفیعی - تامین موجودی پیش پرداخت حلال,"750,000,000",1403.06.11
+شهریور,سازه گستر,پرداخت,سایپا - از محل مطالبات سازه گستر - چک شماره 141946,"7,000,000,000",1403.06.18
+شهریور,ضایعات,پرداخت,سودیکو,"5,000,000,000",1403.06.24
+شهریور,سایر,پرداخت,سپهر باستان - پیش پرداخت خرید حلال,"723,292,879",1403.06.25
+شهریور,سایر,پرداخت,شرکت نیک و راحت کرج,"240,570,000",1403.06.26
+شهریور,سازه گستر,پرداخت,سایپا از محل مطالبات سازه گستر,"200,000,000,000",1403.06.29
+مهر,سایر,پرداخت,آزاد سازی سپرده مسدودی ثبت سفارش ارزی,"26,400,000,000",1403.07.01
+مهر,سازه گستر,پرداخت,سازه گستر - حقوق شهریور,"292,744,190,835",1403.07.05
+مهر,سازه گستر,پرداخت,سازه گستر - مطالبات,"7,255,691,060",1403.07.05
+مهر,سازه گستر,پرداخت,سازه گستر - جبران کسری حقوق,"29,919,988,323",1403.07.05
+مهر,سازه گستر,اوراق گام,سازه گستر - scf مهر,"250,000,000,000",1403.07.07
+مهر,سازه گستر,پرداخت,سازه گستر - مطالبات,"19,498,703,504",1403.07.14
+مهر,سایپا یدک,پرداخت,واریزی طی دوره - سایپا یدک,"623,009,664",1403.07.14
+مهر,سایر,پرداخت,آزاد سازی سپرده مسدودی ثبت سفارش ارزی,"68,800,000,000",1403.07.16
+مهر,سازه گستر,تهاتر,سایپا از محل مطالبات سازه گستر - بدهی مالیاتی,"80,000,000,000",1403.07.17
+مهر,سازه گستر,پرداخت,سازه گستر - مطالبات,"29,453,035,223",1403.07.17
+مهر,ضایعات,پرداخت,سودیکو,"10,000,000,000",1403.07.17
+مهر,سایر,پرداخت,حمیدرضا حبیبی - از محل مازاد سنوات واریزی,"200,000,000",1403.07.21
+آبان,سازه گستر,پرداخت,سازه گستر - مطالبات,"99,979,890,521",1403.08.01
+آبان,سایر,پرداخت,شرکت نیک و راحت کرج,"175,230,000",1403.08.02
+آبان,سازه گستر,پرداخت,سازه گستر - مطالبات,"99,999,774,873",1403.08.03
+آبان,سازه گستر,پرداخت,سازه گستر - حقوق مهر,"299,905,380,750",1403.08.06
+آبان,ضایعات,پرداخت,سودیکو,"7,900,000,000",1403.08.06
+آبان,سازه گستر,پرداخت,سازه گستر - کسری حقوق,"39,999,532,005",1403.08.07
+آبان,سایر,پرداخت,واریزی متفرقه,"177,016,555",1403.08.09
+آبان,سایر,پرداخت,شرکت ارس خودرو دیزل,"2,881,890,000",1403.08.14
+آبان,ضایعات,پرداخت,سودیکو,"6,000,000,000",1403.08.15
+آبان,سایر,پرداخت,قالب های بزرگ صنعتی سایپا,"5,000,000,000",1403.08.15
+آبان,سایر,پرداخت,شرکت سمن آذین,"165,000,000",1403.08.19
+آبان,سازه گستر,پرداخت,سازه گستر - مطالبات,"210,999,890,611",1403.08.24
+آبان,سازه گستر,پرداخت,سازه گستر - مطالبات,"6,795,267,339",1403.08.24
+آبان,سازه گستر,پرداخت,سازه گستر - مطالبات,"6,916,681,856",1403.08.24
+آبان,سایر,خرید دین,خرید دین - چک شماره 161176 - سررسید 1403.08.25,"62,500,000,000",1403.08.26
+آبان,سازه گستر,اوراق گام,سازه گستر - scf آبان ,"150,000,000,000",1403.08.28
+آذر,سازه گستر,پرداخت,سازه گستر - حقوق آبان,"300,000,000,000",1403.09.05
+آذر,سازه گستر,پرداخت,سازه گستر - کسری حقوق,"39,999,488,404",1403.09.06
+آذر,ضایعات,پرداخت,سودیکو,"8,000,000,000",1403.09.11
+آذر,سازه گستر,پرداخت,سازه گستر - مطالبات,"226,999,535,717",1403.09.21
+آذر,سایپا یدک,پرداخت,واریز طی دوره - سایپا یدک - بازارگاه,"885,000,000",1403.09.24
+آذر,ضایعات,پرداخت,سودیکو,"4,000,000,000",1403.09.27
+آذر,سایر,پرداخت,عودت مبلغ پیش پرداخت خرید حلال,"769,726,363",1403.09.28
+دی,سازه گستر,پرداخت,سازه گستر - گرامیداشت روز زن,"1,978,858,438",1403.10.04
+دی,سازه گستر,پرداخت,سازه گستر - حقوق آذر,"300,000,000,000",1403.10.08
+دی,سازه گستر,پرداخت,سازه گستر - کسری جبران حقوق,"39,999,471,096",1403.10.08
+دی,زامیاد,پرداخت,زامیاد,"892,819,200",1403.10.10
+دی,سازه گستر,پرداخت,سازه گستر - مواد فوم,"49,999,481,666",1403.10.11
+دی,سازه گستر,پرداخت,سازه گستر - مطالبات,"149,900,867,181",1403.10.11
+دی,سازه گستر,پرداخت,سازه گستر - مطالبات,"24,999,551,848",1403.10.13
+دی,سازه گستر,پرداخت,سازه گستر - مطالبات,"39,999,634,367",1403/10/16
+دی,سایر,پرداخت,شرکت نیک و راحت کرج,"65,780,000",1403.10.17
+دی,ضایعات,پرداخت,سودیکو,"7,000,000,000",1403.10.17
+دی,ضایعات,پرداخت,سودیکو - پیش پرداخت مزایده 890 تن ورق,"100,000,000,000",1403.10.24
+دی,سازه گستر,پرداخت,سازه گستر - گرامیداشت روز مرد,"19,999,658,602",1403.10.24
+دی,سایپا یدک,پرداخت,سایپا یدک - چک شماره 62258 - از محل 14 چک دریافتی,"509,289,000",1403.10.26
+دی,سایپا یدک,پرداخت,سایپا یدک - چک شماره 876243 - از محل 14 چک دریافتی,"715,975,920",1403.10.27
+دی,سازه گستر,پرداخت,سازه گستر - مطالبات,"25,355,860,331",1403.10.27
+دی,سایپا یدک,پرداخت,سایپا یدک - چک شماره 389825 - از محل 14 چک دریافتی,"958,560,000",1403.10.30
+دی,سایپا یدک,پرداخت,سایپا یدک - چک شماره 745577 - از محل 14 چک دریافتی,"835,461,000",1403.10.30
+بهمن,سازه گستر,پرداخت,سازه گستر - چک شماره 141399 سایپا,"50,000,000,000",1403.11.01
+بهمن,سایپا یدک,پرداخت,سایپا یدک - چک شماره 743476,"752,269,650",1403.11.01
+بهمن,سازه گستر,پرداخت,سازه گستر - مطالبات,"49,999,597,230",1403.11.01
+بهمن,ضایعات,پرداخت,سودیکو - از محل مزایده 890 تن ورق,"50,000,000,000",1403.11.02
+بهمن,سایر,پرداخت,مجتمع صنعتی پیلسان,"289,070,800",1403.11.03
+بهمن,سایر,پرداخت,بهمن موتور,"1,497,719,592",1403.11.03
+بهمن,ضایعات,پرداخت,سودیکو - از محل مزایده 890 تن ورق,"40,000,000,000",1403.11.04
+بهمن,سازه گستر,پرداخت,سازه گستر - جبران کسری حقوق دی,"50,000,000,000",1403.11.08
+بهمن,سازه گستر,پرداخت,سایپا,"992,179,999",1403.11.08
+بهمن,سازه گستر,پرداخت,سازه گستر - حقوق دی,"299,999,573,752",1403.11.08
+بهمن,سازه گستر,پرداخت,سازه گستر - حقوق دی,"15,227,585,417",1403.11.08
+بهمن,ضایعات,پرداخت,سودیکو - از محل مزایده 890 تن ورق,"20,000,000,000",1403.11.08
+بهمن,سایر,پرداخت,شرکت فرنیا آذین,"2,508,194,600",1403.11.14
+بهمن,سازه گستر,پرداخت,سایپا - از محل مطالبات سازه گستر - چک شماره 141594,"50,000,000,000",1403.11.16
+بهمن,سازه گستر,پرداخت,سایپا - از محل مطالبات سازه گستر - چک شماره 141563,"50,000,000,000",1403.11.16
+بهمن,ضایعات,پرداخت,سودیکو - از محل مطالبات,"10,000,000,000",1403.11.16
+بهمن,ضایعات,پرداخت,سودیکو - از محل مزایده 890 تن ورق,"69,000,000,000",1403.11.16
+بهمن,سازه گستر,پرداخت,سازه گستر - مطالبات,"29,999,954,399",1403.11.18
+بهمن,سایر,پرداخت,ایتراک - خدمات آزمایشگاهی,"133,966,600",1403.11.23
+بهمن,سازه گستر,پرداخت,سازه گستر - مطالبات,"149,997,924,445",1403.11.23
+بهمن,سایر,پرداخت,شرکت فنرسازی زر - سنوات بهرودی,"651,950,219",1403.11.25
+بهمن,سایر,خرید دین,خرید دین - چک شماره 161179 - سررسید 1403.11.25,"62,500,000,000",1403.11.27
+بهمن,ضایعات,پرداخت,سودیکو - از محل مطالبات,"15,000,000,000",1403.11.29
+بهمن,سازه گستر,تهاتر,سازه گستر - بدهی مالیاتی,"399,999,900,181",1403.11.30
+بهمن,سازه گستر,پرداخت,سازه گستر - سایپا چک شماره 823030 - سنوات پرسنل,"50,000,000,000",1403.11.30
+اسفند,ضایعات,پرداخت,سودیکو - از محل مطالبات,"10,000,000,000",1403.12.05
+اسفند,سازه گستر,پرداخت,سازه گستر - سایپا چک شماره 823031 - سنوات پرسنل,"50,000,000,000",1403.12.06
+اسفند,سازه گستر,پرداخت,سازه گستر - حقوق بهمن 1403,"314,985,484,801",1403.12.07
+اسفند,سازه گستر,پرداخت,سازه گستر - سایپا چک شماره 823031 - سنوات پرسنل,"50,000,000,000",1403.12.08
+اسفند,ضایعات,پرداخت,سودیکو,"4,900,000,000",1403.12.08
+اسفند,سایر,پرداخت,آزاد سازی بخشی از 35درصد سپرده نقدی ثبت سفارش 23841411,"35,000,000,000",1403.12.09
+اسفند,ضایعات,پرداخت,سودیکو,"24,000,000,000",1403.12.12
+اسفند,سایر,پرداخت,انتقالی از بانک گردشگری به بانک مهر - بستن حساب,"217,520,000",1403.12.13
+اسفند,سازه گستر,پرداخت,سازه گستر - عیدی,"241,999,792,142",1403.12.13
+اسفند,سایر,پرداخت,شرکت نیک و راحت کرج,"157,630,000",1403.12.13
+اسفند,ضایعات,پرداخت,سودیکو,"15,000,000,000",1403.12.14
+اسفند,سازه گستر,خرید دین,خرید دین -  پویا فنر,"50,000,396,648",1403.12.15
+اسفند,سازه گستر,پرداخت,سازه گستر - سایپا چک شماره 823031 - سنوات پرسنل,"50,000,000,000",1403.12.16
+اسفند,سازه گستر,خرید دین,خرید دین -  نخل بم,"80,001,055,271",1403.12.16
+اسفند,سایپا یدک,پرداخت,سایپا یدک - چک شماره 14689,"950,000,000",1403.12.16
+اسفند,سایپا یدک,پرداخت,واریز طی دوره - سایپا یدک - بازارگاه,"510,000,000",1403.12.16
+اسفند,سایپا یدک,پرداخت,سایپا یدک - چک شماره 104371,"1,060,000,000",1403.12.16
+اسفند,سایپا یدک,پرداخت,سایپا یدک - چک شماره 46813,"7,952,751,000",1403.12.19
+اسفند,سازه گستر,پرداخت,سازه گستر - مطالبات,"69,989,343,291",1403.12.20
+اسفند,سایپا یدک,پرداخت,سایپا یدک - چک شماره 127746,"2,920,000,000",1403.12.21
+اسفند,سایپا یدک,پرداخت,سایپا یدک - چک شماره 104371,"700,000,000",1403.12.21
+اسفند,سایپا یدک,پرداخت,سایپا یدک - چک شماره 601457,"10,055,602,260",1403.12.21
+اسفند,سایر,پرداخت,مجتمع صنعتی پیلسان,"1,055,690,000",1403.12.21
+اسفند,سازه گستر,پرداخت,سازه گستر - مطالبات,"59,028,259,794",1403.12.22
+اسفند,ضایعات,پرداخت,سودیکو ,"200,000,000,000",1403.12.23
+اسفند,سایپا یدک,پرداخت,سایپا یدک - چک شماره 104372,"900,000,000",1403.12.23
+اسفند,ضایعات,پرداخت,سودیکو,"150,000,000,000",1403.12.25
+اسفند,سایر,خرید دین,خرید دین - چک شماره 161180 - سررسید 1403.12.25,"62,500,000,000",1403.12.25
+اسفند,سایپا یدک,پرداخت,سایپا یدک - چک شماره 876245,"715,975,920",1403.12.26
+اسفند,سایپا یدک,پرداخت,سایپا یدک - چک شماره 705080,"1,000,000,000",1403.12.26
+اسفند,سازه گستر,پرداخت,سازه گستر - مطالبات,"45,777,849,283",1403.12.26
+اسفند,سازه گستر,پرداخت,سازه گستر - مطالبات,"34,222,005,354",1403.12.26
+اسفند,سازه گستر,خرید دین,خرید دین -  پیشگامان صنایع دیزل,"50,000,766,355",1403.12.27
+اسفند,سازه گستر,خرید دین,خرید دین -  راهبر خودرو,"100,001,578,096",1403.12.27
+اسفند,سازه گستر,پرداخت,سایپا  - چک شماره 823397 - سنوات پرسنل,"50,000,000,000",1403.12.27
+اسفند,سازه گستر,پرداخت,سازه گستر - حقوق اسفند,"299,999,288,047",1403.12.27
+اسفند,ضایعات,پرداخت,سودیکو,"97,000,000,000",1403.12.27
+اسفند,سازه گستر,پرداخت,سایپا  - چک شماره 823398 - سنوات پرسنل,"50,000,000,000",1403.12.28
+فروردین,سایپا,پرداخت,سایپا از محل مطالبات سازه گستر,"100,000,000,000",1404.01.05
+فروردین,سایر,پرداخت,حمیدرضا حبیبی - وصول چک شماره 889638,"400,000,000",1404.01.09
+فروردین,ضایعات,پرداخت,سودیکو از محل مطالبات,"1,800,000,000",1404.01.21
+فروردین,سایپا,پرداخت,سایپا - از محل مطالبات - اصلاح عناوین شغلی,"100,000,000,000",1404.01.25
+فروردین,سایپا,پرداخت,سایپا - از محل مطالبات - سنوات پرسنل,"50,000,000,000",1404.01.25
+فروردین,سازه گستر,پرداخت,سازه گستر - مطالبات,"41,748,925,308",1404.01.27
+فروردین,سازه گستر,پرداخت,سازه گستر - مطالبات,"19,999,568,779",1404.01.30
+فروردین,سازه گستر,خرید دین,خرید دین -  گوهر بافان,"150,000,560,035",1404.01.30
+اردیبهشت,سازه گستر,پرداخت,سازه گستر - مطالبات,"69,999,402,662",1404.02.01
+اردیبهشت,سایپا یدک,پرداخت,سایپا یدک,"10,000,000,000",1404.02.01
+اردیبهشت,ضایعات,پرداخت,سودیکو از محل مطالبات,"3,000,000,000",1404.02.02
+اردیبهشت,سایپا,پرداخت,سایپا - سنوات پرسنل- چک شماره 821779,"50,000,000,000",1404.02.07
+اردیبهشت,سایر,پرداخت,سیستم های صندلی پارس - خدمات آزمایشگاهی,"3,400,000,000",1404.02.10
+اردیبهشت,سازه گستر,پرداخت,سازه گستر - حقوق فروردین,"522,998,505,150",1404.02.10
+اردیبهشت,سازه گستر,اوراق گام,سازه گستر - SCF - اردیبهشت,"50,000,000,000",1404.02.14
+اردیبهشت,ضایعات,پرداخت,سودیکو از محل مطالبات,"1,300,000,000",1404.02.15
+اردیبهشت,سازه گستر,اوراق گام,سازه گستر - SCF - اردیبهشت,"100,000,000,000",1404.02.21
+اردیبهشت,ضایعات,پرداخت,سودیکو از محل مطالبات,"7,000,000,000",1404.02.21
+اردیبهشت,سازه گستر,تهاتر,سازه گستر - بدهی مالیاتی,"299,999,643,876",1404.02.24
+اردیبهشت,ضایعات,پرداخت,سودیکو از محل مطالبات,"2,300,000,000",1404.02.28
+اردیبهشت,آرمان موتور,پرداخت,دریافتی بابت LC - بانک شهر - پارت اول آرمان موتور,"17,643,120,000",1404.02.30
+اردیبهشت,سازه گستر,خرید دین,خرید دین -  نواندیش صنعت پرنیان,"150,089,719,766",1404.02.30
+اردیبهشت,سایپا,پرداخت,سایپا - سنوات پرسنل,"50,000,000,000",1404.02.31
+خرداد,سازه گستر,اوراق گام,سازه گستر - SCF - خرداد,"100,000,000,000",1404.03.07
+خرداد,سازه گستر,پرداخت,سازه گستر - 50درصد حقوق اردیبهشت,"261,998,795,429",1404.03.11
+خرداد,سایر,پرداخت,امید کام صنعت - بابت استفاده از لیفتراک شرکت,"220,000,000",1404.03.13
+خرداد,ضایعات,پرداخت,سودیکو از محل مطالبات,"30,000,000,000",1404.03.13
+خرداد,آرمان موتور,پرداخت,دریافتی بابت LC - بانک شهر - پارت دوم آرمان موتور,"17,643,120,000",1404.03.17
+خرداد,آرمان موتور,پرداخت,دریافتی بابت LC - بانک شهر - پارت سوم آرمان موتور,"17,643,120,000",1404.03.20
+خرداد,سازه گستر,پرداخت,سازه گستر - 50درصد حقوق اردیبهشت,"209,000,000,000",1404.03.21
+خرداد,سایپا,پرداخت,سایپا - از محل مطالبات سازه گستر - چک اول 25 میلیارد,"250,000,000,000",1404.03.21
+خرداد,سازه گستر,پرداخت,سازه گستر - مطالبات,"103,300,000,000",1404.03.28
+خرداد,سازه گستر,خرید دین,خرید دین -  شرکت مهندسی وتولیدی ورافن,"100,183,110,665",1404.03.30
+تیر,سایر,پرداخت,مبشر نور دریا - متفرقه,"811,064,276",1404.04.02
+تیر,سازه گستر,پرداخت,سازه گستر - بخشی از حقوق خرداد,"224,598,440,000",1404.04.08
+تیر,سازه گستر,پرداخت,سازه گستر - تتمه حقوق خرداد,"125,071,200,000",1404.04.17
+تیر,ضایعات,پرداخت,سودیکو از محل مطالبات,"5,000,000,000",1404.04.17
+تیر,سازه گستر,پرداخت,سازه گستر - مطالبات,"20,000,000,000",1404.04.18
+تیر,سایپا,پرداخت,سایپا - سنوات پرسنل- چک شماره 815350,"50,000,000,000",1404.04.21
+تیر,سازه گستر,پرداخت,سازه گستر - مطالبات,"20,000,000,000",1404.04.23
+تیر,سایپا,پرداخت,سایپا - از محل مطالبات سازه گستر - چک دوم 25 میلیارد,"250,000,000,000",1404.04.24
+تیر,سازه گستر,پرداخت,سازه گستر - مطالبات,"80,000,000,000",1404.04.25
+تیر,آرمان موتور,پرداخت,دریافتی بابت LC - بانک شهر - پارت چهارم آرمان موتور,"17,633,000,000",1404.04.28
+تیر,سازه گستر,خرید دین,خرید دین -  تهران پلیمر صبا,"50,000,323,025",1404.04.30
+تیر,سایر,پرداخت,سیستم های صندلی پارس - خدمات آزمایشگاهی,"4,000,000,000",1404.04.30
+تیر,سایر,پرداخت,سیستم های صندلی پارس - خدمات آزمایشگاهی,"2,000,000,000",1404.04.30
+مرداد,سایپا,پرداخت,سایپا - سنوات پرسنل- چک شماره 815385,"50,000,000,000",1404.05.04
+مرداد,ضایعات,پرداخت,سودیکو از محل مطالبات,"4,000,000,000",1404.05.04
+مرداد,آرمان موتور,پرداخت,دریافتی بابت LC - بانک شهر - پارت پنجم آرمان موتور,"17,633,000,000",1404.05.04
+مرداد,سایپا,پرداخت,سایپا - سنوات پرسنل- چک شماره 133644,"50,000,000,000",1404.05.06
+مرداد,سایر,پرداخت,شرکت خودروسازان دیزلی آذربایجان,"971,828,000",1404.05.07
+مرداد,سازه گستر,پرداخت,سازه گستر - حقوق تیر,"400,000,000,000",1404.05.15
+مرداد,سازه گستر,پرداخت,سازه گستر - حقوق تیر,"2,955,996,675",1404.05.15
+مرداد,آرمان موتور,پرداخت,دریافتی بابت LC - بانک شهر - پارت ششم آرمان موتور,"17,668,640,000",1404.05.18
+مرداد,سایپا,پرداخت,سایپا - از محل مطالبات سازه گستر - چک سوم 25 میلیارد,"250,000,000,000",1404.05.19
+مرداد,سایر,پرداخت,شرکت خودروسازان بونیز - خدمات آزمایشگاهی,"1,249,248,000",1404.05.22
+مرداد,آرمان موتور,پرداخت,دریافتی بابت LC - بانک شهر - پارت هفتم آرمان موتور,"15,318,380,000",1404.05.25
+مرداد,سایر,پرداخت,سیستم های صندلی پارس - خدمات آزمایشگاهی,"5,102,774,000",1404.05.28
+مرداد,سازه گستر,تهاتر,سازه گستر -  پرداخت مستقیم به امور مالیاتی - چک شماره 584071,"73,010,904,666",-----
+مرداد,سازه گستر,تهاتر,سازه گستر -  پرداخت مستقیم به امور مالیاتی - چک شماره 584072,"114,847,706,997",-----
+مرداد,سازه گستر,تهاتر,سازه گستر -  پرداخت مستقیم به امور مالیاتی - چک شماره 584073,"24,660,927,098",-----
+مرداد,سازه گستر,تهاتر,سازه گستر -  پرداخت مستقیم به امور مالیاتی - چک شماره 584074,"237,749,968,110",-----
+مرداد,سازه گستر,تهاتر,سازه گستر -  پرداخت مستقیم به امور مالیاتی - چک شماره 584075,"86,836,954,539",-----
+شهریور,سایر,پرداخت,عو.دت مبلغ رفع تعهد ارزی - بانک تجارت,"7,750,866,778",1404.06.05
+شهریور,سایر,پرداخت,عو.دت مبلغ رفع تعهد ارزی - بانک تجارت,"291,566,678",1404.06.05
+شهریور,سایر,پرداخت,شرکت خودروسازان دیزلی آذربایجان,"971,828,000",1404.06.09
+شهریور,سایر,پرداخت,حمیدرضا حبیبی - وصول چک شماره 889639,"400,000,000",1404.06.09
+شهریور,سازه گستر,پرداخت,سازه گستر - شارژ حساب وکالتی جهت خرید از بورس - ایزوسیانات,"29,999,938,396",1404.06.11
+شهریور,سایپا,پرداخت,سایپا - از محل مطالبات سازه گستر - چک چهارم 25 میلیارد,"250,000,000,000",1404.06.12
+شهریور,سایر,پرداخت,شرکت خودروسازان دیزلی آذربایجان,"757,328,000",1404.06.12
+شهریور,سازه گستر,پرداخت,سازه گستر - 50درصد اول حقوق مرداد,"199,999,979,810",1404.06.16
+شهریور,سازه گستر,پرداخت,سازه گستر - مطالبات (پروژه),"15,000,000,000",1404.06.17
+شهریور,سایر,پرداخت,شرکت نیک و راحت کرج,"276,991,000",1404.06.18
+شهریور,سایر,پرداخت,مجنمع صنعتی پیلسان,"1,921,355,800",1404.06.18
+شهریور,سازه گستر,پرداخت,سازه گستر - 50درصد دوم حقوق مرداد,"188,255,992,335",1404.06.20
+شهریور,سایپا,پرداخت,سایپا - از محل مطالبات سازه گستر - سنوات پرسنل,"50,000,000,000",1404.06.24
+شهریور,سایر,پرداخت,شرکت نیک و راحت کرج,"315,887,000",1404.06.25
+شهریور,سایر,پرداخت,شرکت آریش خودرو,"39,039,000",1404.06.26
+مهر,سازه گستر,اوراق گام,اوراق گام شهریور 1404,"1,250,000,000,000",1404.07.01
+مهر,سایپا,پرداخت,سایپا - از محل مطالبات سازه گستر - سنوات پرسنل - چک 815045,"120,000,000,000",1404.07.02
+مهر,آرمان موتور,پرداخت,پارت اول lc آرمان موتور - مرحله دوم,"17,648,400,000",1404.07.05
+مهر,آرمان موتور,پرداخت,پارت دوم lc آرمان موتور - مرحله دوم,"12,845,140,000",1404.07.06
+مهر,آرمان موتور,پرداخت,پارت سوم lc آرمان موتور - مرحله دوم,"7,128,000,000",1404.07.08
+مهر,سایپا,پرداخت,سایپا - از محل مطالبات سازه گستر - چک پنجم 25 میلیارد,"250,000,000,000",1404.07.08
+مهر,سازه گستر,پرداخت,سازه گستر - 50درصد حقوق شهریور,"210,073,918,401",1404.07.10
+مهر,ضایعات,پرداخت,سودیکو - از محل مطالبات,"6,000,000,000",1404.07.15
+مهر,سایر,پرداخت,شرکت آریش خودرو,"26,026,000",1404.07.14
+مهر,سازه گستر,پرداخت,سازه گستر - 50درصد حقوق شهریور,"209,999,856,698",1404.07.21
+مهر,سازه گستر,پرداخت,سازه گستر - از محل مطالبات,"129,999,989,289",1404.07.24
+مهر,زامیاد,پرداخت,زامیاد,"10,000,000,000",1404.07.24
+مهر,ضایعات,پرداخت,سودیکو - از محل مطالبات,"6,000,000,000",1404.07.27
+مهر,زامیاد,پرداخت,زامیاد ,"20,000,000,000",1404.07.27
+مهر,سازه گستر,پرداخت,سازه گستر - از محل مطالبات,"20,000,000,000",1404.07.27
+مهر,سازه گستر,پرداخت,سازه گستر - مطالبات,"59,999,921,911",1404.07.30
+آبان,سازه گستر,پرداخت,سازه گستر - مطالبات,"29,999,974,958",1404.08.01
+آبان,سایر,پرداخت,عو.دت مبلغ رفع تعهد ارزی - بانک تجارت - ثبت سفارش 23841411,"3,500,000,000",1404.08.04
+آبان,سایر,پرداخت,سیستم های صندلی پارس - چک شماره 86152 بانک ملت (انتقال به طیف سایپا),"5,208,646,300",1404.08.20
+آبان,سازه گستر,پرداخت,سازه گستر - مطالبات,"9,999,994,079",1404.08.07
+آبان,ضایعات,پرداخت,سودیکو,"1,400,000,000",1404.08.07
+آبان,آرمان موتور,پرداخت,پارت چهارم LC آرمان موتور - مرحله دوم,"7,306,200,000",1404.08.07
+آبان,سازه گستر,پرداخت,سازه گستر - از محل مطالبات,"169,999,905,955",1404.08.08
+آبان,سازه گستر,پرداخت,سازه گستر - حقوق مهر,"352,999,932,412",1404.08.11
+آبان,ضایعات,پرداخت,سودیکو - از محل مطالبات,"14,000,000,000",1404.08.11
+آبان,سایپا,پرداخت,سایپا - از محل مطالبات سازه گستر - سنوات (جایگزین وام رسالت),"110,000,000,000",1404.08.12
+آبان,ضایعات,پرداخت,سودیکو - از محل مطالبات,"36,000,000,000",1404.08.13
+آبان,آرمان موتور,پرداخت,پارت پنجم LC آرمان موتور - مرحله دوم,"17,648,400,000",1404.08.13
+آبان,زامیاد,تهاتر,زامیاد - بدهی مالیاتی,"10,000,000,000",1404.08.13
+آبان,زامیاد,تهاتر,زامیاد - بدهی مالیاتی,"92,000,000,000",1404.08.13
+آبان,زامیاد,پرداخت,زامیاد,"8,000,000,000",1404.08.14
+آبان,زامیاد,پرداخت,زامیاد,"10,000,000,000",1404.08.14
+آبان,سایر,پرداخت,شرکت ایران خودرو دیزل,"207,779,000",1404.08.18
+آبان,آرمان موتور,پرداخت,پارت ششم LC آرمان موتور - مرحله دوم,"17,648,400,000",1404.08.18
+آبان,ضایعات,پرداخت,سودیکو - از محل مطالبات,"25,000,000,000",1404.08.19
+آبان,سایر,پرداخت,سیستم های صندلی پارس,"886,750,150",1404.08.24
+آبان,سازه گستر,پرداخت,سازه گستر - مطالبات,"19,999,874,605",1404.08.27
+آبان,آرمان موتور,پرداخت,پارت هفتم LC آرمان موتور - مرحله دوم,"17,648,400,000",1404.08.27
+آبان,سازه گستر,پرداخت,سازه گستر - مطالبات,"129,999,902,936",1404.08.29
+آذر,زامیاد,پرداخت,زامیاد,"2,063,581,520",1404.09.02
+آذر,سایر,پرداخت,بیمه ملت - خسارت,"100,000,000",1404.09.02
+آذر,سازه گستر,پرداخت,سازه گستر - مطالبات,"29,999,891,386",1404.09.04
+آذر,سایپا,پرداخت,سایپا - از محل مطالبات سازه گستر - سنوات پرسنل,"130,000,000,000",1404.09.05
+آذر,سازه گستر,پرداخت,سازه گستر - حقوق آبان ماه ,"367,999,514,432",1404.09.06
+آذر,سازه گستر,پرداخت,سازه گستر - مطالبات,"9,999,967,555",1404.09.06
+آذر,آرمان موتور,پرداخت,پارت  هشتم LC آرمان موتور - مرحله دوم,"17,643,120,000",1404.09.08
+آذر,سایر,پرداخت,عودت پیش پرداخت خرید حلال از پالایش نفت اصفهان,"290,830,160",1404.09.09
+آذر,سایر,پرداخت,شرکت نیک و راحت کرج,"946,517,000",1404.09.09
+آذر,سایپا,پرداخت,سایپا - از محل مطالبات سازه گستر - سنوات پرسنل,"50,000,000,000",1404.09.13`;
+
+        function parseCSV(csvText) {
+            const rows = [];
+            const lines = csvText.split('\n');
+            
+            for (let i = 1; i < lines.length; i++) {
+                let line = lines[i].trim();
+                if (!line) continue;
+
+                const parts = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+                
+                if (!parts || parts.length < 6) continue;
+
+                let month = parts[0].trim();
+                let source = parts[1].trim();
+                let statusRaw = parts[2].trim(); 
+                let desc = parts[3].trim();
+                let amountStr = parts[4].replace(/["']/g, '').replace(/,/g, '');
+                let amount = parseFloat(amountStr);
+                let dateStr = parts[5].trim().replace(/\./g, '/');
+
+                let year = 1404;
+                if (dateStr.startsWith('1403')) year = 1403;
+                else if (dateStr.startsWith('1404')) year = 1404;
+
+                let status = statusRaw;
+                if (desc.includes("LC") || desc.includes("اعتبار") || desc.includes("ال سی")) {
+                    status = "اعتبارات اسنادی";
+                }
+
+                if (isNaN(amount)) continue;
+
+                rows.push({
+                    id: rows.length + 1,
+                    date: dateStr,
+                    year: year,
+                    month: month,
+                    source: source,
+                    status: status,
+                    desc: desc,
+                    amount: amount / 1000000000,
+                    rawAmount: amount
+                });
+            }
+            return rows;
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<SaipaAzinReport />);
+        const statusColors = {
+            'پرداخت': 'rgba(16, 185, 129, 0.7)',
+            'تهاتر': 'rgba(245, 158, 11, 0.7)',
+            'خرید دین': 'rgba(139, 92, 246, 0.8)',
+            'اعتبارات اسنادی': 'rgba(249, 115, 22, 0.8)',
+            'اوراق گام': 'rgba(236, 72, 153, 0.7)',
+            'چک': 'rgba(59, 130, 246, 0.7)',
+            'نامشخص': 'rgba(156, 163, 175, 0.5)'
+        };
+
+        function initDashboard(csvData) {
+            globalData = parseCSV(csvData);
+            filteredData = [...globalData];
+            
+            populateFilters();
+            applyFilters();
+        }
+
+        function populateFilters() {
+            const employers = [...new Set(globalData.map(d => d.source))].sort();
+            const statuses = [...new Set(globalData.map(d => d.status))].sort();
+
+            const deepSelect = document.getElementById('employerSelect');
+            const filterEmp = document.getElementById('filterEmployer');
+            const filterStat = document.getElementById('filterStatus');
+
+            if (!deepSelect || !filterEmp || !filterStat) {
+                console.error("One or more filter elements not found!");
+                return;
+            }
+
+            // Clear existing options, keeping only the first one
+            while (deepSelect.options.length > 1) deepSelect.remove(1);
+            while (filterEmp.options.length > 1) filterEmp.remove(1);
+            while (filterStat.options.length > 1) filterStat.remove(1);
+
+            employers.forEach(e => {
+                deepSelect.add(new Option(e, e));
+                filterEmp.add(new Option(e, e));
+            });
+
+            statuses.forEach(s => {
+                filterStat.add(new Option(s, s));
+            });
+
+            deepSelect.addEventListener('change', (e) => {
+                updateDeepAnalysis(e.target.value);
+            });
+            
+            // Add listeners for other filters too, though button triggers applyFilters
+             document.getElementById('applyFiltersBtn').addEventListener('click', applyFilters);
+        }
+
+        function applyFilters() {
+            const y = document.getElementById('filterYear').value;
+            const e = document.getElementById('filterEmployer').value;
+            const s = document.getElementById('filterStatus').value;
+
+            filteredData = globalData.filter(d => {
+                const matchY = y === 'all' || d.year.toString() === y;
+                const matchE = e === 'all' || d.source === e;
+                const matchS = s === 'all' || d.status === s;
+                return matchY && matchE && matchS;
+            });
+
+            renderTable(filteredData);
+            updateKPIs(filteredData);
+            renderGlobalCharts();
+            
+            const currentDeep = document.getElementById('employerSelect').value;
+            updateDeepAnalysis(currentDeep);
+        }
+
+        const fullMonthOrder = [
+            {y: 1403, m: "فروردین"}, {y: 1403, m: "اردیبهشت"}, {y: 1403, m: "خرداد"}, 
+            {y: 1403, m: "تیر"}, {y: 1403, m: "مرداد"}, {y: 1403, m: "شهریور"}, 
+            {y: 1403, m: "مهر"}, {y: 1403, m: "آبان"}, {y: 1403, m: "آذر"}, 
+            {y: 1403, m: "دی"}, {y: 1403, m: "بهمن"}, {y: 1403, m: "اسفند"},
+            {y: 1404, m: "فروردین"}, {y: 1404, m: "اردیبهشت"}, {y: 1404, m: "خرداد"}, 
+            {y: 1404, m: "تیر"}, {y: 1404, m: "مرداد"}, {y: 1404, m: "شهریور"}, 
+            {y: 1404, m: "مهر"}, {y: 1404, m: "آبان"}, {y: 1404, m: "آذر"}, 
+            {y: 1404, m: "دی"}, {y: 1404, m: "بهمن"}, {y: 1404, m: "اسفند"}
+        ];
+
+        function updateDeepAnalysis(selectedEmployer) {
+            let chartData = globalData;
+            if (selectedEmployer !== 'all') {
+                chartData = globalData.filter(d => d.source === selectedEmployer);
+            }
+
+            updateKPIs(chartData);
+
+            const grouped = {};
+            const uniqueStats = new Set();
+            const monthlyTotalMap = {};
+
+            chartData.forEach(d => {
+                const k = `${d.year}-${d.month}`;
+                if(!grouped[k]) grouped[k] = {};
+                if(!grouped[k][d.status]) grouped[k][d.status] = 0;
+                grouped[k][d.status] += d.amount;
+                uniqueStats.add(d.status);
+                monthlyTotalMap[k] = (monthlyTotalMap[k] || 0) + d.amount;
+            });
+
+            const labels = fullMonthOrder.map(t => `${t.m} ${t.y}`);
+            
+            const datasets = Array.from(uniqueStats).map(st => {
+                const data = fullMonthOrder.map(t => {
+                    const k = `${t.y}-${t.m}`;
+                    return grouped[k] ? (grouped[k][st] || 0) : 0;
+                });
+                return {
+                    type: 'bar',
+                    label: st,
+                    data: data,
+                    backgroundColor: statusColors[st] || '#94a3b8',
+                    stack: 'Stack 0',
+                    yAxisID: 'y'
+                };
+            });
+
+            let cum1403 = 0;
+            const dataCum1403 = fullMonthOrder.map(t => {
+                if (t.y !== 1403) return null;
+                cum1403 += (monthlyTotalMap[`${t.y}-${t.m}`] || 0);
+                return cum1403;
+            });
+
+            let cum1404 = 0;
+            const dataCum1404 = fullMonthOrder.map(t => {
+                if (t.y !== 1404) return null;
+                cum1404 += (monthlyTotalMap[`${t.y}-${t.m}`] || 0);
+                return cum1404;
+            });
+
+            datasets.push({
+                type: 'line',
+                label: 'تجمعی ۱۴۰۳',
+                data: dataCum1403,
+                borderColor: '#3b82f6',
+                borderWidth: 3,
+                tension: 0.3,
+                pointRadius: 3,
+                spanGaps: false,
+                yAxisID: 'y1'
+            });
+
+            datasets.push({
+                type: 'line',
+                label: 'تجمعی ۱۴۰۴',
+                data: dataCum1404,
+                borderColor: '#ef4444',
+                borderWidth: 3,
+                tension: 0.3,
+                pointRadius: 3,
+                spanGaps: false,
+                yAxisID: 'y1'
+            });
+
+            const total = chartData.reduce((s,d) => s+d.amount, 0);
+            const globalTotal = globalData.reduce((s,d) => s+d.amount, 0);
+            const share = globalTotal ? ((total/globalTotal)*100).toFixed(1) : 0;
+
+            const elTotal = document.getElementById('selectedEmpTotal');
+            const elShare = document.getElementById('selectedEmpShare');
+            const elBar = document.getElementById('shareProgressBar');
+            const elCount = document.getElementById('selectedEmpCount');
+
+            if (elTotal) elTotal.innerText = total.toLocaleString(undefined, {maximumFractionDigits: 1});
+            if (elShare) elShare.innerText = share + '%';
+            if (elBar) elBar.style.width = share + '%';
+            if (elCount) elCount.innerText = chartData.length;
+
+            const ctx = document.getElementById('deepAnalysisChart');
+            if (ctx) {
+                if(deepAnalysisChartInstance) deepAnalysisChartInstance.destroy();
+                deepAnalysisChartInstance = new Chart(ctx.getContext('2d'), {
+                    data: { labels: labels, datasets: datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            x: { stacked: true },
+                            y: { stacked: true, title: { display: true, text: 'ماهانه (میلیارد ریال)' } },
+                            y1: { type: 'linear', position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'تجمعی' } }
+                        }
+                    }
+                });
+            }
+        }
+
+        function renderGlobalCharts() {
+            const monthlyTotals = {};
+            const sourceTotals = {};
+            filteredData.forEach(d => {
+                const k = `${d.year}-${d.month}`;
+                monthlyTotals[k] = (monthlyTotals[k] || 0) + d.amount;
+                sourceTotals[d.source] = (sourceTotals[d.source] || 0) + d.amount;
+            });
+
+            const labels = fullMonthOrder.map(t => `${t.m} ${t.y}`);
+            let sum1403 = 0, sum1404 = 0;
+            const d1403 = fullMonthOrder.map(t => { if(t.y!==1403) return null; sum1403+= (monthlyTotals[`${t.y}-${t.m}`]||0); return sum1403; });
+            const d1404 = fullMonthOrder.map(t => { if(t.y!==1404) return null; sum1404+= (monthlyTotals[`${t.y}-${t.m}`]||0); return sum1404; });
+
+            const ctxCum = document.getElementById('cumulativeChart');
+            if (ctxCum) {
+                if(cumulativeChartInstance) cumulativeChartInstance.destroy();
+                cumulativeChartInstance = new Chart(ctxCum, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            { label: 'تجمعی ۱۴۰۳', data: d1403, borderColor: '#3b82f6', tension: 0.3, spanGaps: false },
+                            { label: 'تجمعی ۱۴۰۴', data: d1404, borderColor: '#10b981', tension: 0.3, spanGaps: false }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            const ctxPie = document.getElementById('pieChart');
+            if (ctxPie) {
+                if(pieChartInstance) pieChartInstance.destroy();
+                pieChartInstance = new Chart(ctxPie, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(sourceTotals),
+                        datasets: [{ data: Object.values(sourceTotals), backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#64748b', '#ec4899', '#6366f1'] }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+                });
+            }
+        }
+
+        function renderTable(dataToRender) {
+            const tbody = document.getElementById('dataTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            let total = 0;
+
+            dataToRender.forEach(d => {
+                total += d.amount;
+                let badgeClass = 'bg-gray-100 text-gray-800';
+                if(d.status === 'پرداخت') badgeClass = 'bg-emerald-100 text-emerald-800';
+                else if(d.status === 'تهاتر') badgeClass = 'bg-amber-100 text-amber-800';
+                else if(d.status === 'خرید دین') badgeClass = 'bg-indigo-100 text-indigo-800';
+                else if(d.status === 'اعتبارات اسنادی') badgeClass = 'bg-orange-100 text-orange-800';
+                else if(d.status === 'اوراق گام') badgeClass = 'bg-pink-100 text-pink-800';
+
+                const tr = document.createElement('tr');
+                tr.className = 'border-b hover:bg-slate-50';
+                tr.innerHTML = `
+                    <td class="p-4 text-center text-slate-500">${d.id}</td>
+                    <td class="p-4 text-sm font-mono">${d.date}</td>
+                    <td class="p-4 font-bold text-blue-600">${d.year}</td>
+                    <td class="p-4">${d.month}</td>
+                    <td class="p-4 font-bold">${d.source}</td>
+                    <td class="p-4"><span class="${badgeClass} px-2 py-1 rounded text-xs whitespace-nowrap">${d.status}</span></td>
+                    <td class="p-4 text-xs text-slate-500 max-w-xs truncate" title="${d.desc}">${d.desc}</td>
+                    <td class="p-4 font-mono font-bold text-emerald-600 dir-ltr text-left">${d.amount.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 3})}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            const footerTotal = document.getElementById('tableFooterTotal');
+            if (footerTotal) footerTotal.innerText = total.toLocaleString(undefined, {maximumFractionDigits: 2});
+        }
+
+        function updateKPIs(dataSubset) {
+            const total = dataSubset.reduce((s,d)=>s+d.amount,0);
+            const t1403 = dataSubset.filter(d=>d.year===1403).reduce((s,d)=>s+d.amount,0);
+            const t1404 = dataSubset.filter(d=>d.year===1404).reduce((s,d)=>s+d.amount,0);
+            
+            const elTotal = document.getElementById('kpiTotal');
+            const el1403 = document.getElementById('kpi1403');
+            const el1404 = document.getElementById('kpi1404');
+            const elCount = document.getElementById('kpiCount');
+
+            if (elTotal) elTotal.innerText = total.toLocaleString(undefined, {maximumFractionDigits: 1});
+            if (el1403) el1403.innerText = t1403.toLocaleString(undefined, {maximumFractionDigits: 1});
+            if (el1404) el1404.innerText = t1404.toLocaleString(undefined, {maximumFractionDigits: 1});
+            if (elCount) elCount.innerText = dataSubset.length;
+        }
+
+        let currentSort = { field: 'id', dir: 'asc' };
+        window.sortTable = function(field) {
+            currentSort.dir = (currentSort.field === field && currentSort.dir === 'asc') ? 'desc' : 'asc';
+            currentSort.field = field;
+            filteredData.sort((a,b) => {
+                let vA = a[field], vB = b[field];
+                if(typeof vA === 'string') { vA=vA.toLowerCase(); vB=vB.toLowerCase(); }
+                if(vA < vB) return currentSort.dir==='asc'?-1:1;
+                if(vA > vB) return currentSort.dir==='asc'?1:-1;
+                return 0;
+            });
+            renderTable(filteredData);
+        };
+
+        const fileInput = document.getElementById('csvFileInput');
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) { initDashboard(e.target.result); };
+                reader.readAsText(file);
+            });
+        }
+
+        // Initialize
+        initDashboard(csvDataRaw);
+    });
     </script>
 </body>
 </html>
