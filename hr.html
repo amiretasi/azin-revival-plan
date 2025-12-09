@@ -54,7 +54,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* --- Dashboard Specific Styles (Legacy for other tabs) --- */
+        /* --- Dashboard Specific Styles --- */
         .dashboard-header {
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             color: white;
@@ -142,21 +142,39 @@
         .badge-inactive { background: #fee2e2; color: #991b1b; }
         .badge-repair { background: #ffedd5; color: #9a3412; }
 
-        /* Insurance Print Area */
+        /* --- STYLES FROM USER INPUTS --- */
+        
+        /* General Card & Header (Retiree Tab) */
+        .card { background: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+        .card:hover { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .header-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); }
+        .stat-value { font-feature-settings: "ss01"; }
+
+        /* Insurance Print Area & Tables (Insurance Tab) */
         .print-area {
             background: white;
-            /* max-width: 297mm; Remove max-width to fit container */
+            /* max-width: 297mm;  Modified to fit tab container */
             width: 100%;
             margin: 0 auto;
-            padding: 20px; /* Reduced padding */
+            padding: 20px;
             border-radius: 12px;
-            /* box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); Remove shadow inside tab */
+            /* box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); Removed for tab view */
         }
-        .insurance-table th { background-color: #1e3a8a; color: white; font-weight: 500; }
-        .insurance-table tr:nth-child(even) { background-color: #f9fafb; }
-        .insurance-table tr:hover { background-color: #eff6ff; }
+        .insurance-table th, .print-area th { 
+            /* Merged styles for th in print area */
+            color: white; font-weight: 500; font-size: 0.85rem; 
+        }
+        .insurance-table td, .print-area td { font-size: 0.85rem; }
+        
         .total-row { background-color: #e5e7eb !important; font-weight: 700; border-top: 2px solid #374151; }
         .currency { font-family: 'Courier New', Courier, monospace; font-weight: 600; direction: ltr; text-align: left; }
+        
+        /* Custom Colors based on Debt Type */
+        .bg-header-sso { background-color: #881337; } /* Rose-900 for SSO */
+        .bg-header-current { background-color: #166534; } /* Green-800 for Current */
+        .bg-header-past { background-color: #1e40af; } /* Blue-800 for Past */
+        .bg-header-old { background-color: #4b5563; } /* Gray-600 for Old */
+
     </style>
 </head>
 <body>
@@ -430,10 +448,10 @@
                             </div>
                         </div>
 
-                        <!-- Debt (Insurance moved to new tab) -->
+                        <!-- Debt Chart (Renamed ID to avoid conflict with Insurance Tab) -->
                         <div class="chart-box full-width" style="height: 450px;">
                             <h3>آنالیز جامع بدهی‌ها</h3>
-                            <div class="chart-container-inner"><canvas id="debtChart"></canvas></div>
+                            <div class="chart-container-inner"><canvas id="financeDebtChart"></canvas></div>
                         </div>
 
                     </div>
@@ -441,130 +459,347 @@
             </div>
         </div>
 
-        <!-- TAB 4: Insurance (NEW) -->
+        <!-- TAB 4: Insurance (REPLACED WITH USER CODE) -->
         <div id="tab-insurance" class="tab-content">
-            <div class="print-area rounded-lg">
+           <div class="print-area rounded-lg">
                 <!-- Header -->
-                <div class="flex justify-between items-center border-b-2 border-blue-800 pb-4 mb-6">
-                    <div>
-                        <h2 class="text-xl text-gray-600 mt-1">گزارش تحلیلی مانده حساب بیمه</h2>
+                <div class="flex justify-between items-end border-b-2 border-gray-800 pb-4 mb-6">
+                    <div class="flex items-center gap-4">
+                        <!-- Placeholder for Logo if needed -->
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">شرکت سایپا آذین (سهامی عام)</h1>
+                            <h2 class="text-lg text-gray-600 mt-1">گزارش تحلیلی جامع بدهی‌های بیمه (تامین اجتماعی و تجاری)</h2>
+                        </div>
                     </div>
                     <div class="text-left text-sm text-gray-500">
                         <p>تاریخ گزارش: <span id="current-date"></span></p>
-                        <p>وضعیت: <span class="text-red-600 font-bold">دارای مانده بدهی</span></p>
+                        <p>وضعیت کلی: <span class="text-red-600 font-bold bg-red-100 px-2 py-1 rounded">نیازمند تامین نقدینگی</span></p>
                     </div>
                 </div>
 
-                <!-- Executive Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                        <h3 class="text-blue-800 text-sm font-bold mb-1">جمع کل مانده بدهی</h3>
-                        <p class="text-2xl font-bold text-blue-900">292,001,356,115 <span class="text-sm font-normal">ریال</span></p>
+                <!-- Dashboard Cards & Chart Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Left: Summary Cards -->
+                    <div class="lg:col-span-1 space-y-4">
+                        <div class="bg-rose-50 p-4 rounded-lg border-r-4 border-rose-800 shadow-sm">
+                            <h3 class="text-rose-800 text-sm font-bold mb-1">بدهی تامین اجتماعی (جاری و سنواتی)</h3>
+                            <p class="text-2xl font-bold text-rose-900 currency">433,330,616,176</p>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg border-r-4 border-green-700 shadow-sm">
+                            <h3 class="text-green-800 text-sm font-bold mb-1">بدهی بیمه‌های تجاری (دانا، ایران و...)</h3>
+                            <p class="text-2xl font-bold text-green-900 currency">292,001,356,115</p>
+                        </div>
+                        <div class="bg-gray-800 text-white p-5 rounded-lg shadow-md mt-4">
+                            <h3 class="text-gray-300 text-sm font-bold mb-2">جمع کل بدهی‌های بیمه‌ای</h3>
+                            <p class="text-3xl font-bold currency tracking-wider text-yellow-400">725,331,972,291</p>
+                            <p class="text-xs text-gray-400 mt-1 text-right">ریال</p>
+                        </div>
                     </div>
-                    <div class="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                        <h3 class="text-orange-800 text-sm font-bold mb-1">بدهی سنواتی (قدیمی)</h3>
-                        <p class="text-2xl font-bold text-orange-900">34,201,383,403 <span class="text-sm font-normal">ریال</span></p>
-                    </div>
-                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
-                        <h3 class="text-green-800 text-sm font-bold mb-1">تعهدات جاری (۱۴۰۳-۱۴۰۴)</h3>
-                        <p class="text-2xl font-bold text-green-900">248,570,284,523 <span class="text-sm font-normal">ریال</span></p>
+
+                    <!-- Right: Chart -->
+                    <div class="lg:col-span-2 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                        <h3 class="text-gray-700 font-bold text-sm mb-4 text-center">ترکیب پرتفوی بدهی‌های بیمه</h3>
+                        <div class="relative h-64 w-full">
+                            <canvas id="debtChart"></canvas>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Table 1: 1402 - 1403 -->
-                <div class="mb-8">
-                    <h3 class="text-lg font-bold text-gray-800 mb-2 border-r-4 border-blue-600 pr-2">قراردادهای دوره ۱۴۰۲ الی ۱۴۰۳</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full text-sm text-right insurance-table">
+                <!-- SECTION 1: Social Security (Tamin Ejtemaei) -->
+                <div class="mb-10">
+                    <div class="flex items-center mb-3">
+                        <div class="w-2 h-8 bg-rose-900 ml-3 rounded"></div>
+                        <h3 class="text-xl font-bold text-gray-800">بیمه تامین اجتماعی</h3>
+                        <span class="mr-auto text-sm bg-gray-100 px-3 py-1 rounded text-gray-600">تا تاریخ 1404/08/30</span>
+                    </div>
+                    <div class="overflow-x-auto rounded-t-lg border border-gray-200">
+                        <table class="min-w-full text-right">
                             <thead>
                                 <tr>
-                                    <th class="p-3 rounded-tr-lg">ردیف</th>
-                                    <th class="p-3">شرح قرارداد</th>
-                                    <th class="p-3">بیمه‌گر</th>
-                                    <th class="p-3">تاریخ شروع</th>
-                                    <th class="p-3">تاریخ خاتمه</th>
-                                    <th class="p-3 text-left">مانده بدهی (ریال)</th>
-                                    <th class="p-3 text-left rounded-tl-lg">مبلغ اقساط (ریال)</th>
+                                    <th class="p-3 bg-header-sso w-10">ردیف</th>
+                                    <th class="p-3 bg-header-sso">عنوان بدهی</th>
+                                    <th class="p-3 bg-header-sso">تقسیط</th>
+                                    <th class="p-3 bg-header-sso text-left">اصل بدهی</th>
+                                    <th class="p-3 bg-header-sso text-left">جریمه</th>
+                                    <th class="p-3 bg-header-sso text-left">جمع کل (اصل+جریمه)</th>
+                                    <th class="p-3 bg-header-sso text-left">پرداخت شده</th>
+                                    <th class="p-3 bg-header-sso text-left">مانده بدهی</th>
+                                    <th class="p-3 bg-header-sso">سررسید</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td class="p-3 border-b">1</td><td class="p-3 border-b">مسئولیت مدنی</td><td class="p-3 border-b">بیمه دانا</td><td class="p-3 border-b">1402/10/16</td><td class="p-3 border-b">1403/10/16</td><td class="p-3 border-b currency">5,089,520,897</td><td class="p-3 border-b currency">687,000,000</td></tr>
-                                <tr><td class="p-3 border-b">2</td><td class="p-3 border-b">مسئولیت لیفتراک</td><td class="p-3 border-b">بیمه دانا</td><td class="p-3 border-b">1402/12/08</td><td class="p-3 border-b">1403/12/08</td><td class="p-3 border-b currency">1,926,438,740</td><td class="p-3 border-b currency">264,268,000</td></tr>
-                                <tr><td class="p-3 border-b">3</td><td class="p-3 border-b">حریق</td><td class="p-3 border-b">بیمه دانا</td><td class="p-3 border-b">1402/10/17</td><td class="p-3 border-b">1403/10/17</td><td class="p-3 border-b currency">2,158,337,661</td><td class="p-3 border-b currency">428,200,000</td></tr>
-                                <tr><td class="p-3 border-b">4</td><td class="p-3 border-b">بیمه وجوه صندوق</td><td class="p-3 border-b">بیمه دانا</td><td class="p-3 border-b">1402/10/17</td><td class="p-3 border-b">1403/10/17</td><td class="p-3 border-b currency">55,390,891</td><td class="p-3 border-b currency">55,390,891</td></tr>
-                                <tr class="total-row"><td colspan="5" class="p-3 text-center">جمع کل دوره</td><td class="p-3 currency text-blue-900">9,229,688,189</td><td class="p-3 currency">1,434,858,891</td></tr>
+                                <tr>
+                                    <td class="p-3 border-b">1</td>
+                                    <td class="p-3 border-b">بیمه خرداد 1404</td>
+                                    <td class="p-3 border-b text-center">-</td>
+                                    <td class="p-3 border-b currency">120,651,657,991</td>
+                                    <td class="p-3 border-b currency">0</td>
+                                    <td class="p-3 border-b currency">120,651,657,991</td>
+                                    <td class="p-3 border-b currency">0</td>
+                                    <td class="p-3 border-b currency font-bold text-rose-700">120,651,657,991</td>
+                                    <td class="p-3 border-b text-center">1404/04/31</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-b">2</td>
+                                    <td class="p-3 border-b">بیمه مرداد ماه 1404</td>
+                                    <td class="p-3 border-b text-center">-</td>
+                                    <td class="p-3 border-b currency">118,524,962,531</td>
+                                    <td class="p-3 border-b currency">0</td>
+                                    <td class="p-3 border-b currency">118,524,962,531</td>
+                                    <td class="p-3 border-b currency">0</td>
+                                    <td class="p-3 border-b currency font-bold text-rose-700">118,524,962,531</td>
+                                    <td class="p-3 border-b text-center">1404/06/31</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-b">3</td>
+                                    <td class="p-3 border-b">بیمه آبان 1404</td>
+                                    <td class="p-3 border-b text-center">-</td>
+                                    <td class="p-3 border-b currency">115,157,936,313</td>
+                                    <td class="p-3 border-b currency">0</td>
+                                    <td class="p-3 border-b currency">115,157,936,313</td>
+                                    <td class="p-3 border-b currency">0</td>
+                                    <td class="p-3 border-b currency font-bold text-rose-700">115,157,936,313</td>
+                                    <td class="p-3 border-b text-center">1404/09/31</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-b">4</td>
+                                    <td class="p-3 border-b text-xs">تقسیط نامه 192020578 (سختی و زیان آور)</td>
+                                    <td class="p-3 border-b text-center">4</td>
+                                    <td class="p-3 border-b currency">38,680,968,883</td>
+                                    <td class="p-3 border-b currency">754,382,621</td>
+                                    <td class="p-3 border-b currency">39,435,351,504</td>
+                                    <td class="p-3 border-b currency">22,111,163,715</td>
+                                    <td class="p-3 border-b currency font-bold text-rose-700">17,324,187,789</td>
+                                    <td class="p-3 border-b text-center">1404/07/21</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-b">5</td>
+                                    <td class="p-3 border-b text-xs">تقسیط نامه 192020578 (حسابرسی 1401)</td>
+                                    <td class="p-3 border-b text-center">4</td>
+                                    <td class="p-3 border-b currency">30,260,507,509</td>
+                                    <td class="p-3 border-b currency">4,008,020,039</td>
+                                    <td class="p-3 border-b currency">34,268,527,548</td>
+                                    <td class="p-3 border-b currency">0</td>
+                                    <td class="p-3 border-b currency font-bold text-rose-700">34,268,527,548</td>
+                                    <td class="p-3 border-b text-center">-</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-b">6</td>
+                                    <td class="p-3 border-b text-xs">تقسیط نامه 14 نفر سخت و زیان آور</td>
+                                    <td class="p-3 border-b text-center">3</td>
+                                    <td class="p-3 border-b currency">45,672,240,006</td>
+                                    <td class="p-3 border-b currency">0</td>
+                                    <td class="p-3 border-b currency">45,672,240,006</td>
+                                    <td class="p-3 border-b currency">18,268,896,002</td>
+                                    <td class="p-3 border-b currency font-bold text-rose-700">27,403,344,004</td>
+                                    <td class="p-3 border-b text-center">1404/09/12</td>
+                                </tr>
+                                <tr class="total-row bg-rose-50">
+                                    <td colspan="3" class="p-3 text-center text-rose-900">جمع کل تامین اجتماعی</td>
+                                    <td class="p-3 currency text-gray-500 text-xs">468,948,273,233</td>
+                                    <td class="p-3 currency text-gray-500 text-xs">4,762,402,660</td>
+                                    <td class="p-3 currency text-gray-500 text-xs">473,710,675,893</td>
+                                    <td class="p-3 currency text-gray-500 text-xs">40,380,059,717</td>
+                                    <td class="p-3 currency text-rose-900 text-lg">433,330,616,176</td>
+                                    <td class="p-3"></td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Table 2: 1403 - 1404 -->
-                <div class="mb-8">
-                    <h3 class="text-lg font-bold text-gray-800 mb-2 border-r-4 border-green-600 pr-2">قراردادهای دوره ۱۴۰۳ الی ۱۴۰۴</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full text-sm text-right insurance-table">
+                <!-- SECTION 2: Commercial Insurance 1403-1404 -->
+                <div class="mb-8 page-break-inside-avoid">
+                    <div class="flex items-center mb-3">
+                        <div class="w-2 h-8 bg-green-700 ml-3 rounded"></div>
+                        <h3 class="text-xl font-bold text-gray-800">بیمه‌های تجاری (قراردادهای ۱۴۰۳ الی ۱۴۰۴)</h3>
+                    </div>
+                    <div class="overflow-x-auto rounded-t-lg border border-gray-200">
+                        <table class="min-w-full text-sm text-right">
                             <thead>
                                 <tr>
-                                    <th class="p-3 bg-green-800 rounded-tr-lg">ردیف</th>
-                                    <th class="p-3 bg-green-800">شرح قرارداد</th>
-                                    <th class="p-3 bg-green-800">بیمه‌گر</th>
-                                    <th class="p-3 bg-green-800">تاریخ شروع</th>
-                                    <th class="p-3 bg-green-800">تاریخ خاتمه</th>
-                                    <th class="p-3 bg-green-800 text-left">مانده بدهی (ریال)</th>
-                                    <th class="p-3 bg-green-800 text-left rounded-tl-lg">مبلغ اقساط (ریال)</th>
+                                    <th class="p-3 bg-header-current w-10">ردیف</th>
+                                    <th class="p-3 bg-header-current">شرح قرارداد</th>
+                                    <th class="p-3 bg-header-current">بیمه‌گر</th>
+                                    <th class="p-3 bg-header-current">تاریخ سررسید</th>
+                                    <th class="p-3 bg-header-current text-left">مانده بدهی (ریال)</th>
+                                    <th class="p-3 bg-header-current text-left">مبلغ اقساط (ریال)</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td class="p-3 border-b">1</td><td class="p-3 border-b">درمان گروهی</td><td class="p-3 border-b">بیمه دانا</td><td class="p-3 border-b">1403/10/12</td><td class="p-3 border-b">1404/10/12</td><td class="p-3 border-b currency">227,124,250,000</td><td class="p-3 border-b currency">31,039,090,530</td></tr>
-                                <tr><td class="p-3 border-b">2</td><td class="p-3 border-b">عمر گروهی</td><td class="p-3 border-b">بیمه دانا</td><td class="p-3 border-b">1403/10/12</td><td class="p-3 border-b">1404/10/12</td><td class="p-3 border-b currency">10,669,750,000</td><td class="p-3 border-b currency">921,375,000</td></tr>
-                                <tr><td class="p-3 border-b">3</td><td class="p-3 border-b">حوادث گروهی</td><td class="p-3 border-b">بیمه دانا</td><td class="p-3 border-b">1403/10/12</td><td class="p-3 border-b">1404/10/12</td><td class="p-3 border-b currency">1,805,237,500</td><td class="p-3 border-b currency">155,925,000</td></tr>
-                                <tr><td class="p-3 border-b">4</td><td class="p-3 border-b">مسئولیت مدنی</td><td class="p-3 border-b">بیمه دانا</td><td class="p-3 border-b">1403/10/17</td><td class="p-3 border-b">1404/10/17</td><td class="p-3 border-b currency">6,983,523,023</td><td class="p-3 border-b currency">960,724,780</td></tr>
-                                <tr><td class="p-3 border-b">5</td><td class="p-3 border-b">مسئولیت لیفتراک</td><td class="p-3 border-b">بیمه دانا</td><td class="p-3 border-b">1403/12/08</td><td class="p-3 border-b">1404/12/08</td><td class="p-3 border-b currency">1,987,524,000</td><td class="p-3 border-b currency">235,558,400</td></tr>
-                                <tr class="total-row"><td colspan="5" class="p-3 text-center">جمع کل دوره</td><td class="p-3 currency text-green-900">248,570,284,523</td><td class="p-3 currency">33,312,673,710</td></tr>
+                                <tr>
+                                    <td class="p-3 border-b">1</td>
+                                    <td class="p-3 border-b">درمان گروهی</td>
+                                    <td class="p-3 border-b">بیمه دانا</td>
+                                    <td class="p-3 border-b">1404/10/12</td>
+                                    <td class="p-3 border-b currency">227,124,250,000</td>
+                                    <td class="p-3 border-b currency">31,039,090,530</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-b">2</td>
+                                    <td class="p-3 border-b">عمر گروهی</td>
+                                    <td class="p-3 border-b">بیمه دانا</td>
+                                    <td class="p-3 border-b">1404/10/12</td>
+                                    <td class="p-3 border-b currency">10,669,750,000</td>
+                                    <td class="p-3 border-b currency">921,375,000</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-b">3</td>
+                                    <td class="p-3 border-b">حوادث گروهی</td>
+                                    <td class="p-3 border-b">بیمه دانا</td>
+                                    <td class="p-3 border-b">1404/10/12</td>
+                                    <td class="p-3 border-b currency">1,805,237,500</td>
+                                    <td class="p-3 border-b currency">155,925,000</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-b">4</td>
+                                    <td class="p-3 border-b">مسئولیت مدنی</td>
+                                    <td class="p-3 border-b">بیمه دانا</td>
+                                    <td class="p-3 border-b">1404/10/17</td>
+                                    <td class="p-3 border-b currency">6,983,523,023</td>
+                                    <td class="p-3 border-b currency">960,724,780</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-b">5</td>
+                                    <td class="p-3 border-b">مسئولیت لیفتراک</td>
+                                    <td class="p-3 border-b">بیمه دانا</td>
+                                    <td class="p-3 border-b">1404/12/08</td>
+                                    <td class="p-3 border-b currency">1,987,524,000</td>
+                                    <td class="p-3 border-b currency">235,558,400</td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td colspan="4" class="p-3 text-center">جمع کل دوره</td>
+                                    <td class="p-3 currency text-green-900">248,570,284,523</td>
+                                    <td class="p-3 currency">33,312,673,710</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Table 3: Past & Misc -->
-                <div class="mb-8">
-                    <h3 class="text-lg font-bold text-gray-800 mb-2 border-r-4 border-gray-600 pr-2">سایر بدهی‌ها و قراردادهای سنواتی</h3>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full text-sm text-right insurance-table">
+                <!-- SECTION 3: Commercial Insurance 1402-1403 -->
+                <div class="mb-8 page-break-inside-avoid">
+                    <div class="flex items-center mb-3">
+                        <div class="w-2 h-8 bg-blue-800 ml-3 rounded"></div>
+                        <h3 class="text-xl font-bold text-gray-800">بیمه‌های تجاری (قراردادهای ۱۴۰۲ الی ۱۴۰۳)</h3>
+                    </div>
+                    <div class="overflow-x-auto rounded-t-lg border border-gray-200">
+                        <table class="min-w-full text-sm text-right">
                             <thead>
                                 <tr>
-                                    <th class="p-3 bg-gray-600 rounded-tr-lg">ردیف</th>
-                                    <th class="p-3 bg-gray-600">شرح قرارداد</th>
-                                    <th class="p-3 bg-gray-600">بیمه‌گر</th>
-                                    <th class="p-3 bg-gray-600">تاریخ شروع</th>
-                                    <th class="p-3 bg-gray-600">تاریخ خاتمه</th>
-                                    <th class="p-3 bg-gray-600 text-left rounded-tl-lg">مانده بدهی (ریال)</th>
+                                    <th class="p-3 bg-header-past w-10">ردیف</th>
+                                    <th class="p-3 bg-header-past">شرح قرارداد</th>
+                                    <th class="p-3 bg-header-past">بیمه‌گر</th>
+                                    <th class="p-3 bg-header-past">تاریخ خاتمه</th>
+                                    <th class="p-3 bg-header-past text-left">مانده بدهی (ریال)</th>
+                                    <th class="p-3 bg-header-past text-left">مبلغ اقساط (ریال)</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td class="p-3 border-b">1</td><td class="p-3 border-b">بیمه خودرو بدنه</td><td class="p-3 border-b">بیمه ایران و ...</td><td class="p-3 border-b">-</td><td class="p-3 border-b">-</td><td class="p-3 border-b currency">4,986,987,380</td></tr>
-                                <tr><td class="p-3 border-b">2</td><td class="p-3 border-b">بیمه خودرو ثالث</td><td class="p-3 border-b">بیمه ایران و ...</td><td class="p-3 border-b">-</td><td class="p-3 border-b">-</td><td class="p-3 border-b currency">17,381,833,992</td></tr>
-                                <tr><td class="p-3 border-b">3</td><td class="p-3 border-b">بیمه عمر و تامین آتیه - الحاقیه</td><td class="p-3 border-b">بیمه آتیه</td><td class="p-3 border-b">-</td><td class="p-3 border-b">-</td><td class="p-3 border-b currency">131,208,000</td></tr>
-                                <tr><td class="p-3 border-b">4</td><td class="p-3 border-b">بیمه دی - ق درمان گروهی</td><td class="p-3 border-b">بیمه دی</td><td class="p-3 border-b">1397/07/12</td><td class="p-3 border-b">1398/07/11</td><td class="p-3 border-b currency">3,327,600,000</td></tr>
-                                <tr><td class="p-3 border-b">5</td><td class="p-3 border-b">بیمه دی - ق حوادث گروهی</td><td class="p-3 border-b">بیمه دی</td><td class="p-3 border-b">1397/07/12</td><td class="p-3 border-b">1398/07/11</td><td class="p-3 border-b currency">370,891,514</td></tr>
-                                <tr><td class="p-3 border-b">6</td><td class="p-3 border-b">بیمه دانا - ق عمر گروهی</td><td class="p-3 border-b">بیمه دانا</td><td class="p-3 border-b">1396/06/11</td><td class="p-3 border-b">1397/06/11</td><td class="p-3 border-b currency">308,336,178</td></tr>
-                                <tr><td class="p-3 border-b">7</td><td class="p-3 border-b">شرکت بیمه رایان سایپا - تکمیل درمان</td><td class="p-3 border-b">رایان</td><td class="p-3 border-b">1392/04/11</td><td class="p-3 border-b">1393/04/11</td><td class="p-3 border-b currency">7,011,288,873</td></tr>
-                                <tr><td class="p-3 border-b">8</td><td class="p-3 border-b">بیمه باربری</td><td class="p-3 border-b">امید</td><td class="p-3 border-b">-</td><td class="p-3 border-b">-</td><td class="p-3 border-b currency">535,000,000</td></tr>
-                                <tr><td class="p-3 border-b">9</td><td class="p-3 border-b">بیمه امید (حوادث گروهی) - الحاقیه</td><td class="p-3 border-b">امید</td><td class="p-3 border-b">-</td><td class="p-3 border-b">-</td><td class="p-3 border-b currency">41,399,820</td></tr>
-                                <tr><td class="p-3 border-b">10</td><td class="p-3 border-b">بیمه امید (عمر گروهی) - الحاقیه</td><td class="p-3 border-b">امید</td><td class="p-3 border-b">-</td><td class="p-3 border-b">-</td><td class="p-3 border-b currency">106,837,646</td></tr>
-                                <tr class="total-row"><td colspan="5" class="p-3 text-center">جمع سایر موارد</td><td class="p-3 currency text-gray-900">34,201,383,403</td></tr>
+                                <tr>
+                                    <td class="p-3 border-b">1</td>
+                                    <td class="p-3 border-b">مسئولیت مدنی</td>
+                                    <td class="p-3 border-b">بیمه دانا</td>
+                                    <td class="p-3 border-b">1403/10/16</td>
+                                    <td class="p-3 border-b currency">5,089,520,897</td>
+                                    <td class="p-3 border-b currency">687,000,000</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-b">2</td>
+                                    <td class="p-3 border-b">مسئولیت لیفتراک</td>
+                                    <td class="p-3 border-b">بیمه دانا</td>
+                                    <td class="p-3 border-b">1403/12/08</td>
+                                    <td class="p-3 border-b currency">1,926,438,740</td>
+                                    <td class="p-3 border-b currency">264,268,000</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-b">3</td>
+                                    <td class="p-3 border-b">حریق</td>
+                                    <td class="p-3 border-b">بیمه دانا</td>
+                                    <td class="p-3 border-b">1403/10/17</td>
+                                    <td class="p-3 border-b currency">2,158,337,661</td>
+                                    <td class="p-3 border-b currency">428,200,000</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-b">4</td>
+                                    <td class="p-3 border-b">بیمه وجوه صندوق</td>
+                                    <td class="p-3 border-b">بیمه دانا</td>
+                                    <td class="p-3 border-b">1403/10/17</td>
+                                    <td class="p-3 border-b currency">55,390,891</td>
+                                    <td class="p-3 border-b currency">55,390,891</td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td colspan="4" class="p-3 text-center">جمع کل دوره</td>
+                                    <td class="p-3 currency text-blue-900">9,229,688,189</td>
+                                    <td class="p-3 currency">1,434,858,891</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Grand Total Footer -->
-                <div class="mt-8 border-t-4 border-double border-gray-400 pt-6">
-                    <div class="flex justify-between items-center bg-gray-800 text-white p-6 rounded-lg shadow-lg">
-                        <div class="text-xl font-bold">جمع کل بدهی شرکت سایپا آذین</div>
-                        <div class="text-3xl font-bold currency tracking-wider">292,001,356,115 <span class="text-lg font-normal">ریال</span></div>
+                <!-- SECTION 4: Past & Misc -->
+                <div class="mb-8 page-break-inside-avoid">
+                    <div class="flex items-center mb-3">
+                        <div class="w-2 h-8 bg-gray-600 ml-3 rounded"></div>
+                        <h3 class="text-xl font-bold text-gray-800">سایر بدهی‌ها و قراردادهای سنواتی</h3>
+                    </div>
+                    <div class="overflow-x-auto rounded-t-lg border border-gray-200">
+                        <table class="min-w-full text-sm text-right">
+                            <thead>
+                                <tr>
+                                    <th class="p-3 bg-header-old w-10">ردیف</th>
+                                    <th class="p-3 bg-header-old">شرح قرارداد</th>
+                                    <th class="p-3 bg-header-old">بیمه‌گر</th>
+                                    <th class="p-3 bg-header-old text-left rounded-tl-lg">مانده بدهی (ریال)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="p-3 border-b">1</td>
+                                    <td class="p-3 border-b">بیمه خودرو (بدنه و ثالث)</td>
+                                    <td class="p-3 border-b">بیمه ایران و ...</td>
+                                    <td class="p-3 border-b currency">22,368,821,372</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-b">2</td>
+                                    <td class="p-3 border-b">بیمه عمر و تامین آتیه - الحاقیه</td>
+                                    <td class="p-3 border-b">بیمه آتیه</td>
+                                    <td class="p-3 border-b currency">131,208,000</td>
+                                </tr>
+                                 <tr>
+                                    <td class="p-3 border-b">3</td>
+                                    <td class="p-3 border-b">قراردادهای سنواتی بیمه دی</td>
+                                    <td class="p-3 border-b">بیمه دی</td>
+                                    <td class="p-3 border-b currency">3,698,491,514</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-b">4</td>
+                                    <td class="p-3 border-b">بیمه دانا - ق عمر گروهی (96-97)</td>
+                                    <td class="p-3 border-b">بیمه دانا</td>
+                                    <td class="p-3 border-b currency">308,336,178</td>
+                                </tr>
+                                 <tr>
+                                    <td class="p-3 border-b">5</td>
+                                    <td class="p-3 border-b">شرکت بیمه رایان سایپا - تکمیل درمان</td>
+                                    <td class="p-3 border-b">رایان</td>
+                                    <td class="p-3 border-b currency">7,011,288,873</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 border-b">6</td>
+                                    <td class="p-3 border-b">بیمه امید (باربری، حوادث، عمر)</td>
+                                    <td class="p-3 border-b">امید</td>
+                                    <td class="p-3 border-b currency">683,237,466</td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td colspan="3" class="p-3 text-center">جمع سایر موارد</td>
+                                    <td class="p-3 currency text-gray-900">34,201,383,403</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
+
             </div>
         </div>
         
@@ -642,75 +877,203 @@
             </div>
         </div>
         
-        <!-- TAB 6: Retirees & Resigned (New Independent Tab) -->
+        <!-- TAB 6: Retirees & Resigned (REPLACED WITH USER CODE) -->
         <div id="tab-retiree" class="tab-content">
-             <!-- 5. Retirees & Resigned -->
-             <div class="accordion-wrapper panel-retiree">
-                <button class="accordion">وضعیت بازنشستگان و مستعفی‌ها (اصلاح شده)</button>
-                <div class="panel" style="max-height: 2000px;"><div class="panel-content">
-                    
-                    <div class="charts-grid">
-                        <!-- Debt Share Pie + Table -->
-                        <div class="chart-box full-width" style="height: 350px;">
-                            <h3>سهم بدهی سنوات (لیست جاری)</h3>
-                            <div class="side-by-side">
-                                <div class="side-chart"><canvas id="retireeDebtChart"></canvas></div>
-                                <div class="side-table-container">
-                                    <table class="mini-table">
-                                        <tr>
-                                            <td class="label">بازنشستگان (لیست جدید)</td>
-                                            <td class="value" style="color: #d97706;" id="sum-retired-table">0</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="label">مستعفی و قطع همکاری (لیست کامل)</td>
-                                            <td class="value" style="color: #1e3a8a;" id="sum-resigned-table">0</td>
-                                        </tr>
-                                        <tr style="background: #fffbeb; border-top: 2px solid #d97706;">
-                                            <td class="label" style="font-weight: 900; color: #92400e;">جمع تعهدات جاری (نمایشی)</td>
-                                            <td class="value" style="font-size: 1.1rem; color: #92400e;" id="sum-total-table">0</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
+             <!-- Header -->
+            <div class="header-gradient text-white p-6 shadow-lg rounded-xl mb-6">
+                <div class="container mx-auto flex justify-between items-center">
+                    <div>
+                        <h1 class="text-2xl font-bold mb-1"><i class="fas fa-chart-pie ml-2"></i>گزارش استراتژیک تعهدات بازنشستگی ۱۴۰۴</h1>
+                        <p class="text-blue-200 text-sm opacity-90">سناریوی نهایی: محاسبات بر مبنای ۳۰ روز | تمرکز بر تعهدات باقی‌مانده</p>
+                    </div>
+                    <div class="text-left hidden md:block">
+                        <div class="text-sm opactiy-75">تاریخ گزارش</div>
+                        <div class="font-bold text-lg">۱۶ آذر ۱۴۰۴</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Executive Summary Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <!-- Total Count (Updated to 161) -->
+                <div class="card p-6 border-r-4 border-blue-600">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm mb-1">تعداد کل نفرات باقی‌مانده</p>
+                            <h3 class="text-3xl font-bold text-gray-800 stat-value">۱۶۱ <span class="text-sm font-normal text-gray-500">نفر</span></h3>
                         </div>
-
-                        <!-- Split Tables -->
-                        <div class="chart-box full-width tall-chart" style="height: auto; min-height: 500px;">
-                            <!-- Retired Table -->
-                            <div class="section-title">
-                                لیست بازنشستگان (عادی و زیان‌آور)
-                                <span class="total-display" id="total-retired-display">جمع: ...</span>
-                            </div>
-                            <div class="table-wrapper" style="height: 250px; margin-bottom: 30px;">
-                                <table class="main-table" id="retiredTableList">
-                                    <thead>
-                                        <tr>
-                                            <th>ردیف</th><th>پرسنلی</th><th>نام و نام خانوادگی</th><th>تاریخ قطع همکاری</th><th>مانده سنوات (ریال)</th><th>علت انفصال</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-
-                            <!-- Resigned Table -->
-                            <div class="section-title" style="color: #1e3a8a; border-color: #1e3a8a;">
-                                لیست مستعفی‌ها و قطع همکاری
-                                <span class="total-display" style="color: #1e3a8a; background: #e0f2fe;" id="total-resigned-display">جمع: ...</span>
-                            </div>
-                            <div class="table-wrapper" style="height: 250px;">
-                                <table class="main-table" id="resignedTableList">
-                                    <thead>
-                                        <tr>
-                                            <th>ردیف</th><th>پرسنلی</th><th>نام و نام خانوادگی</th><th>تاریخ قطع همکاری</th><th>مانده سنوات (ریال)</th><th>توضیحات</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
+                        <div class="p-3 bg-blue-100 rounded-full text-blue-600">
+                            <i class="fas fa-users text-xl"></i>
                         </div>
                     </div>
+                    <p class="text-xs text-gray-500 mt-4">
+                        نفرات دارای بار مالی موثر
+                    </p>
+                </div>
 
-                </div></div>
+                <!-- Total Liability (30 Days) - Text Removed -->
+                <div class="card p-6 border-r-4 border-green-600">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm mb-1">کل تعهدات (سناریوی ۳۰ روز)</p>
+                            <h3 class="text-2xl font-bold text-gray-800 stat-value">۲,۲۱۵ <span class="text-sm font-normal text-gray-500">میلیارد ریال</span></h3>
+                        </div>
+                        <div class="p-3 bg-green-100 rounded-full text-green-600">
+                            <i class="fas fa-check-circle text-xl"></i>
+                        </div>
+                    </div>
+                    <!-- Removed subtext as requested -->
+                    <div class="mt-8"></div> 
+                </div>
+
+                 <!-- Monthly Salary Bleed (Updated Title) -->
+                 <div class="card p-6 border-r-4 border-orange-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-xs mb-1 font-bold">حقوق تجمعی پرداخت شده به پرسنل فعال بازنشسته</p>
+                            <h3 class="text-2xl font-bold text-gray-800 stat-value mt-2">۷۰.۵ <span class="text-sm font-normal text-gray-500">میلیارد ریال</span></h3>
+                        </div>
+                        <div class="p-3 bg-orange-100 rounded-full text-orange-600">
+                            <i class="fas fa-hand-holding-usd text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hardship Cost -->
+                <div class="card p-6 border-r-4 border-purple-600">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-500 text-sm mb-1">هزینه ۴٪ و اصلاح عناوین</p>
+                            <h3 class="text-2xl font-bold text-gray-800 stat-value">۱,۰۷۸ <span class="text-sm font-normal text-gray-500">میلیارد ریال</span></h3>
+                        </div>
+                        <div class="p-3 bg-purple-100 rounded-full text-purple-600">
+                            <i class="fas fa-file-invoice-dollar text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-4">
+                        تعهدات قطعی مشاغل سخت
+                    </p>
+                </div>
+            </div>
+
+            <!-- Strategy Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                
+                <!-- Main Chart: Cost Breakdown -->
+                <div class="card p-6 lg:col-span-2">
+                    <h3 class="text-lg font-bold mb-4 border-b pb-2">تفکیک تعهدات مالی (با مبنای ۳۰ روز)</h3>
+                    <div class="relative h-72">
+                        <canvas id="costChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-sm text-gray-600 bg-blue-50 p-3 rounded border border-blue-200">
+                        <i class="fas fa-info-circle text-blue-600 ml-2"></i>
+                        <strong>تحلیل:</strong> با تغییر مبنا به ۳۰ روز، ستون‌های آبی (سنوات) نسبت به قبل کاهش یافته‌اند. ستون نارنجی نشان‌دهنده بدهی قطعی مربوط به بازنشستگان سال ۱۴۰۳ است.
+                    </div>
+                </div>
+
+                <!-- KPI Doughnut -->
+                <div class="card p-6">
+                    <h3 class="text-lg font-bold mb-4 border-b pb-2">توزیع واقعی نفرات (دارای بار مالی)</h3>
+                    <div class="relative h-64 flex justify-center">
+                        <canvas id="headcountChart"></canvas>
+                    </div>
+                    <div class="mt-4 space-y-2">
+                         <div class="flex justify-between text-sm">
+                            <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-red-500 ml-2"></span>فاقد حضور (۶۱)</span>
+                            <span class="font-bold">۳۸٪</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-blue-500 ml-2"></span>حاضر در شرکت (۵۶)</span>
+                            <span class="font-bold">۳۵٪</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-orange-500 ml-2"></span>بازنشستگان ۱۴۰۳ (۲۶)</span>
+                            <span class="font-bold">۱۶٪</span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="flex items-center"><span class="w-3 h-3 rounded-full bg-green-500 ml-2"></span>عادی (۱۸)</span>
+                            <span class="font-bold">۱۱٪</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-2 text-center">* ۹۸ نفر از لیست ۱۴۰۳ تسویه شده و حذف شدند</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Table -->
+            <div class="card overflow-hidden mb-8">
+                <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+                    <h3 class="text-lg font-bold">جدول محاسبات نهایی (سناریوی ۳۰ روز)</h3>
+                    <button onclick="alert('نسخه نهایی تایید شد')" class="text-sm bg-blue-800 text-white px-3 py-1 rounded hover:bg-blue-900 transition">
+                        <i class="fas fa-check-circle ml-1"></i> تایید گزارش
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-right">
+                        <thead class="bg-gray-100 text-gray-600 border-b-2 border-gray-200">
+                            <tr>
+                                <th class="p-4">ردیف</th>
+                                <th class="p-4">دسته بندی</th>
+                                <th class="p-4">تعداد موثر</th>
+                                <th class="p-4">هزینه ۴٪ + اصلاحات</th>
+                                <th class="p-4 bg-green-50 text-green-800 border-r border-green-200">سنوات (۳۰ روز)</th>
+                                <th class="p-4 bg-green-100 text-green-900 font-bold border-r border-green-300">جمع کل تعهدات</th>
+                                <th class="p-4 text-red-600">حقوق پرداختی ماهانه</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <!-- Row 1 -->
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="p-4 font-bold">۱</td>
+                                <td class="p-4 font-medium">فاقد حضور (حمایتی/مازاد)</td>
+                                <td class="p-4 text-center">۶۱</td>
+                                <td class="p-4 font-mono dir-ltr">562,435,339,006</td>
+                                <td class="p-4 font-mono dir-ltr bg-green-50 text-green-800">386,303,082,557</td>
+                                <td class="p-4 font-mono dir-ltr bg-green-100 font-bold text-green-900">948,738,421,563</td>
+                                <td class="p-4 font-mono dir-ltr text-red-600">30,098,970,000</td>
+                            </tr>
+                            <!-- Row 2 -->
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="p-4 font-bold">۲</td>
+                                <td class="p-4 font-medium">حاضر در شرکت (سخت و زیان‌آور)</td>
+                                <td class="p-4 text-center">۵۶</td>
+                                <td class="p-4 font-mono dir-ltr">516,334,081,710</td>
+                                <td class="p-4 font-mono dir-ltr bg-green-50 text-green-800">354,447,915,854</td>
+                                <td class="p-4 font-mono dir-ltr bg-green-100 font-bold text-green-900">870,781,997,564</td>
+                                <td class="p-4 font-mono dir-ltr text-red-600">28,041,890,000</td>
+                            </tr>
+                            <!-- Row 3 -->
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="p-4 font-bold">۳</td>
+                                <td class="p-4 font-medium">بازنشستگی عادی</td>
+                                <td class="p-4 text-center">۱۸</td>
+                                <td class="p-4 text-center text-gray-400">-</td>
+                                <td class="p-4 font-mono dir-ltr bg-green-50 text-green-800">224,116,400,299</td>
+                                <td class="p-4 font-mono dir-ltr bg-green-100 font-bold text-green-900">224,116,400,299</td>
+                                <td class="p-4 font-mono dir-ltr text-red-600">12,416,210,000</td>
+                            </tr>
+                            <!-- Row 4 -->
+                            <tr class="hover:bg-orange-50 transition border-l-4 border-orange-500 bg-orange-50/30">
+                                <td class="p-4 font-bold text-orange-900">۴</td>
+                                <td class="p-4 font-medium text-orange-900">بازنشستگان ۱۴۰۳ (مانده)</td>
+                                <td class="p-4 text-center text-orange-900 font-bold">۲۶ <span class="text-xs font-normal text-gray-500 block">(موثر از ۱۲۴)</span></td>
+                                <td class="p-4 text-center text-gray-400">-</td>
+                                <td class="p-4 font-mono dir-ltr text-orange-700 bg-green-50/0">170,926,943,186</td>
+                                <td class="p-4 font-mono dir-ltr bg-green-100 font-bold text-orange-900">170,926,943,186</td>
+                                <td class="p-4 font-mono dir-ltr text-red-400">-</td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="bg-gray-800 text-white">
+                            <tr>
+                                <td class="p-4" colspan="2">جمع کل</td>
+                                <td class="p-4 text-center font-bold">۱۶۱</td>
+                                <td class="p-4 font-mono dir-ltr">1,078,769,420,716</td>
+                                <td class="p-4 font-mono dir-ltr text-green-300">1,135,794,341,896</td>
+                                <td class="p-4 font-mono dir-ltr bg-gray-900 font-bold text-lg">2,214,563,762,612</td>
+                                <td class="p-4 font-mono dir-ltr text-red-300">70,557,070,000</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -784,7 +1147,7 @@
             { id: 14, name: "محمد بیراک", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1404/03/01" },
             { id: 15, name: "محمد جواد پورنورعلی", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
             { id: 16, name: "مسعود اکبرزاده", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/06/01" },
-            { id: 17, name: "مهدی احدی عنایت", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/09/01" },
+            { id: 17, name: "مهدی احدی عنایت", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1403/09/01" },
             { id: 18, name: "نریمان نظری بابازیدی", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
             { id: 19, name: "نیکزاد ابراهیمی ورمله", workType: "جمع آوری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/04/01" },
             { id: 20, name: "محمد شهبازی کنچوبه", workType: "خدمات اداری", shift: "شیفتی", contractEnd: "1404/09/30", hireDate: "1403/07/01" },
@@ -827,18 +1190,6 @@
             { id: 57, name: "نرگس ارجمندی نیا", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/01/15" },
             { id: 58, name: "نسیرین نظری جوپیش", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1402/09/01" },
             { id: 59, name: "وحید محمدزاده قمرکندی", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/06/01" },
-        ];
-
-        // 3. Retired Data
-        const retiredList = [
-            {id:860, name:'زارعي زهرا', date:'1402/12/26', amount:1999910000, type:'بازنشستگی عادی'},
-            // ... (Full list preserved) ...
-            {id:514, name:'فيض اله پور اسلام', date:'1402/12/26', amount:22781797, type:'بازنشستگی عادی'}
-        ];
-        const resignedList = [
-            {id:613, name:'سرابي مهرداد', date:'1404/06/26', amount:23531906922, desc:''},
-            // ... (Full list preserved) ...
-            {id:514, name:'فيض اله پور اسلام', date:'1402/12/26', amount:22781797, desc:''}
         ];
 
         // --- LOGIC ---
@@ -1097,36 +1448,121 @@
                 tableBody.appendChild(tr);
             });
 
-            // Finance & Retirees
-            let sumRetired = 0; retiredList.forEach(item => { let val = item.amount; if (typeof val === 'string') val = val.replace(/,/g, ''); sumRetired += Number(val); });
-            let sumResigned = 0; resignedList.forEach(item => { let val = item.amount; if (typeof val === 'string') val = val.replace(/,/g, ''); sumResigned += Number(val); });
-            document.getElementById('sum-retired-table').innerText = sumRetired.toLocaleString();
-            document.getElementById('sum-resigned-table').innerText = sumResigned.toLocaleString();
-            document.getElementById('sum-total-table').innerText = (sumRetired + sumResigned).toLocaleString();
-            document.getElementById('total-retired-display').innerText = "جمع: " + (sumRetired/1000000000).toFixed(1) + " میلیارد ریال";
-            document.getElementById('total-resigned-display').innerText = "جمع: " + (sumResigned/1000000000).toFixed(1) + " میلیارد ریال";
-            
-            new Chart(document.getElementById('retireeDebtChart'), { type: 'doughnut', data: { labels: ['بازنشستگان', 'مستعفی‌ها'], datasets: [{ data: [sumRetired, sumResigned], backgroundColor: ['#d97706', '#1e3a8a'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
-            
+            // Finance Charts
             const budgetHTML = `<tr><td class="label">خالص حقوق پرسنل</td><td class="value">368,078,640,000</td></tr><tr><td class="label">بیمه 23% سهم کارفرما</td><td class="value">88,993,466,390</td></tr><tr><td class="label">مالیات حقوق</td><td class="value">25,646,466,623</td></tr><tr><td class="label">بیمه 7% سهم کارگر</td><td class="value">27,060,937,749</td></tr><tr><td class="label">حقوق مشاورین</td><td class="value">766,040,000</td></tr>`;
             document.getElementById('budgetTableBody').innerHTML = budgetHTML;
             new Chart(document.getElementById('budgetChart'), { type: 'pie', data: { labels: ['حقوق خالص', 'بیمه', 'مالیات', 'سایر'], datasets: [{ data: [368, 89, 26, 27], backgroundColor: ['#059669', '#be123c', '#d97706', '#1e293b'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
-            new Chart(document.getElementById('debtChart'), { type: 'bar', data: { labels: ['ذخیره سنوات (کل)', 'تامین اجتماعی (جاری+اقساط)', 'مالیات حقوق (تجمعی)', 'معوقات رفاهی'], datasets: [{ label: 'بدهی (میلیارد ریال)', data: [1622, 439, 196, 229], backgroundColor: ['#b91c1c', '#c2410c', '#be123c', '#991b1b'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
             
-            // Render Retiree/Resigned Tables
-            const renderT = (tid, list) => {
-                const tb = document.querySelector(`#${tid} tbody`); tb.innerHTML = '';
-                list.forEach((r, i) => {
-                    // Limit rows for performance, but here keep 100 or all? 
-                    // Let's render all since user asked for it, but add simple pagination logic if huge.
-                    // For 100 items, simple render is fine.
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${i+1}</td><td>${r.id}</td><td>${r.name}</td><td>${r.date}</td><td>${parseInt(String(r.amount).replace(/,/g,'')).toLocaleString()}</td><td>${r.type||r.desc||''}</td>`;
-                    tb.appendChild(tr);
-                });
-            };
-            renderT('retiredTableList', retiredList);
-            renderT('resignedTableList', resignedList);
+            // Renamed Debt Chart to financeDebtChart
+            new Chart(document.getElementById('financeDebtChart'), { type: 'bar', data: { labels: ['ذخیره سنوات (کل)', 'تامین اجتماعی (جاری+اقساط)', 'مالیات حقوق (تجمعی)', 'معوقات رفاهی'], datasets: [{ label: 'بدهی (میلیارد ریال)', data: [1622, 439, 196, 229], backgroundColor: ['#b91c1c', '#c2410c', '#be123c', '#991b1b'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+        }
+        
+        // --- NEW LOGIC FOR INSURANCE & RETIREE TABS (BASED ON YOUR SNIPPETS) ---
+        function initNewTabs() {
+            // Set current date in Persian (for insurance tab)
+            const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('current-date').textContent = new Date().toLocaleDateString('fa-IR', dateOptions);
+
+            // --- Insurance Chart ---
+            const ctxInsurance = document.getElementById('debtChart').getContext('2d');
+            const ssoDebt = 433330616176;
+            const commercialCurrentDebt = 248570284523;
+            const commercialPastDebt = 9229688189;
+            const oldDebt = 34201383403;
+
+            new Chart(ctxInsurance, {
+                type: 'bar',
+                data: {
+                    labels: ['تامین اجتماعی', 'تجاری (جاری ۱۴۰۳-۰۴)', 'تجاری (۱۴۰۲-۰۳)', 'سنواتی و متفرقه'],
+                    datasets: [{
+                        label: 'میزان بدهی (ریال)',
+                        data: [ssoDebt, commercialCurrentDebt, commercialPastDebt, oldDebt],
+                        backgroundColor: ['#881337', '#166534', '#1e40af', '#4b5563'],
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.parsed.x !== null) label += new Intl.NumberFormat('en-US').format(context.parsed.x) + ' ریال';
+                                    return label;
+                                }
+                            },
+                            bodyFont: { family: 'Vazirmatn' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { font: { family: 'Vazirmatn' }, callback: function(value) { return value / 1000000000 + ' B'; } },
+                            grid: { color: '#e5e7eb' }
+                        },
+                        y: { ticks: { font: { family: 'Vazirmatn', weight: 'bold' } }, grid: { display: false } }
+                    }
+                }
+            });
+
+            // --- Retiree Charts ---
+            const dataCategories = ['فاقد حضور (۶۱)', 'حاضر در شرکت (۵۶)', 'عادی (۱۸)', 'مانده ۱۴۰۳ (۲۶)'];
+            const cost4Percent = [562, 516, 0, 0];
+            const severance30 = [386, 354, 224, 171];
+
+            // Cost Chart
+            const ctxCost = document.getElementById('costChart').getContext('2d');
+            new Chart(ctxCost, {
+                type: 'bar',
+                data: {
+                    labels: dataCategories,
+                    datasets: [
+                        { label: 'هزینه ۴٪ و اصلاح عناوین', data: cost4Percent, backgroundColor: '#6b21a8' },
+                        { label: 'سنوات (۳۰ روز / مانده قطعی)', data: severance30, backgroundColor: ['#1d4ed8', '#1d4ed8', '#1d4ed8', '#f97316'] }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true },
+                        y: { stacked: true, title: { display: true, text: 'میلیارد ریال' } }
+                    },
+                    plugins: {
+                        tooltip: {
+                            mode: 'index', intersect: false, titleFont: { family: 'Vazirmatn' }, bodyFont: { family: 'Vazirmatn' },
+                            callbacks: { footer: (tooltipItems) => { let total = 0; tooltipItems.forEach((item) => { total += item.raw; }); return 'جمع: ' + total + ' میلیارد ریال'; } }
+                        },
+                        legend: { labels: { font: { family: 'Vazirmatn' } } }
+                    }
+                }
+            });
+
+            // Headcount Chart
+            const ctxHeadcount = document.getElementById('headcountChart').getContext('2d');
+            new Chart(ctxHeadcount, {
+                type: 'doughnut',
+                data: {
+                    labels: ['فاقد حضور', 'حاضر در شرکت', 'عادی', 'مانده ۱۴۰۳'],
+                    datasets: [{
+                        data: [61, 56, 18, 26],
+                        backgroundColor: ['#dc2626', '#2563eb', '#16a34a', '#f97316'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: 'Vazirmatn' } } }
+                    }
+                }
+            });
         }
 
         document.querySelectorAll('.accordion').forEach(acc => {
@@ -1141,10 +1577,7 @@
         const initialData = mapSetadToNewFormat(setadPersonnel);
         updateDashboard(initialData);
         initOtherTabs();
-        
-        // Set Date for Insurance Tab
-        const dateOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-        document.getElementById('current-date').textContent = new Date().toLocaleDateString('fa-IR', dateOptions);
+        initNewTabs(); // Initializing new charts
 
     </script>
 </body>
