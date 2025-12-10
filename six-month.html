@@ -974,14 +974,56 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-right">
                             <thead class="bg-gray-100 text-gray-900 border-b-2 border-gray-200">
-                                <tr><th class="p-4 text-black font-bold">شرح</th><th class="p-4 text-black font-bold">تعداد</th><th class="p-4 text-black font-bold">هزینه ۴٪</th><th class="p-4 bg-green-50 text-black font-bold">سنوات</th><th class="p-4 bg-green-100 text-black font-bold">جمع کل</th></tr>
+                                <tr>
+                                    <th class="p-4 text-black font-bold">شرح</th>
+                                    <th class="p-4 text-black font-bold">تعداد</th>
+                                    <th class="p-4 text-black font-bold">هزینه ۴٪</th>
+                                    <th class="p-4 bg-green-50 text-black font-bold">سنوات</th>
+                                    <th class="p-4 bg-green-100 text-black font-bold">جمع کل</th>
+                                    <th class="p-4 bg-red-50 text-black font-bold">حقوق ماهیانه</th>
+                                </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 text-black">
-                                <tr class="hover:bg-gray-50"><td class="p-4 font-bold">فاقد حضور</td><td class="p-4 font-bold">۶۱</td><td class="p-4 currency font-bold">562,435,339,006</td><td class="p-4 currency bg-green-50 font-bold">386,303,082,557</td><td class="p-4 currency bg-green-100 font-bold">948,738,421,563</td></tr>
-                                <tr class="hover:bg-gray-50"><td class="p-4 font-bold">حاضر در شرکت</td><td class="p-4 font-bold">۵۶</td><td class="p-4 currency font-bold">516,334,081,710</td><td class="p-4 currency bg-green-50 font-bold">354,447,915,854</td><td class="p-4 currency bg-green-100 font-bold">870,781,997,564</td></tr>
-                                <tr class="hover:bg-gray-50"><td class="p-4 font-bold">عادی</td><td class="p-4 font-bold">۱۸</td><td class="p-4 text-center font-bold">-</td><td class="p-4 currency bg-green-50 font-bold">224,116,400,299</td><td class="p-4 currency bg-green-100 font-bold">224,116,400,299</td></tr>
-                                <tr class="bg-orange-50"><td class="p-4 font-bold text-orange-900">مانده تعهدات ۱۴۰۳</td><td class="p-4 font-bold">۲۶</td><td class="p-4 text-center font-bold">-</td><td class="p-4 currency text-orange-700 font-bold">170,926,943,186</td><td class="p-4 currency bg-green-100 font-bold text-orange-900">170,926,943,186</td></tr>
-                                <tr class="total-row text-black"><td class="p-4 font-bold text-lg" colspan="2">جمع کل</td><td class="p-4 font-bold text-lg">۱۶۱ نفر</td><td class="p-4 font-bold text-lg currency">1,078,769,420,716</td><td class="p-4 font-bold text-lg currency">1,135,794,341,896</td><td class="p-4 font-bold text-xl currency text-black">2,214,563,762,612</td></tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="p-4 font-bold">فاقد حضور (حمایتی/مازاد)</td>
+                                    <td class="p-4 font-bold">۶۱</td>
+                                    <td class="p-4 currency font-bold">562,435,339,006</td>
+                                    <td class="p-4 currency bg-green-50 font-bold">386,303,082,557</td>
+                                    <td class="p-4 currency bg-green-100 font-bold">948,738,421,563</td>
+                                    <td class="p-4 currency bg-red-50 font-bold text-red-700">30,098,970,000</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="p-4 font-bold">حاضر در شرکت (سخت و زیان‌آور)</td>
+                                    <td class="p-4 font-bold">۵۶</td>
+                                    <td class="p-4 currency font-bold">516,334,081,710</td>
+                                    <td class="p-4 currency bg-green-50 font-bold">354,447,915,854</td>
+                                    <td class="p-4 currency bg-green-100 font-bold">870,781,997,564</td>
+                                    <td class="p-4 currency bg-red-50 font-bold text-red-700">28,041,890,000</td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="p-4 font-bold">بازنشستگی عادی</td>
+                                    <td class="p-4 font-bold">۱۸</td>
+                                    <td class="p-4 text-center font-bold">-</td>
+                                    <td class="p-4 currency bg-green-50 font-bold">224,116,400,299</td>
+                                    <td class="p-4 currency bg-green-100 font-bold">224,116,400,299</td>
+                                    <td class="p-4 currency bg-red-50 font-bold text-red-700">12,416,210,000</td>
+                                </tr>
+                                <tr class="bg-orange-50">
+                                    <td class="p-4 font-bold text-orange-900">مانده تعهدات ۱۴۰۳ (سنوات)</td>
+                                    <td class="p-4 font-bold">۲۶</td>
+                                    <td class="p-4 text-center font-bold">-</td>
+                                    <td class="p-4 currency text-orange-700 font-bold">170,926,943,186</td>
+                                    <td class="p-4 currency bg-green-100 font-bold text-orange-900">170,926,943,186</td>
+                                    <td class="p-4 text-center bg-red-50 font-bold">-</td>
+                                </tr>
+                                <tr class="total-row text-black">
+                                    <td class="p-4 font-bold text-lg">جمع کل</td>
+                                    <td class="p-4 font-bold text-lg">۱۶۱ نفر</td>
+                                    <td class="p-4 font-bold text-lg currency">1,078,769,420,716</td>
+                                    <td class="p-4 font-bold text-lg currency">1,135,794,341,896</td>
+                                    <td class="p-4 font-bold text-xl currency text-black">2,214,563,762,612</td>
+                                    <td class="p-4 font-bold text-lg currency text-red-900">70,557,070,000</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
