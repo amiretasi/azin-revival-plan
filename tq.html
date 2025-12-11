@@ -3,476 +3,465 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد مدیریتی کمیسیون معاملات</title>
+    <title>داشبورد جامع مدیریت کمیسیون معاملات</title>
     
-    <!-- Tailwind CSS for Styling -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Chart.js for Graphs -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     
-    <!-- Vazirmatn Font -->
+    <!-- PapaParse -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <!-- فونت وزیرمتن -->
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     
-    <!-- Icons -->
+    <!-- آیکون‌ها -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        body {
-            font-family: 'Vazirmatn', sans-serif;
-            background-color: #f3f4f6;
-        }
-        .card {
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-        }
-        .card:hover {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        .tab-btn {
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .tab-btn.active {
-            background-color: white;
-            color: #1f2937;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-        }
-        .tab-btn:not(.active) {
-            color: #6b7280;
-        }
-        .tab-btn:not(.active):hover {
-            background-color: #e5e7eb;
-            color: #111827;
-        }
-        .hidden-content {
-            display: none;
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f8fafc; color: #334155; }
+        .header-bg { background: linear-gradient(to left, #0f172a, #334155); color: white; padding: 2rem 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .card { background: white; border-radius: 1rem; padding: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); transition: 0.3s; }
+        .card:hover { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); transform: translateY(-2px); }
+        .card-title { font-size: 1.1rem; font-weight: 800; color: #1e293b; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 2px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+        .drop-zone { border: 3px dashed #cbd5e1; background: #f1f5f9; transition: all 0.3s; }
+        .drop-zone.active { border-color: #3b82f6; background: #eff6ff; transform: scale(1.005); }
+        
+        .year-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: left 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-left: 2.5rem;
+            padding-right: 1rem;
         }
     </style>
 </head>
-<body class="p-4 md:p-8 text-gray-800">
+<body>
 
-    <!-- Header -->
-    <header class="mb-8 border-b pb-4 border-gray-200">
-        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">داشبورد تحلیلی کمیسیون معاملات (۱۴۰۳-۱۴۰۴)</h1>
-        <p class="text-gray-500 text-sm md:text-base">تحلیل وضعیت خرید، پیمانکاران و روش‌های واگذاری | شرکت سایپا آذین</p>
-    </header>
-
-    <!-- KPI Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <!-- Total Cost -->
-        <div class="card border-r-4 border-blue-500">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-sm font-medium text-gray-500">حجم کل معاملات (هزینه)</span>
-                <i class="fas fa-sack-dollar text-blue-500"></i>
-            </div>
-            <div class="text-2xl font-bold text-blue-700" id="kpi-total-cost">...</div>
-            <p class="text-xs text-gray-400 mt-1">میلیارد ریال</p>
-        </div>
-
-        <!-- Count -->
-        <div class="card border-r-4 border-gray-500">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-sm font-medium text-gray-500">تعداد مصوبات</span>
-                <i class="fas fa-file-signature text-gray-500"></i>
-            </div>
-            <div class="text-2xl font-bold text-gray-700" id="kpi-count">...</div>
-            <p class="text-xs text-gray-400 mt-1">فقره</p>
-        </div>
-
-        <!-- Risk Ratio -->
-        <div class="card border-r-4 border-red-500">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-sm font-medium text-gray-500">نسبت ترک تشریفات</span>
-                <i class="fas fa-exclamation-triangle text-red-500"></i>
-            </div>
-            <div class="text-2xl font-bold text-red-600" id="kpi-risk">...</div>
-            <p class="text-xs text-gray-400 mt-1">درصد از کل مبلغ ریالی</p>
-        </div>
-
-        <!-- Income -->
-        <div class="card border-r-4 border-emerald-500">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-sm font-medium text-gray-500">درآمد حاصل از فروش</span>
-                <i class="fas fa-chart-line text-emerald-500"></i>
-            </div>
-            <div class="text-2xl font-bold text-emerald-600" id="kpi-income">...</div>
-            <p class="text-xs text-gray-400 mt-1">میلیارد ریال (عمدتاً زمین)</p>
+    <!-- هدر -->
+    <div class="header-bg text-center mb-8">
+        <div class="max-w-7xl mx-auto">
+            <h1 class="text-3xl md:text-4xl font-extrabold mb-2 tracking-tight">داشبورد جامع کمیسیون معاملات</h1>
+            <p class="text-slate-300 text-lg font-light">تحلیل استراتژیک مصوبات، وضعیت حقوقی و سطوح معاملات</p>
         </div>
     </div>
 
-    <!-- Tabs Navigation -->
-    <div class="bg-gray-100 p-1 rounded-lg inline-flex mb-6 w-full md:w-auto">
-        <button onclick="switchTab('overview')" id="btn-overview" class="tab-btn active flex-1 md:flex-none text-center">نمای کلی و نمودارها</button>
-        <button onclick="switchTab('vendors')" id="btn-vendors" class="tab-btn flex-1 md:flex-none text-center">تحلیل پیمانکاران</button>
-        <button onclick="switchTab('risks')" id="btn-risks" class="tab-btn flex-1 md:flex-none text-center">ریسک و تحلیل حقوقی</button>
-    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
 
-    <!-- Tab Content: Overview -->
-    <div id="tab-overview" class="space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Pie Chart -->
-            <div class="card">
-                <h3 class="font-bold text-gray-700 mb-4 border-b pb-2">ترکیب روش معاملات (ریالی)</h3>
-                <div class="relative h-64 w-full">
-                    <canvas id="chartMethod"></canvas>
+        <!-- آپلود فایل -->
+        <div id="upload-section" class="max-w-3xl mx-auto mb-12 text-center">
+            <div id="drop-zone" class="drop-zone rounded-2xl p-12 cursor-pointer relative group shadow-sm border-slate-300">
+                <input type="file" id="fileInput" accept=".csv" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                <div class="space-y-4 pointer-events-none">
+                    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto group-hover:bg-blue-200 transition">
+                        <i class="fas fa-file-csv text-4xl text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-slate-700">بارگذاری فایل CSV (نسخه جدید)</h3>
+                        <p class="text-slate-500 mt-2">فایل خروجی سیستم را اینجا رها کنید</p>
+                    </div>
                 </div>
             </div>
-            <!-- Line Chart -->
-            <div class="card">
-                <h3 class="font-bold text-gray-700 mb-4 border-b pb-2">روند هزینه‌ها (ماهانه)</h3>
-                <div class="relative h-64 w-full">
-                    <canvas id="chartTimeline"></canvas>
-                </div>
-            </div>
-        </div>
-        <!-- Bar Chart (Categories) -->
-        <div class="card">
-            <h3 class="font-bold text-gray-700 mb-4 border-b pb-2">توزیع هزینه‌ها بر اساس دسته‌بندی کالا/خدمات</h3>
-            <div class="relative h-72 w-full">
-                <canvas id="chartCategory"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tab Content: Vendors -->
-    <div id="tab-vendors" class="hidden-content">
-        <div class="card h-96">
-            <h3 class="font-bold text-gray-700 mb-4 border-b pb-2">۵ پیمانکار برتر (حجم ریالی)</h3>
-            <div class="relative h-80 w-full">
-                <canvas id="chartVendors"></canvas>
-            </div>
-            <p class="text-sm text-gray-500 mt-2 text-center">ارقام به میلیارد ریال می‌باشد</p>
-        </div>
-    </div>
-
-    <!-- Tab Content: Risks -->
-    <div id="tab-risks" class="hidden-content space-y-4">
-        <div class="card border-l-4 border-red-500 bg-red-50/30">
-            <div class="flex items-start gap-3">
-                <i class="fas fa-gavel text-red-600 mt-1 text-xl"></i>
-                <div>
-                    <h3 class="font-bold text-red-800 text-lg mb-2">تراکم بالای "ترک تشریفات" (بند هـ)</h3>
-                    <p class="text-gray-700 leading-relaxed">
-                        بخش عمده‌ای از مصوبات به استناد <strong>بند هـ ماده ۲۳-۲ (تعدیل مبلغ قرارداد)</strong> صادر شده است.
-                        این موضوع نشان‌دهنده ناپایداری قیمت‌ها و فشارهای تورمی است. تداوم این روند می‌تواند منجر به "انحراف بودجه" شدید شود و حساسیت نهادهای نظارتی را برانگیزد.
-                    </p>
-                </div>
-            </div>
+            <div id="error-msg" class="hidden mt-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 text-sm font-bold"></div>
         </div>
 
-        <div class="card border-l-4 border-yellow-500 bg-yellow-50/30">
-            <div class="flex items-start gap-3">
-                <i class="fas fa-lock text-yellow-600 mt-1 text-xl"></i>
-                <div>
-                    <h3 class="font-bold text-yellow-800 text-lg mb-2">ریسک انحصار (Single Sourcing)</h3>
-                    <p class="text-gray-700 leading-relaxed">
-                        مواردی مانند "سیمین آسایش مدرن" و "رویال توسعه پایدار" (سنسور SBR و گرمکن) به صورت <strong>تک منبع</strong> (بند ی) واگذار شده‌اند.
-                        دلیل ذکر شده "تکنولوژی خاص" است، اما این وابستگی خط تولید را به شدت آسیب‌پذیر می‌کند. پیشنهاد می‌شود پروژه بومی‌سازی موازی تعریف گردد.
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <div class="card border-l-4 border-blue-500 bg-blue-50/30">
-            <div class="flex items-start gap-3">
-                <i class="fas fa-handshake text-blue-600 mt-1 text-xl"></i>
-                <div>
-                    <h3 class="font-bold text-blue-800 text-lg mb-2">معاملات درون گروهی</h3>
-                    <p class="text-gray-700 leading-relaxed">
-                        حجم بالایی از خریدها از شرکت‌های گروه (ایدکوپرس، مرکز تحقیقات، قالب‌های صنعتی) انجام شده است. اگرچه این امر نقدینگی را در گروه حفظ می‌کند، اما باید مراقب بود که قیمت‌ها بالاتر از قیمت بازار (Arm's Length Principle) نباشد.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Data & Script -->
-    <script>
-        // --- DATA ---
-        // Exactly as provided in the React component
-        const RAW_DATA = [
-            { id: 1, date: '1403/03/30', amount: 895972892000, type: 'عادی', category: 'قطعات فلزی', vendor: 'نیکان/ایران قطعه' },
-            { id: 2, date: '1403/09/06', amount: 115000000000, type: 'ترک تشریفات', category: 'قطعات فلزی', vendor: 'نیکان قطعه', clause: 'بند و' },
-            { id: 3, date: '1403/11/23', amount: 332970868000, type: 'ترک تشریفات', category: 'قطعات فلزی', vendor: 'ورافن/آرمان قطعه', clause: 'بند ه' },
-            { id: 4, date: '1403/12/27', amount: 116732682658, type: 'عادی', category: 'قطعات منفصله', vendor: 'رسا قطعه/نیکان' },
-            { id: 5, date: '1403/12/27', amount: 65241548548, type: 'عادی', category: 'قطعات پلیمری', vendor: 'ظریف آذرخش/دیگران' },
-            { id: 6, date: '1403/12/15', amount: 89269181875, type: 'ترک تشریفات', category: 'قطعات پلیمری', vendor: 'بهین پلیمر', clause: 'بند و' },
-            { id: 7, date: '1403/08/15', amount: 83349810000, type: 'ترک تشریفات', category: 'خدمات رفاهی', vendor: 'تعاونی مصرف', clause: 'بند الف/ب/و' },
-            { id: 8, date: '1403/10/18', amount: 15255607500, type: 'عادی', category: 'قطعات فلزی', vendor: 'نواندیش/قطعه گستران' },
-            { id: 9, date: '1403/10/18', amount: 365932407094, type: 'عادی', category: 'قطعات فلزی', vendor: 'خوشنامان/نیکان' },
-            { id: 10, date: '1403/12/15', amount: 5185000000, type: 'ترک تشریفات', category: 'بسته بندی', vendor: 'سپیده کویر', clause: 'بند ه' },
-            { id: 11, date: '1403/12/21', amount: 302600000000, type: 'ترک تشریفات', category: 'قطعات برقی/تزئینی', vendor: 'رویال توسعه پایدار', clause: 'بند ه' },
-            { id: 12, date: '1403/12/21', amount: 101343259475, type: 'ترک تشریفات', category: 'قطعات پلیمری', vendor: 'فجر پلاستیک', clause: 'بند الف/ب/و' },
-            { id: 13, date: '1403/12/21', amount: 57071956070, type: 'ترک تشریفات', category: 'قطعات پلیمری', vendor: 'ماهان صنعت', clause: 'بند ه' },
-            { id: 14, date: '1403/12/26', amount: 43263950000, type: 'ترک تشریفات', category: 'مواد اولیه (چرم)', vendor: 'پایا ابر مارال', clause: 'بند ه' },
-            { id: 15, date: '1403/12/26', amount: 636145544865, type: 'عادی', category: 'قطعات پلیمری', vendor: 'سازه فنر/بهین پلیمر' },
-            { id: 16, date: '1403/12/26', amount: 27479396400, type: 'عادی', category: 'قطعات فلزی', vendor: 'سازه فنر پویش' },
-            { id: 17, date: '1403/12/26', amount: 168000000000, type: 'عادی', category: 'قطعات مکانیزم', vendor: 'سازه پردازان/ورافن' },
-            { id: 18, date: '1403/12/26', amount: 10953935988, type: 'ترک تشریفات', category: 'مواد اولیه (پارچه)', vendor: 'نساجی رضا کاظمی', clause: 'بند الف/ب/و' },
-            { id: 19, date: '1404/02/03', amount: 4534326933030, type: 'ترک تشریفات', category: 'مواد اولیه (فوم)', vendor: 'جهش فام/مکرر', clause: 'بند ه' },
-            { id: 20, date: '1404/02/03', amount: 113608194338, type: 'ترک تشریفات', category: 'قطعات پلیمری', vendor: 'فجر پلاستیک', clause: 'بند ه' },
-            { id: 21, date: '1404/02/03', amount: 900000000000, type: 'تک منبع', category: 'قطعات برقی/تزئینی', vendor: 'سیمین آسایش مدرن', clause: 'بند ی' },
-            { id: 22, date: '1403/09/18', amount: 255923254772, type: 'ترک تشریفات', category: 'قطعات منفصله', vendor: 'سازه فنر/بهسازان', clause: 'صرفه اقتصادی' },
-            { id: 23, date: '1404/02/23', amount: 40069000000, type: 'عادی', category: 'خدمات حمل', vendor: 'حمل و نقل نخل بم' },
-            { id: 24, date: '1404/02/23', amount: 244987236670, type: 'عادی', category: 'خدمات حمل', vendor: 'حمل و نقل نخل بم' },
-            { id: 25, date: '1403/12/15', amount: 64370381400, type: 'عادی', category: 'خدمات تولیدی', vendor: 'داریو پلیمر' },
-            { id: 26, date: '1404/02/23', amount: 91070375000, type: 'ترک تشریفات', category: 'قطعات فلزی', vendor: 'ایران قطعه', clause: 'بند ه' },
-            { id: 27, date: '1404/02/29', amount: 29406179500, type: 'عادی', category: 'قطعات فلزی', vendor: 'نیکان/نواندیش' },
-            { id: 28, date: '1404/02/23', amount: 27450000000, type: 'عادی', category: 'بسته بندی', vendor: 'اطلس پلاستیک' },
-            { id: 29, date: '1404/02/23', amount: 27088200000, type: 'ترک تشریفات', category: 'مواد اولیه', vendor: 'کارگاه یوسف طامه', clause: 'بند ه' },
-            { id: 30, date: '1404/02/25', amount: 17450000000, type: 'عادی', category: 'خدمات فنی', vendor: 'قالبسازی رنجبر' },
-            { id: 31, date: '1404/03/06', amount: 50688000000, type: 'ترک تشریفات', category: 'تجهیزات', vendor: 'اکسیژن دلوار فراز', clause: 'بند ه' },
-            { id: 32, date: '1404/04/22', amount: 312789833280, type: 'ترک تشریفات', category: 'قطعات منفصله', vendor: 'ایدکوپرس', clause: 'درون گروهی' },
-            { id: 33, date: '1404/02/23', amount: 601884976000, type: 'ترک تشریفات', category: 'قطعات ایمنی', vendor: 'اخشان/ایمن خودرو', clause: 'بند ه' },
-            { id: 34, date: '1404/04/22', amount: 253838459520, type: 'عادی', category: 'قطعات مکانیزم', vendor: 'نیکان/مهام صنعت' },
-            { id: 35, date: '1404/04/17', amount: 8500000000, type: 'عادی', category: 'خدمات رفاهی', vendor: 'ساتراب پوشش' },
-            { id: 36, date: '1404/04/30', amount: 9691450000, type: 'عادی', category: 'خدمات رفاهی', vendor: 'پویا پروتئین' },
-            { id: 37, date: '1404/04/30', amount: 570955230000, type: 'ترک تشریفات', category: 'خدمات رفاهی', vendor: 'راهبر خودرو مهدی', clause: 'بند ه' },
-            { id: 38, date: '1404/04/24', amount: 267859593870, type: 'عادی', category: 'قطعات مکانیزم', vendor: 'آذر صنعت اسکو' },
-            { id: 39, date: '1404/04/28', amount: 27889468443, type: 'عادی', category: 'قطعات مکانیزم', vendor: 'فن آوران/بنیان طب' },
-            { id: 40, date: '1403/12/26', amount: 19133966500, type: 'ترک تشریفات', category: 'قطعات تولیدی', vendor: 'حدید مبتکران', clause: 'بند الف' },
-            { id: 41, date: '1404/04/24', amount: 153809367560, type: 'عادی', category: 'قطعات مکانیزم', vendor: 'نواندیش/فن آوران' },
-            { id: 42, date: '1404/04/17', amount: 5500000000, type: 'عادی', category: 'تجهیزات', vendor: 'پیمانکاری حسن نیا' },
-            { id: 43, date: '1404/04/25', amount: 280440595060, type: 'ترک تشریفات', category: 'قطعات ایمنی', vendor: 'اندیشه ایمنی خودرو', clause: 'بند ه' },
-            { id: 44, date: '1404/04/25', amount: 773840000000, type: 'عادی', category: 'قطعات مکانیزم', vendor: 'صنایع الکترونیک شیراز' },
-            { id: 45, date: '1404/04/31', amount: 20436217780, type: 'ترک تشریفات', category: 'خدمات رفاهی', vendor: 'زرین صدف ماهان', clause: 'بند ه' },
-            { id: 46, date: '1404/04/31', amount: 181420000000, type: 'عادی', category: 'قطعات مکانیزم', vendor: 'صنایع الکترونیک شیراز' },
-            { id: 47, date: '1404/06/04', amount: 35848928400, type: 'ترک تشریفات', category: 'خدمات رفاهی', vendor: 'تعاونی مصرف', clause: 'بند ه' },
-            { id: 48, date: '1404/04/25', amount: 29217033000, type: 'عادی', category: 'بسته بندی', vendor: 'ارج پلاست/مهران' },
-            { id: 49, date: '1404/04/31', amount: 27166320000, type: 'عادی', category: 'مواد اولیه', vendor: 'یوسف طامه/تیراژه' },
-            { id: 50, date: '1404/06/11', amount: 133850000000, type: 'تک منبع', category: 'قطعات برقی/تزئینی', vendor: 'رویال توسعه پایدار', clause: 'بند ی' },
-            { id: 51, date: '1404/06/11', amount: 343863042500, type: 'عادی', category: 'مواد اولیه (فوم)', vendor: 'پایا ابر/جهش فام' },
-            { id: 52, date: '1404/06/11', amount: 45825000000, type: 'عادی', category: 'مواد اولیه (رنگ)', vendor: 'آبرنگ شیمی/سالی فام' },
-            { id: 53, date: '1404/07/08', amount: 916803710200, type: 'عادی', category: 'مواد اولیه (پارچه)', vendor: 'گوهربافان/یوسف طامه' },
-            { id: 54, date: '1404/07/08', amount: 725758800000, type: 'عادی', category: 'مواد اولیه (چرم)', vendor: 'پایا ابر/دنیز' },
-            { id: 55, date: '1404/07/08', amount: 220367520000, type: 'تک منبع', category: 'مواد اولیه (موکت)', vendor: 'تولیدی صنعتی پروزن' },
-            { id: 56, date: '1404/07/08', amount: 10530000000, type: 'عادی', category: 'مواد اولیه', vendor: 'کش و نوار ایران' },
-            { id: 57, date: '1404/07/08', amount: 45896676000, type: 'عادی', category: 'مواد اولیه (شیمیایی)', vendor: 'کاژه پوشش پایدار' },
-            { id: 58, date: '1404/06/04', amount: 29482400000, type: 'عادی', category: 'خدمات رفاهی', vendor: 'تجارت گستر آریسا' },
-            { id: 59, date: '1404/07/08', amount: 8966500000, type: 'ترک تشریفات', category: 'خدمات فنی', vendor: 'مرکز تحقیقات سایپا', clause: 'درون گروهی' },
-            { id: 60, date: '1404/07/08', amount: 4270074114971, type: 'عادی', category: 'مواد اولیه (فوم)', vendor: 'بسپار فوم/جهش فام' },
-            { id: 61, date: '1404/07/08', amount: 7800163751380, type: 'عادی', category: 'مواد اولیه (فوم)', vendor: 'بسپار فوم/جهش فام' },
-            { id: 62, date: '1404/07/19', amount: 139621304000, type: 'عادی', category: 'قطعات فلزی', vendor: 'نواندیش/ورافن' },
-            { id: 63, date: '1404/06/11', amount: 1509112870000, type: 'عادی', category: 'روکش صندلی', vendor: 'گوهربافان/فیدارسازان' },
-            { id: 64, date: '1404/07/08', amount: 1185391584000, type: 'عادی', category: 'روکش صندلی', vendor: 'گوهربافان/فیدارسازان' },
-            { id: 65, date: '1404/07/21', amount: 10479896280, type: 'تک منبع', category: 'قطعات منفصله', vendor: 'ایکایی' },
-            { id: 66, date: '1404/07/29', amount: 9100000000, type: 'عادی', category: 'خدمات فنی', vendor: 'پخش اکسیژن پرتو' },
-            { id: 67, date: '1404/07/29', amount: 10000000000, type: 'ترک تشریفات', category: 'خدمات فنی', vendor: 'قالب های صنعتی سایپا', clause: 'درون گروهی' },
-            { id: 68, date: '1404/07/29', amount: 384825807995, type: 'ترک تشریفات', category: 'خدمات حمل', vendor: 'حمل و نقل نخل بم', clause: 'بند ه' },
-            { id: 69, date: '1404/08/06', amount: 27825000000, type: 'عادی', category: 'بسته بندی', vendor: 'مهران نوین پلاستیک' },
-            { id: 70, date: '1404/08/13', amount: 333431000000, type: 'عادی', category: 'فروش دارایی', vendor: 'گوهربافان (فروش زمین)', note: 'درآمدی' },
-            { id: 71, date: '1404/08/13', amount: 5323890000, type: 'عادی', category: 'مواد اولیه', vendor: 'حدید مبتکران' },
-        ];
-
-        // --- PROCESSING LOGIC ---
-        
-        // 1. Calculations
-        const totalAmount = RAW_DATA.reduce((sum, item) => item.note !== 'درآمدی' ? sum + item.amount : sum, 0);
-        const totalIncome = RAW_DATA.reduce((sum, item) => item.note === 'درآمدی' ? sum + item.amount : sum, 0);
-        const totalCount = RAW_DATA.length;
-        
-        // Format Currency Helper
-        const formatCurrency = (val) => new Intl.NumberFormat('fa-IR').format(Math.round(val));
-        const formatBillions = (val) => new Intl.NumberFormat('fa-IR').format((val / 1000000000).toFixed(1)) + ' B';
-
-        // Update KPI Cards
-        document.getElementById('kpi-total-cost').innerText = formatBillions(totalAmount).replace(' B', ' B');
-        document.getElementById('kpi-count').innerText = new Intl.NumberFormat('fa-IR').format(totalCount);
-        document.getElementById('kpi-income').innerText = formatBillions(totalIncome).replace(' B', ' B');
-        
-        // 2. Data Preparation for Charts
-        
-        // Type Data (Method)
-        const typeCounts = {};
-        RAW_DATA.forEach(item => {
-            if(item.note === 'درآمدی') return;
-            const type = item.type.includes('ترک') ? 'ترک تشریفات' : (item.type.includes('تک') ? 'تک منبع' : 'عادی');
-            typeCounts[type] = (typeCounts[type] || 0) + item.amount;
-        });
-        const riskRatio = Math.round((typeCounts['ترک تشریفات'] || 0) / totalAmount * 100);
-        document.getElementById('kpi-risk').innerText = new Intl.NumberFormat('fa-IR').format(riskRatio) + ' %';
-
-        // Time Data
-        const timeline = {};
-        RAW_DATA.forEach(item => {
-            if(item.note === 'درآمدی') return;
-            const month = item.date.substring(0, 7); // yyyy/mm
-            timeline[month] = (timeline[month] || 0) + item.amount;
-        });
-        const sortedDates = Object.keys(timeline).sort();
-        const timelineValues = sortedDates.map(d => timeline[d]);
-
-        // Category Data
-        const catCounts = {};
-        RAW_DATA.forEach(item => {
-            if(item.note === 'درآمدی') return;
-            catCounts[item.category] = (catCounts[item.category] || 0) + item.amount;
-        });
-        const sortedCats = Object.entries(catCounts).sort((a,b) => b[1] - a[1]);
-
-        // Vendor Data
-        const vendorCounts = {};
-        RAW_DATA.forEach(item => {
-            if(item.note === 'درآمدی') return;
-            let mainVendor = item.vendor.split('-')[0].split('،')[0].trim();
-            if(mainVendor.includes('بسپار فوم')) mainVendor = 'بسپار فوم غرب';
-            if(mainVendor.includes('جهش فام')) mainVendor = 'جهش فام ایرانیان';
-            if(mainVendor.includes('گوهربافان')) mainVendor = 'گوهربافان';
-            vendorCounts[mainVendor] = (vendorCounts[mainVendor] || 0) + item.amount;
-        });
-        const topVendors = Object.entries(vendorCounts).sort((a,b) => b[1] - a[1]).slice(0, 5);
-
-        // --- CHARTS CONFIG ---
-        Chart.defaults.font.family = 'Vazirmatn';
-        Chart.defaults.color = '#4b5563';
-
-        // 1. Pie Chart (Method)
-        new Chart(document.getElementById('chartMethod'), {
-            type: 'pie',
-            data: {
-                labels: Object.keys(typeCounts),
-                datasets: [{
-                    data: Object.values(typeCounts),
-                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b'], // Blue, Emerald, Amber
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom', rtl: true },
-                    tooltip: {
-                        rtl: true,
-                        callbacks: {
-                            label: (context) => {
-                                const val = context.raw;
-                                const pct = (val / totalAmount * 100).toFixed(1);
-                                return ` ${context.label}: ${formatBillions(val)} (${pct}%)`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        // 2. Line Chart (Timeline)
-        new Chart(document.getElementById('chartTimeline'), {
-            type: 'line',
-            data: {
-                labels: sortedDates,
-                datasets: [{
-                    label: 'هزینه ماهانه',
-                    data: timelineValues,
-                    borderColor: '#8b5cf6', // Violet
-                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                    fill: true,
-                    tension: 0.3
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        rtl: true,
-                        callbacks: { label: (c) => ` ${formatBillions(c.raw)} ریال` }
-                    }
-                },
-                scales: {
-                    y: {
-                        ticks: { callback: (val) => (val/1000000000).toFixed(0) + ' B' },
-                        grid: { borderDash: [2, 2] }
-                    },
-                    x: { grid: { display: false } }
-                }
-            }
-        });
-
-        // 3. Bar Chart (Categories)
-        new Chart(document.getElementById('chartCategory'), {
-            type: 'bar',
-            data: {
-                labels: sortedCats.map(x => x[0]),
-                datasets: [{
-                    label: 'هزینه',
-                    data: sortedCats.map(x => x[1]),
-                    backgroundColor: '#10b981', // Emerald
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        rtl: true,
-                        callbacks: { label: (c) => ` ${formatBillions(c.raw)} ریال` }
-                    }
-                },
-                scales: {
-                    y: {
-                        ticks: { callback: (val) => (val/1000000000).toFixed(0) + ' B' },
-                        grid: { borderDash: [2, 2] }
-                    },
-                    x: { grid: { display: false } }
-                }
-            }
-        });
-
-        // 4. Horizontal Bar (Vendors)
-        new Chart(document.getElementById('chartVendors'), {
-            type: 'bar',
-            data: {
-                labels: topVendors.map(x => x[0]),
-                datasets: [{
-                    label: 'حجم ریالی',
-                    data: topVendors.map(x => x[1] / 1000000000), // Convert to Billions for nicer axis
-                    backgroundColor: '#3b82f6',
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        rtl: true,
-                        callbacks: { label: (c) => ` ${new Intl.NumberFormat('fa-IR').format(c.raw)} میلیارد ریال` }
-                    }
-                },
-                scales: {
-                    x: { grid: { borderDash: [2, 2] } },
-                    y: { grid: { display: false } }
-                }
-            }
-        });
-
-        // --- UI LOGIC ---
-        function switchTab(tabName) {
-            // Update Buttons
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`btn-${tabName}`).classList.add('active');
-
-            // Update Content
-            document.getElementById('tab-overview').classList.add('hidden-content');
-            document.getElementById('tab-vendors').classList.add('hidden-content');
-            document.getElementById('tab-risks').classList.add('hidden-content');
+        <!-- محتوای داشبورد -->
+        <div id="dashboard" class="hidden opacity-0 transition-opacity duration-700">
             
-            document.getElementById(`tab-${tabName}`).classList.remove('hidden-content');
+            <!-- نوار ابزار: فیلتر سال -->
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex items-center gap-3 mb-4 md:mb-0">
+                    <div class="bg-indigo-100 p-2 rounded-lg"><i class="fas fa-calendar-alt text-indigo-600"></i></div>
+                    <span class="font-bold text-slate-700">فیلتر زمانی:</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <select id="yearFilter" class="year-select bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-48 p-2.5 font-bold shadow-sm">
+                        <option value="all">نمایش کل ادوار</option>
+                    </select>
+                    <button onclick="location.reload()" class="text-slate-400 hover:text-red-500 transition p-2" title="بارگذاری مجدد">
+                        <i class="fas fa-sync-alt fa-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="card border-r-4 border-blue-600">
+                    <p class="text-slate-500 text-sm mb-1 font-medium">جمع کل مصوبات (هزینه‌ای)</p>
+                    <div class="text-2xl font-extrabold text-blue-800" id="kpi-total">0</div>
+                    <span class="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded mt-2 inline-block font-bold">میلیارد ریال</span>
+                </div>
+                <div class="card border-r-4 border-emerald-600">
+                    <p class="text-slate-500 text-sm mb-1 font-medium">درآمد حاصله (فروش)</p>
+                    <div class="text-2xl font-extrabold text-emerald-700" id="kpi-income">0</div>
+                    <span class="text-xs bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded mt-2 inline-block font-bold">میلیارد ریال</span>
+                </div>
+                <div class="card border-r-4 border-amber-500">
+                    <p class="text-slate-500 text-sm mb-1 font-medium">شاخص ریسک (ترک تشریفات)</p>
+                    <div class="text-2xl font-extrabold text-amber-700" id="kpi-risk">0%</div>
+                    <span class="text-xs bg-amber-50 text-amber-600 px-2 py-0.5 rounded mt-2 inline-block font-bold">از حجم ریالی</span>
+                </div>
+                <div class="card border-r-4 border-slate-500">
+                    <p class="text-slate-500 text-sm mb-1 font-medium">تعداد کل پرونده‌ها</p>
+                    <div class="text-2xl font-extrabold text-slate-800" id="kpi-count">0</div>
+                    <span class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded mt-2 inline-block font-bold">فقره</span>
+                </div>
+            </div>
+
+            <!-- Row 1: Status & Level (New Charts) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="card relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
+                    <h3 class="card-title">
+                        <span>وضعیت تصویب (هیئت مدیره)</span>
+                        <i class="fas fa-gavel text-purple-200 text-2xl"></i>
+                    </h3>
+                    <div class="h-72"><canvas id="chartStatus"></canvas></div>
+                </div>
+                <div class="card relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-orange-500"></div>
+                    <h3 class="card-title">
+                        <span>سطح معاملات (نصاب)</span>
+                        <i class="fas fa-layer-group text-orange-200 text-2xl"></i>
+                    </h3>
+                    <div class="h-72"><canvas id="chartLevel"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Row 2: Method & Timeline -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="card">
+                    <h3 class="card-title"><span>ترکیب روش‌های واگذاری</span><i class="fas fa-chart-pie text-slate-300"></i></h3>
+                    <div class="h-72"><canvas id="chartMethod"></canvas></div>
+                </div>
+                <div class="card">
+                    <h3 class="card-title"><span>روند زمانی هزینه (ماهانه)</span><i class="fas fa-chart-line text-slate-300"></i></h3>
+                    <div class="h-72"><canvas id="chartTimeline"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Row 3: Category & Vendors -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="card lg:col-span-2">
+                    <h3 class="card-title"><span>تفکیک موضوعی هوشمند</span><i class="fas fa-cubes text-slate-300"></i></h3>
+                    <div class="h-80"><canvas id="chartCategory"></canvas></div>
+                </div>
+                <div class="card">
+                    <h3 class="card-title"><span>پیمانکاران برتر</span><i class="fas fa-building text-slate-300"></i></h3>
+                    <div class="h-80"><canvas id="chartVendors"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Analysis Section -->
+            <div id="management-alerts" class="mt-12 space-y-6">
+                <h3 class="text-xl font-bold text-slate-800 border-r-4 border-blue-600 pr-4">تحلیل‌های مدیریتی و هشدارها</h3>
+                <div id="risk-alerts-content" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- تنظیمات Chart.js ---
+        try {
+            Chart.defaults.font.family = '"Vazirmatn", sans-serif';
+            Chart.defaults.color = '#64748b';
+            Chart.defaults.plugins.tooltip.titleFont.family = '"Vazirmatn", sans-serif';
+            Chart.defaults.plugins.tooltip.bodyFont.family = '"Vazirmatn", sans-serif';
+            Chart.defaults.plugins.legend.labels.font.family = '"Vazirmatn", sans-serif';
+        } catch(e) { console.warn("Font loading issue", e); }
+
+        // --- توابع فرمت‌دهی ---
+        const formatWithCommas = (num) => {
+            if (num === null || num === undefined) return '0';
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        };
+
+        const formatAxis = (num) => {
+            return formatWithCommas((num / 1e9).toFixed(0)) + ' B';
+        };
+
+        // --- متغیرهای سراسری ---
+        let GLOBAL_DATA = [];
+        let charts = {};
+
+        // --- هندلینگ فایل ---
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('fileInput');
+
+        ['dragenter', 'dragover'].forEach(e => dropZone.addEventListener(e, (evt) => { evt.preventDefault(); dropZone.classList.add('active'); }));
+        ['dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, (evt) => { evt.preventDefault(); dropZone.classList.remove('active'); }));
+        dropZone.addEventListener('drop', (e) => handleFile(e.dataTransfer.files[0]));
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+        function handleFile(file) {
+            if(!file) return;
+            document.getElementById('error-msg').classList.add('hidden');
+            Papa.parse(file, {
+                header: true, skipEmptyLines: true,
+                complete: (results) => processData(results.data),
+                error: (err) => showError("خطا: " + err.message)
+            });
         }
 
+        function cleanNum(val) {
+            if(!val) return 0;
+            if(typeof val === 'number') return val;
+            let cleaned = val.replace(/,/g, '').replace(/[^\d.-]/g, '');
+            return parseFloat(cleaned) || 0;
+        }
+
+        function categorize(subject) {
+            if(!subject) return 'سایر';
+            const s = subject.toLowerCase();
+            if(s.includes('فوم') || s.includes('ایزوسیانات')) return 'مواد اولیه (فوم)';
+            if(s.includes('پارچه') || s.includes('روکش') || s.includes('چرم')) return 'منسوجات و روکش';
+            if(s.includes('فلزی') || s.includes('فریم') || s.includes('لوله')) return 'قطعات فلزی/مکانیزم';
+            if(s.includes('پلیمری') || s.includes('پلاستیک')) return 'قطعات پلیمری';
+            if(s.includes('الکترونیک') || s.includes('برق') || s.includes('سنسور')) return 'برق و الکترونیک';
+            if(s.includes('حمل')) return 'لجستیک و حمل';
+            if(s.includes('غذا') || s.includes('رفاهی')) return 'خدمات رفاهی';
+            if(s.includes('قالب') || s.includes('ابزار')) return 'قالب و ابزار';
+            if(s.includes('زمین') || s.includes('فروش') || s.includes('ضایعات')) return 'فروش دارایی/ضایعات';
+            return 'سایر';
+        }
+
+        function processData(data) {
+            try {
+                GLOBAL_DATA = data.map((row, idx) => {
+                    const keys = Object.keys(row);
+                    const amountKey = keys.find(k => k.includes('مبلغ') && (k.includes('ریال') || k.includes('(ریال)')));
+                    const vendorKey = keys.find(k => k.includes('پیمانکار') || k.includes('برنده'));
+                    const subjectKey = keys.find(k => k.includes('موضوع'));
+                    const dateKey = keys.find(k => k.includes('تاریخ'));
+                    const typeKey = keys.find(k => k.includes('نحوه تصویب') || k.includes('تشریفات'));
+                    const buySellKey = keys.find(k => k.includes('خرید') && k.includes('فروش'));
+                    
+                    // New Columns
+                    const statusKey = keys.find(k => k.includes('وضعیت'));
+                    const levelKey = keys.find(k => k.includes('نصاب') || k.includes('سطح'));
+
+                    if (!amountKey) return null;
+
+                    const amount = cleanNum(row[amountKey]);
+                    const dateStr = row[dateKey] || '';
+                    const year = dateStr.length >= 4 ? dateStr.substring(0, 4) : 'نامشخص';
+                    const isIncome = (row[buySellKey] || '').includes('فروش') || (row[subjectKey] || '').includes('فروش');
+                    let vendor = (row[vendorKey] || 'نامشخص').split('-')[0].split('،')[0].split('(')[0].trim();
+
+                    return {
+                        id: idx,
+                        amount: amount,
+                        vendor: vendor,
+                        subject: row[subjectKey] || '',
+                        date: dateStr,
+                        year: year,
+                        type: (row[typeKey] || '').includes('ترک') ? 'ترک تشریفات' : (row[typeKey] || '').includes('تک') ? 'تک منبع' : 'عادی',
+                        isIncome: isIncome,
+                        category: categorize(row[subjectKey] || ''),
+                        status: row[statusKey] || 'نامشخص',
+                        level: row[levelKey] || 'نامشخص'
+                    };
+                }).filter(d => d !== null && d.amount > 0);
+
+                if(GLOBAL_DATA.length === 0) throw new Error("داده معتبری یافت نشد. لطفاً فایل CSV صحیح را بارگذاری کنید.");
+
+                initYearFilter();
+                updateDashboard();
+                
+                document.getElementById('upload-section').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                setTimeout(() => document.getElementById('dashboard').classList.remove('opacity-0'), 50);
+
+            } catch(e) { showError(e.message); }
+        }
+
+        function initYearFilter() {
+            const years = [...new Set(GLOBAL_DATA.map(d => d.year).filter(y => y !== 'نامشخص'))].sort();
+            const select = document.getElementById('yearFilter');
+            while(select.options.length > 1) { select.remove(1); }
+            years.forEach(y => {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.innerText = `سال ${y}`;
+                select.appendChild(opt);
+            });
+            select.addEventListener('change', updateDashboard);
+        }
+
+        function updateDashboard() {
+            const selectedYear = document.getElementById('yearFilter').value;
+            const filteredData = selectedYear === 'all' ? GLOBAL_DATA : GLOBAL_DATA.filter(d => d.year === selectedYear);
+
+            const expenses = filteredData.filter(d => !d.isIncome);
+            const income = filteredData.filter(d => d.isIncome);
+            
+            const totalExp = expenses.reduce((a,b) => a + b.amount, 0);
+            const totalInc = income.reduce((a,b) => a + b.amount, 0);
+            const turkExp = expenses.filter(d => d.type === 'ترک تشریفات').reduce((a,b) => a + b.amount, 0);
+            const riskRatio = totalExp > 0 ? Math.round((turkExp/totalExp)*100) : 0;
+
+            document.getElementById('kpi-total').innerText = formatWithCommas((totalExp/1e9).toFixed(1));
+            document.getElementById('kpi-income').innerText = formatWithCommas((totalInc/1e9).toFixed(1));
+            document.getElementById('kpi-risk').innerText = riskRatio + '%';
+            document.getElementById('kpi-count').innerText = formatWithCommas(filteredData.length);
+
+            // Render existing charts
+            renderChart('chartMethod', 'doughnut', expenses, 'type');
+            renderTimelineChart('chartTimeline', expenses);
+            renderChart('chartCategory', 'bar', expenses, 'category');
+            renderHorizontalChart('chartVendors', expenses, 'vendor');
+            
+            // Render NEW charts
+            renderChart('chartStatus', 'pie', expenses, 'status', true);
+            renderChart('chartLevel', 'bar', expenses, 'level');
+
+            renderAnalysis(expenses, totalExp, riskRatio);
+        }
+
+        // --- Render Functions ---
+
+        function renderChart(id, type, data, key, isPie = false) {
+            const counts = {};
+            data.forEach(d => counts[d[key]] = (counts[d[key]]||0) + d.amount);
+            const labels = Object.keys(counts);
+            const values = Object.values(counts);
+
+            const bgColors = [
+                '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#f97316', '#64748b', '#06b6d4'
+            ];
+
+            if(charts[id]) charts[id].destroy();
+
+            charts[id] = new Chart(document.getElementById(id), {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'مبلغ (ریال)',
+                        data: values,
+                        backgroundColor: (type === 'bar' && !isPie) ? '#6366f1' : bgColors,
+                        borderRadius: 5,
+                        borderWidth: 1,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: type !== 'bar', position: 'bottom' },
+                        tooltip: { 
+                            callbacks: { 
+                                label: c => ` ${c.label}: ${formatWithCommas(c.raw)} ریال` 
+                            } 
+                        }
+                    },
+                    scales: (type === 'doughnut' || type === 'pie') ? {} : {
+                        y: { ticks: { callback: v => formatAxis(v) }, grid: { borderDash: [5,5] } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function renderTimelineChart(id, data) {
+            const dates = {};
+            data.forEach(d => {
+                const m = d.date.length >= 7 ? d.date.substring(0, 7) : 'نامشخص';
+                if(m !== 'نامشخص') dates[m] = (dates[m]||0) + d.amount;
+            });
+            const sorted = Object.keys(dates).sort();
+            
+            if(charts[id]) charts[id].destroy();
+            charts[id] = new Chart(document.getElementById(id), {
+                type: 'line',
+                data: {
+                    labels: sorted,
+                    datasets: [{
+                        label: 'هزینه (ریال)',
+                        data: sorted.map(d => dates[d]),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true, tension: 0.4
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false }, 
+                        tooltip: { callbacks: { label: c => ` هزینه: ${formatWithCommas(c.raw)} ریال` } } 
+                    },
+                    scales: { y: { ticks: { callback: v => formatAxis(v) } } }
+                }
+            });
+        }
+
+        function renderHorizontalChart(id, data, key) {
+            const counts = {};
+            data.forEach(d => counts[d[key]] = (counts[d[key]]||0) + d.amount);
+            const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0, 5);
+            
+            if(charts[id]) charts[id].destroy();
+            charts[id] = new Chart(document.getElementById(id), {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(x => x[0]),
+                    datasets: [{
+                        label: 'مبلغ (ریال)',
+                        data: sorted.map(x => x[1]),
+                        backgroundColor: '#0ea5e9', borderRadius: 5
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.label}: ${formatWithCommas(c.raw)} ریال` } } },
+                    scales: { x: { ticks: { callback: v => formatAxis(v) } } }
+                }
+            });
+        }
+
+        function renderAnalysis(data, totalExp, riskRatio) {
+            const container = document.getElementById('risk-alerts-content');
+            container.innerHTML = '';
+            
+            let rClass = riskRatio > 30 ? 'bg-red-50 border-red-500 text-red-800' : (riskRatio > 15 ? 'bg-amber-50 border-amber-500 text-amber-800' : 'bg-emerald-50 border-emerald-500 text-emerald-800');
+            let rIcon = riskRatio > 30 ? 'fa-exclamation-triangle' : 'fa-check-circle';
+            
+            container.innerHTML += `
+                <div class="card border-l-4 ${rClass}">
+                    <div class="flex items-start gap-3">
+                        <i class="fas ${rIcon} text-xl mt-1"></i>
+                        <div>
+                            <h4 class="font-bold mb-1">شاخص سلامت فرآیند</h4>
+                            <p class="text-sm opacity-90">${riskRatio}% حجم معاملات بدون تشریفات بوده است.</p>
+                        </div>
+                    </div>
+                </div>`;
+
+            const vendors = {};
+            data.forEach(d => vendors[d.vendor] = (vendors[d.vendor]||0) + d.amount);
+            const top = Object.entries(vendors).sort((a,b)=>b[1]-a[1])[0];
+            
+            if(top) {
+                const dep = Math.round((top[1]/totalExp)*100);
+                container.innerHTML += `
+                    <div class="card border-l-4 ${dep > 25 ? 'bg-blue-50 border-blue-500 text-blue-800' : 'bg-slate-50 border-slate-400 text-slate-700'}">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-handshake text-xl mt-1"></i>
+                            <div>
+                                <h4 class="font-bold mb-1">تمرکز تأمین (${top[0]})</h4>
+                                <p class="text-sm opacity-90">این پیمانکار ${dep}% از کل بودجه خرید را به خود اختصاص داده است.</p>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        function showError(msg) { document.getElementById('error-msg').innerText = msg; document.getElementById('error-msg').classList.remove('hidden'); }
     </script>
 </body>
 </html>
