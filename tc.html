@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد جامع مدیریت کمیسیون معاملات (V9)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <!-- PapaParse -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <!-- فونت وزیرمتن -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    
+    <!-- آیکون‌ها -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        
+        /* گرادیانت هدر با رنگ سازمانی سنگین */
+        .header-bg { background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: white; padding: 2rem 1rem; }
+        
+        .card { 
+            background: white; 
+            border-radius: 1rem; 
+            padding: 1.5rem; 
+            border: 1px solid #e2e8f0; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
+            transition: all 0.3s ease; 
+        }
+        .card:hover { transform: translateY(-3px); box-shadow: 0 12px 20px -5px rgba(0,0,0,0.1); }
+        
+        .card-title { 
+            font-size: 1.1rem; 
+            font-weight: 800; 
+            color: #334155; 
+            margin-bottom: 1.25rem; 
+            padding-bottom: 0.75rem; 
+            border-bottom: 2px solid #f1f5f9; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        
+        .drop-zone { border: 3px dashed #cbd5e1; background: #f8fafc; transition: all 0.3s; }
+        .drop-zone.active { border-color: #3b82f6; background: #eff6ff; transform: scale(1.005); }
+
+        /* استایل جدول و فوتر */
+        .table-container { overflow-x: auto; border-radius: 0.75rem; border: 1px solid #e2e8f0; max-height: 600px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; white-space: nowrap; }
+        
+        th { 
+            background-color: #f1f5f9; 
+            color: #475569; 
+            font-weight: 800; 
+            padding: 1rem; 
+            text-align: right; 
+            border-bottom: 2px solid #e2e8f0; 
+            position: sticky; 
+            top: 0; 
+            z-index: 20; 
+        }
+        
+        td { padding: 1rem; border-bottom: 1px solid #e2e8f0; color: #334155; font-size: 0.9rem; }
+        tr:hover td { background-color: #f8fafc; }
+        
+        /* استایل فوتر جدول (جمع کل) */
+        tfoot th {
+            position: sticky;
+            bottom: 0;
+            background-color: #f8fafc;
+            color: #1e293b;
+            font-weight: 900;
+            border-top: 3px double #cbd5e1;
+            padding: 1rem;
+            z-index: 20;
+            box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+        .status-green { background-color: #dcfce7; color: #166534; }
+        .status-yellow { background-color: #fef9c3; color: #854d0e; }
+        .status-red { background-color: #fee2e2; color: #991b1b; }
+        .status-gray { background-color: #f1f5f9; color: #475569; }
+
+        .search-input { 
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'%3E%3C/path%3E%3C/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.25rem;
+            padding-right: 2.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- هدر -->
+    <div class="header-bg text-center mb-8 shadow-xl">
+        <div class="max-w-7xl mx-auto">
+            <h1 class="text-3xl md:text-4xl font-black mb-2 tracking-tight">داشبورد جامع کمیسیون معاملات</h1>
+            <p class="text-blue-200 text-lg font-medium">تحلیل استراتژیک مصوبات، انحراف بودجه و ریسک‌های حقوقی</p>
+        </div>
+    </div>
+
+    <div class="max-w-[98%] mx-auto px-4 pb-12">
+
+        <!-- آپلود فایل -->
+        <div id="upload-section" class="max-w-3xl mx-auto mb-12 text-center">
+            <div id="drop-zone" class="drop-zone rounded-2xl p-12 cursor-pointer relative group shadow-sm border-slate-300">
+                <input type="file" id="fileInput" accept=".csv" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                <div class="space-y-4 pointer-events-none">
+                    <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto group-hover:bg-blue-200 transition shadow-inner">
+                        <i class="fas fa-file-invoice-dollar text-5xl text-blue-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold text-slate-700">بارگذاری فایل CSV (Rev.02)</h3>
+                        <p class="text-slate-500 mt-2">جهت شروع تحلیل، فایل خروجی سیستم را اینجا رها کنید</p>
+                    </div>
+                </div>
+            </div>
+            <div id="error-msg" class="hidden mt-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 text-sm font-bold shadow-sm"></div>
+        </div>
+
+        <!-- محتوای داشبورد -->
+        <div id="dashboard" class="hidden opacity-0 transition-opacity duration-700">
+            
+            <!-- فیلتر سال سراسری -->
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                <div class="flex items-center gap-4 mb-4 md:mb-0">
+                    <div class="bg-indigo-600 text-white p-3 rounded-lg shadow-md"><i class="fas fa-filter fa-lg"></i></div>
+                    <div>
+                        <span class="block text-xs text-slate-400 font-bold uppercase tracking-wider">فیلتر دوره مالی</span>
+                        <span class="font-black text-slate-800 text-lg">انتخاب سال مصوبه</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 w-full md:w-auto">
+                    <select id="yearFilter" class="bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-xl focus:ring-indigo-500 focus:border-indigo-500 block w-full md:w-64 p-3 font-bold shadow-sm cursor-pointer">
+                        <option value="all">نمایش کل ادوار</option>
+                    </select>
+                    <button onclick="location.reload()" class="bg-white border border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 p-3 rounded-xl transition shadow-sm" title="شروع مجدد">
+                        <i class="fas fa-power-off fa-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="card border-r-4 border-blue-600">
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">جمع کل مصوبات (هزینه‌ای)</p>
+                    <div class="text-2xl font-black text-slate-800" id="kpi-total">0</div>
+                    <span class="text-xs text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded mt-2 inline-block">میلیارد ریال</span>
+                </div>
+                <div class="card border-r-4 border-emerald-600">
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">درآمد حاصله (فروش)</p>
+                    <div class="text-2xl font-black text-slate-800" id="kpi-income">0</div>
+                    <span class="text-xs text-emerald-600 font-bold bg-emerald-50 px-2 py-1 rounded mt-2 inline-block">میلیارد ریال</span>
+                </div>
+                <div class="card border-r-4 border-amber-500">
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">ریسک (ترک تشریفات)</p>
+                    <div class="text-2xl font-black text-slate-800" id="kpi-risk">0%</div>
+                    <span class="text-xs text-amber-600 font-bold bg-amber-50 px-2 py-1 rounded mt-2 inline-block">سهم از کل مبلغ</span>
+                </div>
+                <div class="card border-r-4 border-slate-500">
+                    <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">تعداد پرونده‌ها</p>
+                    <div class="text-2xl font-black text-slate-800" id="kpi-count">0</div>
+                    <span class="text-xs text-slate-600 font-bold bg-slate-100 px-2 py-1 rounded mt-2 inline-block">فقره مصوبه</span>
+                </div>
+            </div>
+
+            <!-- Row 1: Governance & Methodology (Merged) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <!-- Status Chart -->
+                <div class="card">
+                    <h3 class="card-title">
+                        <span>وضعیت تصویب و هیئت مدیره</span>
+                        <i class="fas fa-gavel text-purple-200 text-2xl"></i>
+                    </h3>
+                    <div class="h-64"><canvas id="chartStatus"></canvas></div>
+                </div>
+                <!-- Method Chart (Moved Here) -->
+                <div class="card">
+                    <h3 class="card-title">
+                        <span>ترکیب روش‌های واگذاری</span>
+                        <i class="fas fa-chart-pie text-blue-200 text-2xl"></i>
+                    </h3>
+                    <div class="h-64"><canvas id="chartMethod"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Row 2: Unified Financial Analysis (BIGGER) -->
+            <div class="card mb-8 shadow-md">
+                <h3 class="card-title border-b-2 border-indigo-100 pb-4 mb-6">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-indigo-100 p-2 rounded-lg"><i class="fas fa-chart-line text-indigo-600"></i></div>
+                        <span class="text-lg">تحلیل یکپارچه روند هزینه‌ها و پیمانکاران</span>
+                    </div>
+                </h3>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Timeline (Wide) -->
+                    <div class="lg:col-span-2 h-80 border-l border-slate-100 pl-4">
+                        <h4 class="text-sm font-bold text-slate-400 mb-2 uppercase">روند زمانی تخصیص بودجه</h4>
+                        <canvas id="chartTimeline"></canvas>
+                    </div>
+                    <!-- Vendors -->
+                    <div class="h-80">
+                        <h4 class="text-sm font-bold text-slate-400 mb-2 uppercase">پیمانکاران با بیشترین حجم ریالی</h4>
+                        <canvas id="chartVendors"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 3: Operational Details -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                <div class="card">
+                    <h3 class="card-title"><span>سطح معاملات (نصاب)</span><i class="fas fa-layer-group text-slate-300"></i></h3>
+                    <div class="h-64"><canvas id="chartLevel"></canvas></div>
+                </div>
+                <div class="card">
+                    <h3 class="card-title"><span>تفکیک موضوعی هوشمند</span><i class="fas fa-cubes text-slate-300"></i></h3>
+                    <div class="h-64"><canvas id="chartCategory"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Table Section -->
+            <div id="table-section" class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-12">
+                <!-- Table Header & Search -->
+                <div class="p-6 border-b border-slate-200 bg-slate-50">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-4">
+                        <div>
+                            <h3 class="text-xl font-black text-slate-800 flex items-center gap-2">
+                                <i class="fas fa-table text-blue-600"></i>
+                                لیست تفصیلی مصوبات
+                            </h3>
+                            <p class="text-sm text-slate-500 mt-1">امکان جستجوی چندگانه و مشاهده جمع کل فیلتر شده</p>
+                        </div>
+                        <div class="w-full lg:w-auto relative">
+                            <input type="text" id="tableSearch" placeholder="جستجو (نام پیمانکار، موضوع، شماره...)" class="search-input w-full lg:w-96 p-3 pl-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-bold shadow-sm">
+                        </div>
+                    </div>
+                    
+                    <!-- Filters -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <select id="filterLevel" class="p-2.5 rounded-lg border border-slate-300 text-sm font-medium bg-white focus:ring-blue-500 cursor-pointer">
+                            <option value="">همه سطوح (نصاب)</option>
+                            <option value="عمده">معاملات عمده</option>
+                            <option value="بزرگ">معاملات بزرگ</option>
+                            <option value="متوسط">معاملات متوسط</option>
+                        </select>
+                        <select id="filterStatus" class="p-2.5 rounded-lg border border-slate-300 text-sm font-medium bg-white focus:ring-blue-500 cursor-pointer">
+                            <option value="">همه وضعیت‌ها</option>
+                            <option value="تایید">تایید شده</option>
+                            <option value="ندارد">فاقد تایید هیئت مدیره</option>
+                            <option value="تصمیم">در حال تصمیم‌گیری</option>
+                        </select>
+                        <select id="filterType" class="p-2.5 rounded-lg border border-slate-300 text-sm font-medium bg-white focus:ring-blue-500 cursor-pointer">
+                            <option value="">همه روش‌ها</option>
+                            <option value="ترک">ترک تشریفات</option>
+                            <option value="عادی">عادی (مناقصه)</option>
+                            <option value="تک">تک منبع</option>
+                        </select>
+                         <div class="flex items-center justify-end text-sm text-slate-500 font-medium">
+                            تعداد یافته‌ها: <span id="tableCount" class="mr-1 font-bold text-blue-600 text-lg">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Table -->
+                <div class="table-container">
+                    <table id="dataTable">
+                        <thead>
+                            <tr>
+                                <th class="w-16">ردیف</th>
+                                <th class="w-24">تاریخ</th>
+                                <th class="min-w-[200px]">موضوع مصوبه</th>
+                                <th class="min-w-[150px]">پیمانکار / طرف قرارداد</th>
+                                <th class="w-36">مبلغ (ریال)</th>
+                                <th class="w-24">نصاب</th>
+                                <th class="w-28">روش واگذاری</th>
+                                <th class="w-40 text-center">وضعیت</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="bg-white divide-y divide-slate-100">
+                            <!-- Rows injected via JS -->
+                        </tbody>
+                        <tfoot id="tableFooter">
+                            <!-- Sum row injected via JS -->
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Alerts -->
+            <div id="management-alerts" class="mt-8">
+                <h3 class="text-lg font-bold text-slate-800 border-r-4 border-red-500 pr-3 mb-4">هشدارهای سیستم خبره</h3>
+                <div id="risk-alerts-content" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- تنظیمات Chart.js ---
+        try {
+            Chart.defaults.font.family = '"Vazirmatn", sans-serif';
+            Chart.defaults.color = '#64748b';
+            Chart.defaults.plugins.tooltip.titleFont.family = '"Vazirmatn", sans-serif';
+            Chart.defaults.plugins.tooltip.bodyFont.family = '"Vazirmatn", sans-serif';
+            Chart.defaults.plugins.legend.labels.font.family = '"Vazirmatn", sans-serif';
+            Chart.defaults.plugins.legend.labels.boxWidth = 12;
+            Chart.defaults.maintainAspectRatio = false;
+        } catch(e) {}
+
+        const formatWithCommas = (num) => num ? num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : '0';
+        const formatAxis = (num) => formatWithCommas((num / 1e9).toFixed(0)) + ' B';
+
+        let GLOBAL_DATA = [];
+        let CURRENT_FILTERED_DATA = [];
+        let charts = {};
+
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('fileInput');
+
+        ['dragenter', 'dragover'].forEach(e => dropZone.addEventListener(e, (evt) => { evt.preventDefault(); dropZone.classList.add('active'); }));
+        ['dragleave', 'drop'].forEach(e => dropZone.addEventListener(e, (evt) => { evt.preventDefault(); dropZone.classList.remove('active'); }));
+        dropZone.addEventListener('drop', (e) => handleFile(e.dataTransfer.files[0]));
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+        function handleFile(file) {
+            if(!file) return;
+            document.getElementById('error-msg').classList.add('hidden');
+            Papa.parse(file, {
+                header: true, skipEmptyLines: true,
+                complete: (results) => processData(results.data),
+                error: (err) => showError("خطا: " + err.message)
+            });
+        }
+
+        function cleanNum(val) {
+            if(!val) return 0;
+            if(typeof val === 'number') return val;
+            let cleaned = val.replace(/,/g, '').replace(/[^\d.-]/g, '');
+            return parseFloat(cleaned) || 0;
+        }
+
+        function categorize(subject) {
+            if(!subject) return 'سایر';
+            const s = subject.toLowerCase();
+            if(s.includes('فوم') || s.includes('ایزوسیانات')) return 'مواد اولیه (فوم)';
+            if(s.includes('پارچه') || s.includes('روکش') || s.includes('چرم')) return 'منسوجات و روکش';
+            if(s.includes('فلزی') || s.includes('فریم')) return 'قطعات فلزی';
+            if(s.includes('پلیمری') || s.includes('پلاستیک')) return 'قطعات پلیمری';
+            if(s.includes('الکترونیک') || s.includes('برق')) return 'برق و الکترونیک';
+            if(s.includes('حمل')) return 'لجستیک';
+            if(s.includes('غذا') || s.includes('رفاهی')) return 'خدمات رفاهی';
+            if(s.includes('قالب') || s.includes('ابزار')) return 'قالب و ابزار';
+            if(s.includes('زمین') || s.includes('فروش') || s.includes('ضایعات')) return 'فروش دارایی';
+            return 'سایر';
+        }
+
+        function processData(data) {
+            try {
+                GLOBAL_DATA = data.map((row, idx) => {
+                    const keys = Object.keys(row);
+                    const amountKey = keys.find(k => k.includes('مبلغ') && (k.includes('ریال') || k.includes('(ریال)')));
+                    const vendorKey = keys.find(k => k.includes('پیمانکار') || k.includes('برنده'));
+                    const subjectKey = keys.find(k => k.includes('موضوع'));
+                    const dateKey = keys.find(k => k.includes('تاریخ'));
+                    const typeKey = keys.find(k => k.includes('نحوه تصویب') || k.includes('تشریفات'));
+                    const buySellKey = keys.find(k => k.includes('خرید') && k.includes('فروش'));
+                    const statusKey = keys.find(k => k.includes('وضعیت'));
+                    const levelKey = keys.find(k => k.includes('نصاب') || k.includes('سطح'));
+
+                    if (!amountKey) return null;
+
+                    const amount = cleanNum(row[amountKey]);
+                    const dateStr = row[dateKey] || '';
+                    const year = dateStr.length >= 4 ? dateStr.substring(0, 4) : 'نامشخص';
+                    const isIncome = (row[buySellKey] || '').includes('فروش') || (row[subjectKey] || '').includes('فروش');
+                    let vendor = (row[vendorKey] || 'نامشخص').split('-')[0].split('،')[0].split('(')[0].trim();
+
+                    return {
+                        id: idx + 1,
+                        amount: amount,
+                        vendor: vendor,
+                        fullVendor: row[vendorKey] || '',
+                        subject: row[subjectKey] || '',
+                        date: dateStr,
+                        year: year,
+                        type: (row[typeKey] || '').includes('ترک') ? 'ترک تشریفات' : (row[typeKey] || '').includes('تک') ? 'تک منبع' : 'عادی',
+                        isIncome: isIncome,
+                        category: categorize(row[subjectKey] || ''),
+                        status: row[statusKey] || 'نامشخص',
+                        level: row[levelKey] || 'عادی'
+                    };
+                }).filter(d => d !== null && d.amount > 0);
+
+                if(GLOBAL_DATA.length === 0) throw new Error("داده معتبری یافت نشد.");
+
+                initYearFilter();
+                updateDashboard();
+                
+                document.getElementById('upload-section').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                setTimeout(() => document.getElementById('dashboard').classList.remove('opacity-0'), 50);
+
+                // Setup Table Listeners
+                ['tableSearch', 'filterLevel', 'filterStatus', 'filterType'].forEach(id => {
+                    document.getElementById(id).addEventListener('input', renderTable);
+                    document.getElementById(id).addEventListener('change', renderTable);
+                });
+
+            } catch(e) { showError(e.message); }
+        }
+
+        function initYearFilter() {
+            const years = [...new Set(GLOBAL_DATA.map(d => d.year).filter(y => y !== 'نامشخص'))].sort();
+            const select = document.getElementById('yearFilter');
+            while(select.options.length > 1) { select.remove(1); }
+            years.forEach(y => {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.innerText = `سال ${y}`;
+                select.appendChild(opt);
+            });
+            select.addEventListener('change', updateDashboard);
+        }
+
+        function updateDashboard() {
+            const selectedYear = document.getElementById('yearFilter').value;
+            CURRENT_FILTERED_DATA = selectedYear === 'all' ? GLOBAL_DATA : GLOBAL_DATA.filter(d => d.year === selectedYear);
+
+            const expenses = CURRENT_FILTERED_DATA.filter(d => !d.isIncome);
+            const income = CURRENT_FILTERED_DATA.filter(d => d.isIncome);
+            
+            const totalExp = expenses.reduce((a,b) => a + b.amount, 0);
+            const totalInc = income.reduce((a,b) => a + b.amount, 0);
+            const turkExp = expenses.filter(d => d.type === 'ترک تشریفات').reduce((a,b) => a + b.amount, 0);
+            const riskRatio = totalExp > 0 ? Math.round((turkExp/totalExp)*100) : 0;
+
+            document.getElementById('kpi-total').innerText = formatWithCommas((totalExp/1e9).toFixed(1));
+            document.getElementById('kpi-income').innerText = formatWithCommas((totalInc/1e9).toFixed(1));
+            document.getElementById('kpi-risk').innerText = riskRatio + '%';
+            document.getElementById('kpi-count').innerText = formatWithCommas(CURRENT_FILTERED_DATA.length);
+
+            // Render Charts (Refined Layout)
+            renderChart('chartStatus', 'pie', expenses, 'status', true);
+            renderChart('chartMethod', 'doughnut', expenses, 'type', true); // Now next to Status
+            renderTimelineChart('chartTimeline', expenses); // Unified Big
+            renderHorizontalChart('chartVendors', expenses, 'vendor'); // Unified Big
+            renderChart('chartLevel', 'bar', expenses, 'level');
+            renderChart('chartCategory', 'bar', expenses, 'category');
+
+            renderAnalysis(expenses, totalExp, riskRatio);
+            renderTable(); 
+        }
+
+        function renderTable() {
+            const search = document.getElementById('tableSearch').value.toLowerCase();
+            const fLevel = document.getElementById('filterLevel').value;
+            const fStatus = document.getElementById('filterStatus').value;
+            const fType = document.getElementById('filterType').value;
+
+            const filtered = CURRENT_FILTERED_DATA.filter(d => {
+                const matchSearch = d.vendor.toLowerCase().includes(search) || d.subject.toLowerCase().includes(search);
+                const matchLevel = fLevel ? d.level.includes(fLevel) : true;
+                const matchStatus = fStatus ? d.status.includes(fStatus) : true;
+                const matchType = fType ? d.type.includes(fType) : true;
+                return matchSearch && matchLevel && matchStatus && matchType;
+            });
+
+            const tbody = document.getElementById('tableBody');
+            const tfoot = document.getElementById('tableFooter');
+            tbody.innerHTML = '';
+            tfoot.innerHTML = '';
+
+            document.getElementById('tableCount').innerText = filtered.length;
+
+            filtered.forEach(d => {
+                const row = document.createElement('tr');
+                let statusClass = 'status-gray';
+                if(d.status.includes('تایید') || d.status.includes('دارد')) statusClass = 'status-green';
+                else if(d.status.includes('تصمیم') || d.status.includes('نشده')) statusClass = 'status-yellow';
+                else if(d.status.includes('ندارد')) statusClass = 'status-red';
+
+                row.innerHTML = `
+                    <td class="font-bold text-slate-500 text-center text-xs">${d.id}</td>
+                    <td class="text-xs">${d.date}</td>
+                    <td class="whitespace-normal min-w-[200px]" title="${d.subject}">${d.subject.substring(0, 50)}${d.subject.length>50?'...':''}</td>
+                    <td class="font-bold text-slate-700 text-xs">${d.vendor}</td>
+                    <td class="font-mono text-blue-700 font-bold">${formatWithCommas(d.amount)}</td>
+                    <td><span class="px-2 py-1 rounded bg-slate-100 text-[10px] font-bold">${d.level}</span></td>
+                    <td class="text-xs text-slate-500">${d.type}</td>
+                    <td class="text-center"><span class="status-badge ${statusClass}">${d.status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Calculate Sum
+            const totalSum = filtered.reduce((acc, curr) => acc + curr.amount, 0);
+            
+            tfoot.innerHTML = `
+                <tr class="bg-blue-50">
+                    <th colspan="4" class="text-left pl-4 text-blue-800 text-sm">جمع کل (فیلتر شده):</th>
+                    <th class="font-mono text-lg text-blue-800 text-left border-t-2 border-blue-200">${formatWithCommas(totalSum)}</th>
+                    <th colspan="3" class="text-right pr-4 text-xs font-normal text-slate-500">ریال</th>
+                </tr>
+            `;
+        }
+
+        function renderChart(id, type, data, key, isPie = false) {
+            const counts = {};
+            data.forEach(d => counts[d[key]] = (counts[d[key]]||0) + d.amount);
+            const labels = Object.keys(counts);
+            const values = Object.values(counts);
+            const bgColors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#f97316', '#64748b', '#06b6d4'];
+
+            if(charts[id]) charts[id].destroy();
+
+            charts[id] = new Chart(document.getElementById(id), {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: (type === 'bar' && !isPie) ? '#6366f1' : bgColors,
+                        borderRadius: 5,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: { display: type !== 'bar', position: 'right' },
+                        tooltip: { callbacks: { label: c => ` ${c.label}: ${formatWithCommas(c.raw)} ریال` } }
+                    },
+                    scales: (type === 'doughnut' || type === 'pie') ? {} : {
+                        y: { ticks: { callback: v => formatAxis(v) }, grid: { borderDash: [5,5] } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function renderTimelineChart(id, data) {
+            const dates = {};
+            data.forEach(d => {
+                const m = d.date.length >= 7 ? d.date.substring(0, 7) : 'نامشخص';
+                if(m !== 'نامشخص') dates[m] = (dates[m]||0) + d.amount;
+            });
+            const sorted = Object.keys(dates).sort();
+            
+            if(charts[id]) charts[id].destroy();
+            charts[id] = new Chart(document.getElementById(id), {
+                type: 'line',
+                data: {
+                    labels: sorted,
+                    datasets: [{
+                        label: 'هزینه',
+                        data: sorted.map(d => dates[d]),
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        fill: true, tension: 0.4, borderWidth: 3, pointRadius: 4
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${formatWithCommas(c.raw)} ریال` } } },
+                    scales: { y: { ticks: { callback: v => formatAxis(v) }, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
+                }
+            });
+        }
+
+        function renderHorizontalChart(id, data, key) {
+            const counts = {};
+            data.forEach(d => counts[d[key]] = (counts[d[key]]||0) + d.amount);
+            const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0, 5);
+            
+            if(charts[id]) charts[id].destroy();
+            charts[id] = new Chart(document.getElementById(id), {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(x => x[0]),
+                    datasets: [{
+                        data: sorted.map(x => x[1]),
+                        backgroundColor: '#0ea5e9', borderRadius: 4, barThickness: 24
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${formatWithCommas(c.raw)} ریال` } } },
+                    scales: { x: { ticks: { callback: v => formatAxis(v) }, grid: { borderDash: [5,5] } }, y: { grid: { display: false } } }
+                }
+            });
+        }
+
+        function renderAnalysis(data, totalExp, riskRatio) {
+            const container = document.getElementById('risk-alerts-content');
+            container.innerHTML = '';
+            
+            let rClass = riskRatio > 30 ? 'bg-red-50 border-red-500 text-red-800' : 'bg-emerald-50 border-emerald-500 text-emerald-800';
+            let rIcon = riskRatio > 30 ? 'fa-exclamation-triangle' : 'fa-check-circle';
+            
+            container.innerHTML += `
+                <div class="card border-l-4 ${rClass}">
+                    <div class="flex items-start gap-3">
+                        <i class="fas ${rIcon} text-xl mt-1"></i>
+                        <div>
+                            <h4 class="font-bold mb-1">سلامت فرآیند (ترک تشریفات)</h4>
+                            <p class="text-sm opacity-90">${riskRatio}% حجم معاملات ترک تشریفات بوده است.</p>
+                        </div>
+                    </div>
+                </div>`;
+
+            const vendors = {};
+            data.forEach(d => vendors[d.vendor] = (vendors[d.vendor]||0) + d.amount);
+            const top = Object.entries(vendors).sort((a,b)=>b[1]-a[1])[0];
+            if(top) {
+                const dep = Math.round((top[1]/totalExp)*100);
+                container.innerHTML += `
+                    <div class="card border-l-4 ${dep > 25 ? 'bg-blue-50 border-blue-500 text-blue-800' : 'bg-slate-50 border-slate-400 text-slate-700'}">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-handshake text-xl mt-1"></i>
+                            <div>
+                                <h4 class="font-bold mb-1">تمرکز تأمین (${top[0]})</h4>
+                                <p class="text-sm opacity-90">${dep}% از بودجه کل به این پیمانکار اختصاص دارد.</p>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        function showError(msg) { document.getElementById('error-msg').innerText = msg; document.getElementById('error-msg').classList.remove('hidden'); }
+    </script>
+</body>
+</html>
