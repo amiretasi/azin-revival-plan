@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد مدیریت چک‌ها - نسخه پرینت ۲۸ ردیفی</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- PapaParse -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <!-- Chart Datalabels -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap');
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #f3f4f6;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background-color: #0f172a; 
+            color: white;
+            z-index: 10;
+        }
+
+        /* --- PRINT STYLES --- */
+        @media print {
+            @page { 
+                size: landscape;
+                margin: 5mm; 
+            }
+            body { 
+                background-color: white; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+                width: 100%;
+                font-size: 9pt;
+            }
+            .no-print { display: none !important; }
+            #screen-table-container { display: none !important; }
+            #print-table-container { display: block !important; }
+
+            .print\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+            .print\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+            
+            /* Page 1 Styles */
+            #print-page-one {
+                height: 190mm;
+                page-break-after: always;
+                break-after: page;
+                overflow: hidden;
+                padding: 5mm;
+                border: 2px double #000;
+            }
+
+            .card { 
+                box-shadow: none !important; 
+                border: 2px solid #000 !important; 
+                margin-bottom: 8px;
+            }
+
+            .chart-wrapper {
+                height: 220px !important;
+                width: 100% !important;
+                position: relative;
+                overflow: hidden;
+            }
+            canvas {
+                max-height: 100% !important;
+                max-width: 100% !important;
+                margin: auto;
+            }
+
+            .summary-table th, .summary-table td {
+                border: 1px solid #000 !important;
+                padding: 4px !important;
+            }
+            .summary-table th { background-color: #000 !important; color: #fff !important; }
+
+            /* Detailed Pages Layout */
+            .print-page-break {
+                page-break-after: always;
+                break-after: page;
+                height: 190mm; /* Fixed height to force footer to bottom */
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between; /* This pushes footer to bottom */
+                position: relative;
+            }
+            .print-page-break:last-child { 
+                page-break-after: auto; 
+                height: auto;
+                min-height: 190mm;
+            }
+
+            .detailed-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 8pt;
+            }
+            .detailed-table th { 
+                background-color: #333 !important; 
+                color: white !important; 
+                padding: 3px; 
+                border: 1px solid #000;
+            }
+            .detailed-table td { 
+                padding: 3px; 
+                border: 1px solid #ccc; 
+                height: 5mm; 
+            }
+            
+            /* Footer Styling */
+            .print-footer {
+                border-top: 2px solid #000;
+                padding-top: 5px;
+                margin-top: 10px;
+                background-color: white;
+            }
+            
+            .sum-box {
+                background-color: #f3f4f6 !important;
+                padding: 5px 10px;
+                border: 1px solid #9ca3af;
+                border-radius: 4px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 4px;
+            }
+            
+            .grand-sum-box {
+                background-color: #e5e7eb !important;
+                border: 2px solid #000;
+                font-size: 11pt;
+            }
+        }
+        
+        #print-table-container { display: none; }
+    </style>
+</head>
+<body class="text-gray-900 p-4">
+
+    <!-- Navbar -->
+    <nav class="bg-slate-900 text-white p-4 rounded-lg shadow-lg mb-6 flex justify-between items-center no-print">
+        <div class="flex items-center gap-3">
+            <div class="bg-red-600 p-2 rounded">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold">داشبورد مدیریت بحران چک‌ها</h1>
+                <p class="text-xs text-gray-400">تحلیل ریسک و توزیع تعهدات (واحد: میلیارد ریال)</p>
+            </div>
+        </div>
+        <div class="flex gap-3">
+            <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded text-sm transition font-bold">چاپ گزارش رسمی</button>
+            <label for="csvFile" class="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded cursor-pointer transition text-sm flex items-center gap-2">
+                آپلود فایل CSV
+            </label>
+            <input type="file" id="csvFile" accept=".csv" class="hidden">
+        </div>
+    </nav>
+
+    <!-- === PAGE 1: EXECUTIVE SUMMARY === -->
+    <div id="print-page-one">
+        <div class="hidden print:block text-center border-b-4 border-black pb-2 mb-4">
+            <h1 class="text-2xl font-black uppercase tracking-wider">گزارش کلان وضعیت تعهدات (چک)</h1>
+            <div class="flex justify-between mt-2 px-10">
+                <span class="text-sm font-bold">واحد مبالغ: میلیارد ریال</span>
+                <span class="text-sm font-bold">تاریخ: <span id="printDate"></span></span>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 print:grid-cols-4 gap-4 mb-4">
+            <div class="card p-3 border-l-8 border-slate-800">
+                <h3 class="text-gray-500 text-xs font-bold uppercase">کل تعهدات</h3>
+                <p class="text-xl font-black text-slate-900 mt-1" id="kpiTotal">0</p>
+            </div>
+            <div class="card p-3 border-l-8 border-red-600">
+                <h3 class="text-red-700 text-xs font-bold uppercase">نزد تامین‌کننده (خرج شده)</h3>
+                <p class="text-xl font-black text-red-600 mt-1" id="kpiSpent">0</p>
+            </div>
+            <div class="card p-3 border-l-8 border-blue-600">
+                <h3 class="text-blue-700 text-xs font-bold uppercase">برگشت خورده (تنزیل/نزد تامین)</h3>
+                <p class="text-xl font-black text-blue-600 mt-1" id="kpiHeld">0</p>
+            </div>
+            <div class="card p-3 border-l-8 border-yellow-500">
+                <h3 class="text-yellow-700 text-xs font-bold uppercase">تحویل سازه گستر</h3>
+                <p class="text-xl font-black text-yellow-600 mt-1" id="kpiSaze">0</p>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-6 mb-4 flex-grow">
+            <!-- Chart 1 -->
+            <div class="card p-2">
+                <h4 class="text-center text-sm font-bold border-b border-gray-300 pb-2 mb-2">تفکیک وضعیت چک‌ها</h4>
+                <div class="chart-wrapper flex justify-center">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </div>
+            <!-- Chart 2 -->
+            <div class="card p-2">
+                <h4 class="text-center text-sm font-bold border-b border-gray-300 pb-2 mb-2">۱۰ ذینفع اصلی (میلیارد ریال)</h4>
+                <div class="chart-wrapper">
+                    <canvas id="riskChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Tables -->
+        <div class="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-6">
+            <!-- Summary Table 1 -->
+            <div class="card p-0 overflow-hidden">
+                <table class="w-full text-sm summary-table">
+                    <thead class="bg-gray-800 text-white">
+                        <tr>
+                            <th class="p-2 text-right">دسته‌بندی وضعیت</th>
+                            <th class="p-2 text-center">تعداد</th>
+                            <th class="p-2 text-left">مبلغ (میلیارد ریال)</th>
+                            <th class="p-2 text-center">%</th>
+                        </tr>
+                    </thead>
+                    <tbody id="summaryBody" class="divide-y divide-gray-300"></tbody>
+                </table>
+            </div>
+            
+            <!-- Summary Table 2 -->
+            <div class="card p-4 bg-slate-100 border-2 border-slate-300 flex flex-col justify-center">
+                <h4 class="font-bold text-lg mb-4 text-slate-800 border-b-2 border-slate-400 pb-2">خلاصه مدیریتی</h4>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-red-700 text-sm">ریسک آنی (خرج شده):</span>
+                        <span class="font-black text-red-700 text-lg" id="noteRisk">0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-blue-700 text-sm">ریسک مالی (برگشت/تنزیل):</span>
+                        <span class="font-black text-blue-700 text-lg" id="noteNeg">0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-yellow-700 text-sm">ریسک داخلی (سازه گستر):</span>
+                        <span class="font-black text-yellow-700 text-lg" id="noteBarter">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hidden print:block text-center text-xs font-bold mt-auto pt-2">صفحه ۱ - داشبورد اجرایی</div>
+    </div>
+
+
+    <!-- === PAGE 2+: DETAILED LIST === -->
+    <div id="screen-table-container">
+        <!-- Interactive Controls -->
+        <div class="card p-4 mb-4 no-print bg-white">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="font-bold text-gray-800">فیلترهای گزارش</h3>
+                <span class="text-xs bg-gray-200 px-2 py-1 rounded font-bold">مبالغ به میلیارد ریال است</span>
+            </div>
+            <div class="flex flex-wrap gap-3 items-end">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-xs font-bold text-gray-500 mb-1">جستجو</label>
+                    <input type="text" id="searchInput" placeholder="نام تأمین‌کننده / بانک..." class="w-full border border-gray-300 rounded p-2 text-sm">
+                </div>
+                <div class="w-48">
+                    <label class="block text-xs font-bold text-gray-500 mb-1">فیلتر زمانی (۱۴۰۴/۰۷/۱۲)</label>
+                    <select id="dateFilter" class="w-full border border-gray-300 rounded p-2 text-sm">
+                        <option value="all">همه تاریخ‌ها</option>
+                        <option value="before">قبل از ۱۴۰۴/۰۷/۱۲</option>
+                        <option value="after">بعد از ۱۴۰۴/۰۷/۱۲</option>
+                    </select>
+                </div>
+                <div class="w-64">
+                    <label class="block text-xs font-bold text-gray-500 mb-1">فیلتر وضعیت</label>
+                    <select id="statusFilter" class="w-full border border-gray-300 rounded p-2 text-sm">
+                        <option value="all">همه وضعیت‌ها</option>
+                    </select>
+                </div>
+                <button onclick="resetFilters()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm font-bold">پاک کردن</button>
+            </div>
+        </div>
+
+        <div class="card overflow-hidden">
+            <div class="table-container overflow-auto max-h-[600px]">
+                <table class="w-full text-sm text-right">
+                    <thead class="bg-slate-800 text-white sticky top-0">
+                        <tr>
+                            <th class="p-3">#</th>
+                            <th class="p-3">تأمین کننده</th>
+                            <th class="p-3">وضعیت</th>
+                            <th class="p-3">مبلغ (میلیارد)</th>
+                            <th class="p-3">تاریخ</th>
+                            <th class="p-3">ش. چک</th>
+                            <th class="p-3">بانک</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-gray-200"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Printable Table Container -->
+    <div id="print-table-container"></div>
+
+    <script>
+        const CRITICAL_DATE = "1404/07/12";
+        let allData = [];
+        let filteredData = [];
+        let charts = {};
+
+        document.getElementById('printDate').innerText = new Date().toLocaleDateString('fa-IR');
+
+        // --- UTILS ---
+        const toEnglishDigits = (str) => (!str ? '' : str.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)));
+        const parseRaw = (str) => {
+            if (!str) return 0;
+            let clean = String(str).replace(/["\s,]/g, '');
+            return parseFloat(toEnglishDigits(clean)) || 0;
+        };
+        const toBillion = (rawAmount) => rawAmount / 1_000_000_000;
+        const formatMoney = (val) => val.toLocaleString('fa-IR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+        // --- PROCESS DATA ---
+        function processData(csvText) {
+            const lines = csvText.split(/\r\n|\n/);
+            let headerIndex = lines.findIndex(l => l.includes('نام تأمین کننده') || l.includes('مبلغ'));
+            if(headerIndex === -1) headerIndex = 0;
+            const cleanContent = lines.slice(headerIndex).join('\n');
+
+            Papa.parse(cleanContent, {
+                header: true, skipEmptyLines: true,
+                complete: function(results) {
+                    allData = results.data.map((row, idx) => {
+                        const keys = Object.keys(row);
+                        const getVal = (k) => row[keys.find(key => key.includes(k))] || '';
+                        const rawAmt = parseRaw(getVal('مبلغ'));
+                        let rawStatus = getVal('وضعیت').trim();
+                        return {
+                            id: idx + 1,
+                            supplier: getVal('تأمین') || 'نامشخص',
+                            amountRaw: rawAmt,
+                            amountB: toBillion(rawAmt),
+                            date: toEnglishDigits(getVal('تاریخ')),
+                            checkNo: getVal('شماره چک'),
+                            bank: getVal('بانک'),
+                            status: rawStatus
+                        };
+                    }).filter(d => d.amountRaw > 0);
+                    populateStatusFilter();
+                    filterData();
+                }
+            });
+        }
+
+        function populateStatusFilter() {
+            const select = document.getElementById('statusFilter');
+            select.innerHTML = '<option value="all">همه وضعیت‌ها</option>';
+            const uniqueStatuses = [...new Set(allData.map(d => d.status))];
+            uniqueStatuses.forEach(st => {
+                if (st) {
+                    const opt = document.createElement('option');
+                    opt.value = st;
+                    opt.innerText = st;
+                    select.appendChild(opt);
+                }
+            });
+        }
+
+        function filterData() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const dateMode = document.getElementById('dateFilter').value;
+            const statusMode = document.getElementById('statusFilter').value;
+
+            filteredData = allData.filter(d => {
+                const matchSearch = d.supplier.toLowerCase().includes(search);
+                let matchDate = true;
+                if(dateMode === 'before') matchDate = d.date < CRITICAL_DATE;
+                if(dateMode === 'after') matchDate = d.date >= CRITICAL_DATE;
+                let matchStatus = true;
+                if(statusMode !== 'all') matchStatus = d.status === statusMode;
+                return matchSearch && matchDate && matchStatus;
+            });
+            updateDashboard();
+        }
+
+        function updateDashboard() {
+            let totalB = 0;
+            let spentB = 0;
+            let heldB = 0;
+            let sazeB = 0;
+            const statusStats = {};
+            const supplierStats = {};
+
+            filteredData.forEach(d => {
+                totalB += d.amountB;
+                if (d.status.includes('خرج شده')) spentB += d.amountB;
+                else if (d.status.includes('تنزیل') || d.status.includes('برگشت خورده')) heldB += d.amountB;
+                else if (d.status.includes('سازه گستر')) sazeB += d.amountB;
+
+                if (!statusStats[d.status]) statusStats[d.status] = { count: 0, sum: 0 };
+                statusStats[d.status].count++;
+                statusStats[d.status].sum += d.amountB;
+
+                if (!supplierStats[d.supplier]) supplierStats[d.supplier] = 0;
+                supplierStats[d.supplier] += d.amountB;
+            });
+
+            document.getElementById('kpiTotal').innerText = formatMoney(totalB);
+            document.getElementById('kpiSpent').innerText = formatMoney(spentB);
+            document.getElementById('kpiHeld').innerText = formatMoney(heldB);
+            document.getElementById('kpiSaze').innerText = formatMoney(sazeB);
+            document.getElementById('noteRisk').innerText = formatMoney(spentB);
+            document.getElementById('noteNeg').innerText = formatMoney(heldB);
+            document.getElementById('noteBarter').innerText = formatMoney(sazeB);
+
+            const summaryBody = document.getElementById('summaryBody');
+            summaryBody.innerHTML = '';
+            Object.entries(statusStats).forEach(([st, data]) => {
+                let colorClass = '';
+                if(st.includes('خرج شده')) colorClass = 'text-red-700 bg-red-50';
+                else if(st.includes('سازه گستر')) colorClass = 'text-yellow-700 bg-yellow-50';
+                else colorClass = 'text-blue-700 bg-blue-50';
+                const percent = totalB > 0 ? ((data.sum / totalB) * 100).toFixed(1) : 0;
+                summaryBody.innerHTML += `<tr class="${colorClass}"><td class="font-bold text-right">${st}</td><td class="text-center">${data.count}</td><td class="text-left font-black dir-ltr">${formatMoney(data.sum)}</td><td class="text-center text-xs text-gray-500">%${percent}</td></tr>`;
+            });
+
+            renderCharts(statusStats, supplierStats);
+            renderScreenTable();
+            renderPrintTable();
+        }
+
+        function renderCharts(statusStats, supplierStats) {
+            Chart.defaults.font.family = 'Vazirmatn';
+            if (charts.main) charts.main.destroy();
+            charts.main = new Chart(document.getElementById('mainChart'), {
+                type: 'pie', 
+                data: {
+                    labels: Object.keys(statusStats),
+                    datasets: [{
+                        data: Object.values(statusStats).map(d => d.sum),
+                        backgroundColor: ['#dc2626', '#2563eb', '#ca8a04', '#9ca3af']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 11, weight: 'bold' } } }, datalabels: { display: false } } },
+                plugins: [ChartDataLabels]
+            });
+
+            if (charts.risk) charts.risk.destroy();
+            const topSuppliers = Object.entries(supplierStats).sort((a,b) => b[1] - a[1]).slice(0, 10);
+            charts.risk = new Chart(document.getElementById('riskChart'), {
+                type: 'bar',
+                data: {
+                    labels: topSuppliers.map(s => s[0]),
+                    datasets: [{ label: 'میلیارد ریال', data: topSuppliers.map(s => s[1]), backgroundColor: '#1e293b', barPercentage: 0.6 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false }, datalabels: { display: false } }, scales: { x: { display: true }, y: { ticks: { font: { weight: 'bold', size: 9 } } } } },
+                plugins: [ChartDataLabels]
+            });
+        }
+
+        function renderScreenTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            filteredData.forEach((row, i) => {
+                let bg = 'bg-white';
+                let text = 'text-gray-800';
+                if(row.status.includes('خرج شده')) { bg = 'bg-red-50'; text = 'text-red-700 font-bold'; }
+                if(row.status.includes('سازه گستر')) { bg = 'bg-yellow-50'; text = 'text-yellow-800'; }
+                tbody.innerHTML += `<tr class="${i%2===0?'bg-white':'bg-gray-50'} hover:bg-gray-100 transition"><td class="p-3 text-gray-500">${i+1}</td><td class="p-3 font-bold">${row.supplier}</td><td class="p-3"><span class="px-2 py-1 rounded text-xs border ${bg} ${text}">${row.status}</span></td><td class="p-3 font-black text-blue-800 dir-ltr">${formatMoney(row.amountB)}</td><td class="p-3">${row.date}</td><td class="p-3 font-mono text-xs">${row.checkNo}</td><td class="p-3 text-xs">${row.bank}</td></tr>`;
+            });
+        }
+
+        // --- FIXED PRINT LOGIC (28 ROWS + FOOTER SUMS) ---
+        function renderPrintTable() {
+            const container = document.getElementById('print-table-container');
+            container.innerHTML = '';
+            
+            // Reduced to 28 rows to ensure footer space
+            const rowsPerPage = 28;
+            const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+            let grandTotal = 0;
+
+            for (let i = 0; i < totalPages; i++) {
+                const chunk = filteredData.slice(i*rowsPerPage, (i+1)*rowsPerPage);
+                const chunkSum = chunk.reduce((acc, r) => acc + r.amountB, 0);
+                grandTotal += chunkSum; 
+                const isLastPage = (i === totalPages - 1);
+
+                let html = `
+                <div class="print-page-break">
+                    <div>
+                        <div class="bg-gray-200 border border-black p-1 mb-1 text-[9px] font-bold w-full flex justify-between">
+                            <span>لیست تفصیلی تعهدات (صفحه ${i+1} از ${totalPages})</span>
+                            <span>ارقام: میلیارد ریال</span>
+                        </div>
+                        <table class="detailed-table">
+                            <thead>
+                                <tr>
+                                    <th class="w-8 text-center">#</th>
+                                    <th>تأمین کننده</th>
+                                    <th>وضعیت</th>
+                                    <th>مبلغ (میلیارد ریال)</th>
+                                    <th>تاریخ</th>
+                                    <th>ش. چک</th>
+                                    <th>بانک</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                
+                chunk.forEach((row, idx) => {
+                    const rowNum = i*rowsPerPage + idx + 1;
+                    let rowStyle = "";
+                    if(row.status.includes('خرج شده')) rowStyle = "font-bold text-red-700";
+
+                    html += `
+                        <tr class="${idx%2===0 ? 'bg-white' : 'bg-gray-100'}">
+                            <td class="text-center">${rowNum}</td>
+                            <td class="truncate max-w-[120px] font-bold">${row.supplier}</td>
+                            <td class="${rowStyle}">${row.status}</td>
+                            <td class="font-bold text-black dir-ltr">${formatMoney(row.amountB)}</td>
+                            <td>${row.date}</td>
+                            <td class="font-mono">${row.checkNo}</td>
+                            <td>${row.bank}</td>
+                        </tr>`;
+                });
+
+                html += `</tbody></table></div>
+                    
+                    <div class="print-footer">
+                        <div class="sum-box">
+                            <span class="font-bold text-sm">جمع این صفحه:</span>
+                            <span class="font-black text-sm dir-ltr">${formatMoney(chunkSum)}</span>
+                        </div>
+                        
+                        ${isLastPage ? `
+                        <div class="sum-box grand-sum-box">
+                            <span class="font-black">جمع کل نهایی:</span>
+                            <span class="font-black dir-ltr">${formatMoney(grandTotal)}</span>
+                        </div>` : ''}
+                        
+                        <div class="text-center text-[8px] text-gray-500 mt-1">
+                            صفحه ${i+1} از ${totalPages}
+                        </div>
+                    </div>
+                </div>`;
+                
+                container.innerHTML += html;
+            }
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('dateFilter').value = 'all';
+            document.getElementById('statusFilter').value = 'all';
+            filterData();
+        }
+        document.getElementById('searchInput').addEventListener('input', filterData);
+        document.getElementById('dateFilter').addEventListener('change', filterData);
+        document.getElementById('statusFilter').addEventListener('change', filterData);
+        
+        const mockCSV = `ردیف,نام تأمین کننده,نام شرکت صادر کننده چک,شماره چک,تاریخ چک,مبلغ چک,بانک ذینفع,وضعیت چک
+1,گوهربافان,بنیان توسعه,207817,1404/07/24," 10,000,000,000 ",پارسیان,نزد تامین کننده (خرج شده)
+2,گوهربافان,پارس خودرو,234054,1404/08/05," 42,000,000,000 ",پارسیان,برگشت خورده (تنزیل شده - نزد تامین کننده)
+3,اندیشه ایمنی,بنیان توسعه,299942,1404/06/11," 20,000,000,000 ",مهر ایران,تحویل سازه گستر شده
+4,سازه گستر,بنیان توسعه,112233,1404/05/10," 50,000,000,000 ",ملی,نزد تامین کننده (خرج شده)`;
+        processData(mockCSV);
+
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            if(e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (ev) => processData(ev.target.result);
+                reader.readAsText(e.target.files[0], 'UTF-8');
+            }
+        });
+    </script>
+</body>
+</html>
