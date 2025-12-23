@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد فروش - محاسبه دقیق سررسید</title>
+    <title>داشبورد فروش - منطق دقیق سررسید</title>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,7 +17,6 @@
         body { font-family: 'Vazirmatn', sans-serif; background-color: var(--bg-color); color: var(--text-main); }
         .card { background-color: var(--card-bg); border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); padding: 1.5rem; border: 1px solid #e2e8f0; }
         
-        /* Table Layout */
         .table-wrapper {
             overflow-y: auto;
             height: 500px;
@@ -66,8 +65,8 @@
             <div>
                 <h1 class="text-3xl font-black text-slate-800 tracking-tight">داشبورد جامع فروش و مطالبات</h1>
                 <p class="text-slate-500 mt-2 font-bold text-sm">
-                    تاریخ مبنا: <span class="text-blue-600 font-bold">۱۶ آذر ۱۴۰۴</span> |
-                    فرمول وصول: <span class="text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">پایان دوره (End of Period)</span>
+                    تاریخ مبنا: <span class="text-blue-600 font-bold bg-blue-50 px-2 rounded">۱۶ دی ۱۴۰۴</span> |
+                    شرط وصول: <span class="text-red-600 bg-red-50 px-2 rounded font-bold">پایان ماه سررسید</span>
                 </p>
             </div>
             
@@ -115,15 +114,15 @@
                 <p class="text-xs text-emerald-500 mt-1">ست / قطعه</p>
             </div>
             <div class="card border-t-4 border-indigo-600 bg-indigo-50">
-                <p class="text-xs font-bold text-indigo-800 mb-1">مطالبات قابل وصول</p>
+                <p class="text-xs font-bold text-indigo-800 mb-1">مطالبات نقد شده (واقعی)</p>
                 <p class="text-xl font-black text-indigo-900 dir-ltr" id="kpiDueTotal">0</p>
-                <p class="text-xs text-indigo-600 mt-1">تا تاریخ ۱۶ آذر ۱۴۰۴</p>
+                <p class="text-xs text-indigo-600 mt-1">سررسید گذشته (پاس شده)</p>
             </div>
             <div class="card border-t-4 border-amber-500">
                 <p class="text-xs font-bold text-amber-600 mb-1">مجموع سهم شرکت</p>
                 <p class="text-xl font-black text-amber-800 dir-ltr" id="kpiShare">0</p>
                 <div class="text-xs mt-1 font-bold flex items-center gap-1 text-slate-600 bg-amber-50 px-2 py-1 rounded w-fit">
-                    <span>(وصول شده: </span>
+                    <span>(نقد شده: </span>
                     <span class="dir-ltr font-mono" id="kpiShareDue">0</span>
                     <span>)</span>
                 </div>
@@ -132,10 +131,7 @@
 
         <!-- SECTION 1: Total Amount -->
         <div>
-            <div class="flex items-center gap-2 mb-4 border-b-2 border-slate-200 pb-2">
-                <span class="w-2 h-8 bg-slate-800 rounded"></span>
-                <h2 class="text-xl font-bold text-slate-800">۱. تحلیل جامع مبلغ کل فروش (میلیارد ریال)</h2>
-            </div>
+            <h2 class="section-title"><span class="w-2 h-8 bg-slate-800 rounded mr-2"></span>۱. تحلیل جامع مبلغ کل فروش (میلیارد ریال)</h2>
             <div class="card h-[500px]">
                 <canvas id="chartAmountCombo"></canvas>
             </div>
@@ -143,10 +139,7 @@
 
         <!-- SECTION 2: Count -->
         <div>
-             <div class="flex items-center gap-2 mb-4 border-b-2 border-slate-200 pb-2">
-                <span class="w-2 h-8 bg-emerald-600 rounded"></span>
-                <h2 class="text-xl font-bold text-slate-800">۲. تحلیل جامع تعداد فروش (ست)</h2>
-            </div>
+            <h2 class="section-title"><span class="w-2 h-8 bg-emerald-600 rounded mr-2"></span>۲. تحلیل جامع تعداد فروش (ست)</h2>
             <div class="card h-[500px]">
                 <canvas id="chartCountCombo"></canvas>
             </div>
@@ -154,10 +147,7 @@
 
         <!-- SECTION 3: Share Amount -->
         <div>
-             <div class="flex items-center gap-2 mb-4 border-b-2 border-slate-200 pb-2">
-                <span class="w-2 h-8 bg-amber-500 rounded"></span>
-                <h2 class="text-xl font-bold text-slate-800">۳. تحلیل جامع مبلغ سهم (میلیارد ریال)</h2>
-            </div>
+            <h2 class="section-title"><span class="w-2 h-8 bg-amber-500 rounded mr-2"></span>۳. تحلیل جامع مبلغ سهم (میلیارد ریال)</h2>
             <div class="card h-[500px]">
                 <canvas id="chartShareCombo"></canvas>
             </div>
@@ -167,9 +157,9 @@
         <div class="card">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="font-bold text-slate-800 text-lg">ریز داده‌های فروش و وضعیت وصول</h3>
-                <div class="flex gap-2">
-                    <span class="text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full border border-indigo-200 font-bold">زامیاد: پایان ۳ ماه (سررسید ماه ۴)</span>
-                    <span class="text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded-full border border-slate-200 font-bold">سایرین: پایان ۴ ماه (سررسید ماه ۵)</span>
+                <div class="flex gap-2 items-center flex-wrap">
+                    <span class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-100 font-bold">زامیاد: پایان ماه ۳ (وصول در ماه ۴)</span>
+                    <span class="text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded-full border border-slate-200 font-bold">سایرین: پایان ماه ۴ (وصول در ماه ۵)</span>
                 </div>
             </div>
             
@@ -183,7 +173,7 @@
                             <th onclick="sortTable('count')" style="width: 10%">تعداد (ست) ↕</th>
                             <th onclick="sortTable('amount')" style="width: 15%">مبلغ کل ↕</th>
                             <th onclick="sortTable('share')" style="width: 15%">مبلغ سهم ↕</th>
-                            <th class="bg-indigo-900 text-indigo-100 border-r border-indigo-700" onclick="sortTable('receivable')" style="width: 20%">مطالبات وصولی ↕</th>
+                            <th class="bg-indigo-900 text-indigo-100 border-r border-indigo-700" onclick="sortTable('receivable')" style="width: 20%">وضعیت وصول ↕</th>
                         </tr>
                     </thead>
                     <tbody id="dataTableBody"></tbody>
@@ -208,17 +198,17 @@
         Chart.defaults.color = '#64748b';
         
         const STYLES = {
-            bar1403: '#cbd5e1',       // Gray
-            bar1404: '#f87171',       // Red
-            line1403: '#3b82f6',      // Blue Dashed
-            line1404: '#b91c1c'       // Red Solid
+            bar1403: '#cbd5e1',       // Gray (1403 Bar)
+            bar1404: '#f87171',       // Red (1404 Bar)
+            line1403: '#3b82f6',      // Blue Dashed (1403 Cumulative)
+            line1404: '#b91c1c'       // Red Solid (1404 Cumulative)
         };
 
         const monthsList = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
         
-        // --- FIXED DATE LOGIC (16 Azar 1404) ---
+        // --- FIXED DATE LOGIC (TODAY IS 16 DEY 1404) ---
         const REPORT_YEAR = 1404;
-        const REPORT_MONTH_IDX = 8; // Azar (Index 8)
+        const REPORT_MONTH_IDX = 9; // Dey is Index 9 (0-based)
 
         let globalData = [];
         let currentFilteredData = [];
@@ -228,116 +218,19 @@
         const initialCSVData = `ردیف,سال,ماه,کارفرما,تعداد (ست),"مبلغ کل (میلیون ریال)","مبلغ سهم (میلیون ریال)"
 1,1403,فروردین,سازه گستر,"11,987","773,264","497,242"
 2,1403,اردیبهشت,سازه گستر,"54,328","1,978,107","2,305,251"
-3,1403,خرداد,سازه گستر,"19,086","1,964,943","1,173,562"
-4,1403,تیر,سازه گستر,"55,486","2,080,691","3,795,484"
-5,1403,مرداد,سازه گستر,"29,706","2,914,838","2,919,433"
-6,1403,شهریور,سازه گستر,"21,092","2,204,774","1,514,327"
-7,1403,مهر,سازه گستر,"30,243","2,275,438","2,145,850"
-8,1403,ابان,سازه گستر,"23,572","1,612,479","1,546,245"
-9,1403,اذر,سازه گستر,"23,260","1,647,306","1,522,745"
-10,1403,دی,سازه گستر,"21,769","1,609,168","1,509,141"
-11,1403,بهمن,سازه گستر,"22,656","1,770,446","1,690,920"
-12,1403,اسفند,سازه گستر,"21,166","6,508,320","1,547,419"
 13,1403,فروردین,زامیاد,0,0,0
-14,1403,اردیبهشت,زامیاد,50,"2,508","2,508"
-15,1403,خرداد,زامیاد,0,0,0
-16,1403,تیر,زامیاد,0,0,0
-17,1403,مرداد,زامیاد,0,0,0
-18,1403,شهریور,زامیاد,0,0,0
-19,1403,مهر,زامیاد,0,0,0
-20,1403,ابان,زامیاد,10,"1,522","1,522"
-21,1403,اذر,زامیاد,50,"2,500","2,500"
-22,1403,دی,زامیاد,50,"2,503","2,503"
-23,1403,بهمن,زامیاد,60,"3,084","3,084"
-24,1403,اسفند,زامیاد,98,"9,690","9,690"
-25,1403,فروردین,آرمان موتور,0,0,0
-26,1403,اردیبهشت,آرمان موتور,0,0,0
-27,1403,خرداد,آرمان موتور,0,81,81
-28,1403,تیر,آرمان موتور,0,0,0
-29,1403,مرداد,آرمان موتور,0,0,0
-30,1403,شهریور,آرمان موتور,0,"1,846","1,846"
-31,1403,مهر,آرمان موتور,0,433,433
-32,1403,ابان,آرمان موتور,0,"4,358","4,358"
-33,1403,اذر,آرمان موتور,0,"4,226","4,226"
-34,1403,دی,آرمان موتور,0,0,0
-35,1403,بهمن,آرمان موتور,0,"16,039","16,039"
-36,1403,اسفند,آرمان موتور,0,"32,078","32,078"
-37,1403,فروردین,قالب ها,"1,360","8,918",775
-38,1403,اردیبهشت,قالب ها,"4,640","29,238","2,645"
-39,1403,خرداد,قالب ها,"4,800","29,909","2,736"
-40,1403,تیر,قالب ها,"5,040","31,405","2,873"
-41,1403,مرداد,قالب ها,"3,760","23,429","2,143"
-42,1403,شهریور,قالب ها,"3,440","21,435","1,961"
-43,1403,مهر,قالب ها,"4,000","24,924","2,280"
-44,1403,ابان,قالب ها,"3,840","23,927","2,189"
-45,1403,اذر,قالب ها,"2,640","16,558","1,505"
-46,1403,دی,قالب ها,"3,440","21,435","1,961"
-47,1403,بهمن,قالب ها,"1,572","103,780",896
-48,1403,اسفند,قالب ها,0,0,0
-49,1403,فروردین,سودیکو,0,"2,899","2,899"
-50,1403,اردیبهشت,سودیکو,0,"14,828","14,828"
-147,1404,خرداد,سودیکو,0,"4,898","4,898"
-148,1404,تیر,سودیکو,0,"5,846","5,846"
-149,1404,مرداد,سودیکو,0,"2,311","2,311"
-150,1404,شهریور,سودیکو,0,"6,694","6,694"
-151,1404,مهر,سودیکو,0,"2,806","2,806"
-152,1404,آبان ,سودیکو,0,"4,058","4,058"
-153,1404,اذر,سودیکو,,,
-154,1404,دی,سودیکو,,,
-155,1404,بهمن,سودیکو,,,
-156,1404,اسفند,سودیکو,,,
-157,1404,فروردین,سودیکو,0,0,0
-158,1404,اردیبهشت,سودیکو,0,0,0
-159,1404,خرداد,سودیکو,0,"22,171","22,171"
-160,1404,تیر,سودیکو,0,0,0
-161,1404,مرداد,سودیکو,0,0,0
-162,1404,شهریور,سودیکو,0,0,0
-163,1404,مهر,سودیکو,0,0,0
-164,1404,آبان ,سودیکو,0,"66,193","66,193"
-165,1404,اذر,سودیکو,,,
-166,1404,دی,سودیکو,,,
-167,1404,بهمن,سودیکو,,,
-168,1404,اسفند,سودیکو,,,
-169,1404,فروردین,خدمات آزمون,0,"874.4","874.4"
-170,1404,اردیبهشت,خدمات آزمون,0,"9284.6","9284.6"
-171,1404,خرداد,خدمات آزمون,0,"6200.09","6200.09"
-172,1404,تیر,خدمات آزمون,0,"10280.4","10280.4"
-173,1404,مرداد,خدمات آزمون,0,"9302.033","9302.033"
-174,1404,شهریور,خدمات آزمون,0,"2689.596","2689.596"
-175,1404,مهر,خدمات آزمون,0,"9395.1","9395.1"
-176,1404,آبان ,خدمات آزمون,0,"4004.065","4004.065"
-177,1404,اذر,خدمات آزمون,0,0,0
-178,1404,دی,خدمات آزمون,0,0,0
-179,1404,بهمن,خدمات آزمون,0,0,0
-180,1404,اسفند,خدمات آزمون,0,0,0
-181,1404,فروردین,سایپا یدک,0,0,0
-182,1404,اردیبهشت,سایپا یدک,0,"12835.2","12835.2"
-183,1404,خرداد,سایپا یدک,0,0,0
-184,1404,تیر,سایپا یدک,0,0,0
-185,1404,مرداد,سایپا یدک,0,4884,4884
-186,1404,شهریور,سایپا یدک,0,0,0
-187,1404,مهر,سایپا یدک,0,"4861.8","4861.8"
-188,1404,آبان ,سایپا یدک,0,19918,19918
-189,1404,اذر,سایپا یدک,0,0,0
-190,1404,دی,سایپا یدک,0,0,0
-191,1404,بهمن,سایپا یدک,0,0,0
-192,1404,اسفند,سایپا یدک,0,0,0`;
+14,1403,اردیبهشت,زامیاد,50,"2,508","2,508"`;
 
-        // --- DATA PARSING & LOGIC (Correct Regex for CSV) ---
+        // --- DATA PARSING & LOGIC ---
         function parseCSVLine(text) {
             const result = [];
             let cur = '';
             let inQuote = false;
             for (let i = 0; i < text.length; i++) {
                 const c = text[i];
-                if (c === '"') {
-                    inQuote = !inQuote;
-                } else if (c === ',' && !inQuote) {
-                    result.push(cur.trim());
-                    cur = '';
-                } else {
-                    cur += c;
-                }
+                if (c === '"') { inQuote = !inQuote; } 
+                else if (c === ',' && !inQuote) { result.push(cur.trim()); cur = ''; } 
+                else { cur += c; }
             }
             result.push(cur.trim());
             return result;
@@ -355,16 +248,16 @@
                 const parts = parseCSVLine(line);
                 if(parts.length < 6) continue;
 
-                let id = parts[0];
-                let year = parseInt(parts[1]);
-                let month = parts[2].replace('ابان', 'آبان');
-                let source = parts[3]; 
+                let id = parts[0].trim();
+                let year = parseInt(parts[1].trim());
+                let month = parts[2].trim().replace('ابان', 'آبان');
+                let source = parts[3].trim();
                 
                 let count = parseFloat((parts[4] || "0").replace(/["',]/g, '')) || 0;
                 let amountBillion = (parseFloat((parts[5] || "0").replace(/["',]/g, '')) || 0) / 1000;
                 let shareBillion = (parseFloat((parts[6] || "0").replace(/["',]/g, '')) || 0) / 1000;
 
-                // --- NEW 120-DAY/90-DAY LOGIC (OFFSET BASED ON CONTRACT) ---
+                // --- STRICT 90/120 DAY LOGIC ---
                 let mIndex = monthsList.indexOf(month); 
                 let shareDue = 0;
                 let receivableAmount = 0;
@@ -373,26 +266,26 @@
                 if (mIndex !== -1) {
                     let saleAbsMonth = (year * 12) + mIndex;
                     
-                    // Zamyad: 3 months later (e.g. Month 6 -> Month 9 is Due)
-                    // Others: 4 months later (e.g. Month 6 -> Month 10 is Due)
-                    let addMonths = source.includes("زامیاد") ? 4 : 5; // +1 Because month index matches arrival.
-                    // Wait, re-verify user request:
-                    // "کارکرد شهریور (6) در قراردادهای 90 روزه در ابتدای دی (10) سر رسید میگردد"
-                    // 6 + 4 = 10. So Offset is +4.
-                    // "کارکرد شهریور (6) در بازه 120 روز میشه بهمن (11)"
-                    // 6 + 5 = 11. So Offset is +5.
+                    // Logic:
+                    // Zamyad: Sale Month + 3 (Due End of M+3). So Realized in M+4.
+                    // Others: Sale Month + 4 (Due End of M+4). So Realized in M+5.
+                    let addMonths = source.includes("زامیاد") ? 3 : 4;
                     
+                    // The month INDEX of the due date (End of this month it matures)
                     let dueAbsMonth = saleAbsMonth + addMonths;
                     let currentAbsMonth = (REPORT_YEAR * 12) + REPORT_MONTH_IDX;
 
-                    if (dueAbsMonth <= currentAbsMonth) {
+                    // STRICT CONDITION: Current Month must be GREATER than Due Month to be fully realized cash
+                    // OR if we consider "End of Month" as the check date, and today is 16th, it's not cashed yet.
+                    if (currentAbsMonth > dueAbsMonth) {
                         shareDue = shareBillion; 
                         receivableAmount = amountBillion;
-                        dueText = "قابل وصول";
+                        dueText = "نقد شده";
                     } else {
+                        // Not yet realized
                         let dYear = Math.floor(dueAbsMonth / 12);
                         let dMonthIdx = dueAbsMonth % 12;
-                        dueText = `${monthsList[dMonthIdx]} ${dYear}`;
+                        dueText = `سررسید: انتهای ${monthsList[dMonthIdx]} ${dYear}`;
                     }
                 }
 
@@ -430,15 +323,17 @@
             const empVal = document.getElementById('employerSelect').value;
             const yearVal = document.getElementById('yearSelect').value;
 
-            const filteredForTable = globalData.filter(d => {
+            // Filter for KPI & Table
+            const filteredForKPI = globalData.filter(d => {
                 const empMatch = empVal === 'all' || d.source === empVal;
                 const yearMatch = yearVal === 'all' || d.year.toString() === yearVal;
                 return empMatch && yearMatch;
             });
 
-            updateKPIs(filteredForTable);
-            renderTable(filteredForTable);
+            updateKPIs(filteredForKPI);
+            renderTable(filteredForKPI);
             
+            // Charts (Year Independent)
             updateAllCharts(empVal); 
         }
 
@@ -474,7 +369,7 @@
                 acc1403 += v1403;
                 c1403.push(acc1403);
 
-                if(idx > 7) { 
+                if(idx > 7) { // Cutoff for 1404 visuals
                     m1404.push(null); c1404.push(null);
                 } else {
                     m1404.push(v1404); acc1404 += v1404; c1404.push(acc1404);
@@ -544,7 +439,7 @@
                     <td class="font-mono dir-ltr text-emerald-600">${d.count.toLocaleString()}</td>
                     <td class="font-mono dir-ltr font-bold text-blue-700">${d.amount.toLocaleString(undefined, {maximumFractionDigits: 3})}</td>
                     <td class="font-mono dir-ltr text-amber-600 text-sm">${d.share.toLocaleString(undefined, {maximumFractionDigits: 3})}</td>
-                    <td class="font-mono dir-ltr ${recClass} border-r border-slate-100">${recVal}</td>
+                    <td class="font-mono dir-ltr ${recClass} border-r border-slate-100 text-sm">${recVal}</td>
                 `;
                 tbody.appendChild(tr);
             });
