@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد پیشرفته نقدینگی (Rev.03)</title>
+    <title>داشبورد جامع نقدینگی (Rev.13 Final)</title>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --font-main: 'Vazirmatn', sans-serif; }
-        body { font-family: var(--font-main); background-color: #f8fafc; color: #334155; }
+        body { font-family: var(--font-main); background-color: #f8fafc; color: #0f172a; }
         
-        /* Custom Scrollbar */
         .custom-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -22,168 +21,231 @@
         .btn-upload:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .font-num { font-feature-settings: "ss01"; font-family: var(--font-main); }
         
-        /* Table Styling */
-        th { position: sticky; top: 0; z-index: 10; background-color: #1e293b; color: white; padding: 14px; font-size: 0.8rem; font-weight: 700; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; white-space: nowrap; transition: background 0.15s; }
-        tr:hover td { background-color: #f8fafc; }
-        tfoot th, tfoot td { position: sticky; bottom: 0; z-index: 10; background-color: #f1f5f9; border-top: 2px solid #cbd5e1; font-weight: 800; color: #1e293b; box-shadow: 0 -2px 4px rgba(0,0,0,0.05); }
+        /* Table Styles */
+        table { border-collapse: separate; border-spacing: 0; width: 100%; }
+        th { position: sticky; z-index: 20; color: white; text-align: center; border: 1px solid #334155; }
+        thead tr:first-child th { top: 0; height: 40px; background-color: #0f172a; font-size: 0.8rem; }
+        thead tr:nth-child(2) th { top: 40px; height: 35px; background-color: #334155; font-size: 0.75rem; }
+        td { padding: 8px 4px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; font-size: 0.8rem; white-space: nowrap; text-align: center; }
+        tr:hover td { background-color: #f1f5f9; }
+        tfoot th, tfoot td { position: sticky; bottom: 0; z-index: 20; background-color: #e2e8f0; border-top: 2px solid #94a3b8; font-weight: 800; color: #0f172a; text-align: center; }
+        
+        .input-group:focus-within label { color: #3b82f6; }
+        .input-group:focus-within input { border-color: #3b82f6; ring: 2px; }
+        
+        .bg-sales { background-color: #eff6ff; }
+        .bg-due { background-color: #fff1f2; }
+        .bg-paid { background-color: #ecfdf5; }
+        .text-neg { color: #dc2626; direction: ltr; } 
+        .text-pos { color: #16a34a; direction: ltr; }
     </style>
 </head>
 <body class="p-4 md:p-8 space-y-6 bg-slate-50">
 
-    <!-- Header Section -->
-    <div class="card border-r-4 border-slate-800 flex flex-col lg:flex-row justify-between items-center gap-6">
-        <div>
-            <h1 class="text-2xl font-black text-slate-800 tracking-tight">داشبورد هوشمند جریان نقدینگی</h1>
-            <p class="text-xs text-slate-500 mt-2 font-bold bg-slate-100 px-3 py-1 rounded-full inline-block">
-                منطق سررسید: زامیاد ۹۰ روز | سایرین ۱۲۰ روز
-            </p>
+    <!-- Header & KPIs -->
+    <div class="space-y-4">
+        <!-- Top Bar -->
+        <div class="card border-r-4 border-slate-800 flex flex-col lg:flex-row justify-between items-center gap-4 py-4">
+            <div>
+                <h1 class="text-2xl font-black text-slate-800 tracking-tight">داشبورد جامع تراز نقدینگی</h1>
+                <p id="updateTime" class="text-sm text-slate-500 mt-1 font-bold font-num flex items-center gap-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    ...
+                </p>
+            </div>
+            <div class="flex gap-2">
+                <label class="btn-upload bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer">
+                    <input type="file" id="fileSales" accept=".csv" class="hidden" />
+                    <span id="lblSales">📂 فایل فروش</span>
+                </label>
+                <label class="btn-upload bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer">
+                    <input type="file" id="fileReceipts" accept=".csv" class="hidden" />
+                    <span id="lblReceipts">📂 فایل ورودی</span>
+                </label>
+            </div>
         </div>
-        <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-            <label class="btn-upload bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 cursor-pointer">
-                <input type="file" id="fileSales" accept=".csv" class="hidden" />
-                <span id="lblSales">📂 فایل فروش (Sales)</span>
-            </label>
-            <label class="btn-upload bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 cursor-pointer">
-                <input type="file" id="fileReceipts" accept=".csv" class="hidden" />
-                <span id="lblReceipts">📂 فایل ورودی (Receipts)</span>
-            </label>
+
+        <!-- 5 Strategic KPIs -->
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <!-- 1. Total Contract Sales -->
+            <div class="card p-4 border-t-4 border-gray-500 flex flex-col justify-center items-center">
+                <span class="text-[10px] font-bold text-gray-500 mb-1">میزان تجمعی کل فروش</span>
+                <span class="text-xl font-black text-gray-800 font-num dir-ltr" id="kpiTotalSales">0</span>
+                <span class="text-[9px] text-gray-400 mt-1">ارزش کل قرارداد (Total)</span>
+            </div>
+            <!-- 2. Share Sales -->
+            <div class="card p-4 border-t-4 border-blue-600 flex flex-col justify-center items-center bg-blue-50/50">
+                <span class="text-[10px] font-bold text-blue-600 mb-1">میزان فروش سهم</span>
+                <span class="text-xl font-black text-blue-800 font-num dir-ltr" id="kpiShareSales">0</span>
+                <span class="text-[9px] text-blue-400 mt-1">سهم شرکت (Revenue)</span>
+            </div>
+            <!-- 3. Matured Due -->
+            <div class="card p-4 border-t-4 border-pink-600 flex flex-col justify-center items-center">
+                <span class="text-[10px] font-bold text-pink-600 mb-1">میزان سررسید مطالبات</span>
+                <span class="text-xl font-black text-pink-800 font-num dir-ltr" id="kpiDue">0</span>
+                <span class="text-[9px] text-pink-400 mt-1">تعهدات سررسید شده</span>
+            </div>
+            <!-- 4. Total Paid -->
+            <div class="card p-4 border-t-4 border-emerald-600 flex flex-col justify-center items-center">
+                <span class="text-[10px] font-bold text-emerald-600 mb-1">مجموع پرداخت شده</span>
+                <span class="text-xl font-black text-emerald-800 font-num dir-ltr" id="kpiPaid">0</span>
+                <span class="text-[9px] text-emerald-400 mt-1">ورودی خزانه (Cash)</span>
+            </div>
+            <!-- 5. Balance -->
+            <div class="card p-4 border-t-4 border-slate-800 flex flex-col justify-center items-center bg-slate-50">
+                <span class="text-[10px] font-bold text-slate-600 mb-1">تراز نهایی (انحراف)</span>
+                <span class="text-xl font-black text-slate-900 font-num dir-ltr" id="kpiBalance">0</span>
+                <span class="text-[9px] text-slate-400 mt-1">سررسید - پرداخت</span>
+            </div>
         </div>
     </div>
 
     <!-- Controls -->
-    <div class="card bg-white sticky top-2 z-30 shadow-md py-3 border-b border-slate-200">
-        <div class="flex flex-wrap items-end gap-4">
-            <div class="w-full md:w-32">
+    <div class="card bg-white sticky top-2 z-30 shadow-md py-4 border-b border-slate-200">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+            <div class="input-group">
+                <label class="block text-[10px] font-extrabold text-slate-500 uppercase mb-1">مانده ابتدای دوره (میلیارد)</label>
+                <input type="number" id="inpBalance" value="0" class="w-full bg-slate-50 border-2 border-slate-300 rounded-lg px-3 py-2 text-sm font-bold font-num text-slate-800 outline-none transition text-center" placeholder="0" />
+            </div>
+            <div class="input-group lg:col-span-1">
+                <label class="block text-[10px] font-extrabold text-indigo-600 uppercase mb-1">تاریخ مبنا (شبیه‌سازی)</label>
+                <select id="currentDateSelect" class="w-full bg-indigo-50 border-2 border-indigo-200 text-indigo-900 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500 transition text-center"></select>
+            </div>
+            <div>
                 <label class="block text-[10px] font-extrabold text-slate-400 uppercase mb-1">فیلتر سال</label>
-                <select id="yearSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                <select id="yearSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500 transition text-center">
                     <option value="all">تمام سال‌ها</option>
                     <option value="1403">۱۴۰۳</option>
-                    <option value="1404">۱۴۰۴</option>
+                    <option value="1404" selected>۱۴۰۴</option>
                 </select>
             </div>
-            <div class="w-full md:w-64">
+            <div class="lg:col-span-2">
                 <label class="block text-[10px] font-extrabold text-slate-400 uppercase mb-1">فیلتر کارفرما</label>
-                <select id="clientSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                <select id="clientSelect" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-blue-500 transition text-center">
                     <option value="all">همه کارفرمایان (تجمعی)</option>
                 </select>
-            </div>
-            <div class="flex-grow hidden lg:flex justify-end items-center gap-4 text-xs font-medium text-slate-500">
-                <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-blue-500"></span>فروش</div>
-                <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-500"></span>وصول</div>
-                <div class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-red-500 opacity-80"></span>سررسید (تعهد)</div>
             </div>
         </div>
     </div>
 
     <!-- Charts -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="card h-[420px] relative flex flex-col">
-            <h3 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2 border-b pb-2">
-                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                مقایسه ماهانه: فروش، وصول و تعهدات
-            </h3>
-            <div class="flex-grow relative w-full h-full">
-                <canvas id="chartMonthly"></canvas>
-            </div>
+        <div class="card h-[450px] relative flex flex-col">
+            <h3 class="text-sm font-bold text-slate-700 mb-4 border-b pb-2 text-center">عملکرد ماهانه: فروش (بالا) vs پرداخت (پایین)</h3>
+            <div class="flex-grow relative w-full h-full"><canvas id="chartMonthly"></canvas></div>
         </div>
-        <div class="card h-[420px] relative flex flex-col">
-            <h3 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2 border-b pb-2">
-                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                روند تجمعی و تحلیل شکاف (Gap Analysis)
-            </h3>
-            <div class="flex-grow relative w-full h-full">
-                <canvas id="chartCumulative"></canvas>
-            </div>
+        <div class="card h-[450px] relative flex flex-col">
+            <h3 class="text-sm font-bold text-slate-700 mb-4 border-b pb-2 text-center">تحلیل جامع: مقایسه روند شاخص‌ها</h3>
+            <div class="flex-grow relative w-full h-full"><canvas id="chartCumulative"></canvas></div>
         </div>
     </div>
 
     <!-- Table -->
-    <div class="card p-0 overflow-hidden flex flex-col h-[500px]">
-        <div class="p-4 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-20">
-            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                <span>📋</span> جدول جریان نقدینگی ماهانه
-            </h3>
-            <span class="text-xs font-medium bg-slate-100 text-slate-500 px-2 py-1 rounded">واحد: میلیارد ریال</span>
+    <div class="card p-0 overflow-hidden flex flex-col h-[600px]">
+        <div class="p-4 border-b border-slate-100 bg-white sticky top-0 z-20 flex justify-between items-center">
+            <h3 class="font-bold text-slate-800">📋 جدول تفصیلی جریان نقدینگی</h3>
+            <div class="text-xs font-num bg-slate-100 px-2 py-1 rounded border">واحد: میلیارد ریال</div>
         </div>
-        
         <div class="flex-grow overflow-auto custom-scroll relative">
-            <table class="w-full text-right border-collapse">
+            <table class="w-full">
                 <thead>
                     <tr>
-                        <th class="w-20 text-center">سال</th>
-                        <th class="w-24 text-center">ماه</th>
-                        <th class="text-left dir-ltr">میزان فروش (Invoice)</th>
-                        <th class="text-left dir-ltr text-red-300 bg-slate-900 border-l border-slate-700">تعهد سررسید شده<br><span class="text-[9px] font-light text-slate-400">(زامیاد ۹۰، بقیه ۱۲۰ روز)</span></th>
-                        <th class="text-left dir-ltr">میزان وصول (Receipt)</th>
-                        <th class="text-left dir-ltr">تراز (Net Flow)</th>
+                        <th rowspan="2" class="w-16">سال</th>
+                        <th rowspan="2" class="w-20">ماه</th>
+                        <th colspan="2" class="bg-blue-900 border-l border-blue-800">فروش سهم (درآمد)</th>
+                        <th colspan="2" class="bg-pink-900 border-l border-pink-800">تعهد سررسید شده</th>
+                        <th colspan="2" class="bg-emerald-900 border-l border-emerald-800">پرداخت شده (منفی)</th>
+                        <th rowspan="2" class="w-24 bg-slate-800">تراز نهایی<br><span class="text-[9px] font-light">(تجمعی)</span></th>
+                    </tr>
+                    <tr>
+                        <th class="w-20">دوره</th><th class="w-24 border-l border-slate-600">تجمعی</th>
+                        <th class="w-20">دوره</th><th class="w-24 border-l border-slate-600">تجمعی</th>
+                        <th class="w-20">دوره</th><th class="w-24 border-l border-slate-600">تجمعی</th>
                     </tr>
                 </thead>
-                <tbody id="tableBody" class="font-num font-bold text-slate-600">
-                    <!-- JS Rows -->
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="2" class="text-center py-4 text-slate-600">جمع کل دوره</td>
-                        <td class="text-left dir-ltr text-blue-600" id="sumSales">0</td>
-                        <td class="text-left dir-ltr text-red-600 bg-slate-200 border-l border-white" id="sumDue">0</td>
-                        <td class="text-left dir-ltr text-emerald-600" id="sumReceipts">0</td>
-                        <td class="text-left dir-ltr text-slate-800" id="sumBalance">0</td>
-                    </tr>
-                </tfoot>
+                <tbody id="tableBody" class="font-num font-bold text-slate-600"></tbody>
+                <tfoot id="tableFooter"></tfoot>
             </table>
         </div>
     </div>
 
     <script>
-        // --- CONSTANTS ---
-        const MONTH_MAP = {
-            "فروردین": 1, "اردیبهشت": 2, "خرداد": 3, "تیر": 4, "مرداد": 5, "شهریور": 6,
-            "مهر": 7, "آبان": 8, "ابان": 8, "آذر": 9, "اذر": 9, "دی": 10, "بهمن": 11, "اسفند": 12
-        };
-        const CURRENT_DATE_IDX = (1404 * 12) + 9; // Assume Azar 1404
+        // --- LIVE DATE ---
+        function updateDateDisplay() {
+            const now = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', calendar: 'persian' };
+            document.getElementById('updateTime').innerHTML = `<span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>آخرین بروزرسانی: ${now.toLocaleDateString('fa-IR', options)}`;
+        }
+        setInterval(updateDateDisplay, 1000); updateDateDisplay();
+
+        // --- CHART CONFIG ---
+        Chart.defaults.font.family = 'Vazirmatn';
+        const FONT_OPTS = { family: 'Vazirmatn', size: 11 };
         
-        let rawSales = [];
+        // --- DATA MAPS ---
+        const MONTH_MAP = { "فروردین":1, "اردیبهشت":2, "خرداد":3, "تیر":4, "مرداد":5, "شهریور":6, "مهر":7, "آبان":8, "ابان":8, "آذر":9, "اذر":9, "دی":10, "بهمن":11, "اسفند":12 };
+        const MONTH_NAMES_ARR = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
+
+        let rawSales = []; // Stores {total, share, ...}
         let rawReceipts = [];
         let uniqueClients = new Set();
         let charts = {};
 
-        // --- CORE LOGIC: DYNAMIC AGING ---
-        // Zamyad: 90 Days (3 Months), Others: 120 Days (4 Months)
-        function getLagForClient(clientName) {
-            if (clientName && clientName.includes('زامیاد')) return 3;
-            return 4;
+        // --- UTILS ---
+        function normalizeClient(name) {
+            if (!name) return "نامشخص";
+            const n = name.trim();
+            if (n.includes("گستر") || n.includes("سازه")) return "سازه گستر";
+            if (n.includes("آرمان") || n.includes("موتور") && !n.includes("دیزل")) return "آرمان موتور";
+            if (n.includes("یدک")) return "سایپا یدک";
+            if (n.includes("زامیاد")) return "زامیاد";
+            if (n.includes("قالب")) return "قالبهای صنعتی";
+            if (n.includes("سودیکو")) return "سودیکو";
+            return n;
+        }
+        function getLagForClient(c) { return (c && c.includes('زامیاد')) ? 4 : 5; }
+
+        // --- INIT TIME SELECTOR ---
+        function initTimeSelector() {
+            const sel = document.getElementById('currentDateSelect');
+            [1403, 1404].forEach(y => {
+                MONTH_NAMES_ARR.forEach((m, idx) => {
+                    const opt = document.createElement('option');
+                    opt.value = (y * 12) + (idx + 1);
+                    opt.text = `${m} ${y}`;
+                    if (y === 1404 && idx === 9) opt.selected = true; 
+                    sel.appendChild(opt);
+                });
+            });
+            sel.addEventListener('change', runAnalysis);
         }
 
-        // --- PARSER ---
+        // --- PARSER (Enhanced to read Total & Share) ---
         function parseFile(file, type) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const text = e.target.result;
-                    const lines = text.split('\n');
+                    const lines = e.target.result.split('\n');
                     const parsed = [];
-                    const startRow = 1; 
-
-                    for (let i = startRow; i < lines.length; i++) {
+                    for (let i = 1; i < lines.length; i++) {
                         const line = lines[i].trim();
                         if (!line) continue;
                         const parts = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
                         if (!parts) continue;
-                        const clean = (val) => val ? val.replace(/["',]/g, '').trim() : "";
-                        
+                        const clean = (v) => v ? v.replace(/["',]/g, '').trim() : "";
                         try {
                             if (type === 'sales') {
                                 if (parts.length < 7) continue;
                                 const y = parseInt(clean(parts[1]));
                                 const mStr = clean(parts[2]);
-                                const client = clean(parts[3]);
-                                const shareVal = parseFloat(clean(parts[6]));
-                                
+                                const client = normalizeClient(clean(parts[3]));
+                                const totalVal = parseFloat(clean(parts[5])); // NEW: Col 5 is Total
+                                const shareVal = parseFloat(clean(parts[6])); // Col 6 is Share
                                 if (!isNaN(y) && !isNaN(shareVal)) {
                                     parsed.push({ 
                                         y, m: mStr, client, 
-                                        amount: shareVal / 1000, 
+                                        total: totalVal / 1000, 
+                                        amount: shareVal / 1000, // Using Share as main amount for logic
                                         idx: (y * 12) + MONTH_MAP[mStr] 
                                     });
                                     uniqueClients.add(client);
@@ -191,14 +253,12 @@
                             } else {
                                 if (parts.length < 6) continue;
                                 const mStr = clean(parts[0]);
-                                const client = clean(parts[1]);
+                                const client = normalizeClient(clean(parts[1]));
                                 const valRaw = parseFloat(clean(parts[4]));
                                 const dateStr = clean(parts[5]);
-                                
                                 let y = 1403;
                                 if (dateStr.includes('.')) y = parseInt(dateStr.split('.')[0]);
                                 else if (dateStr.includes('/')) y = parseInt(dateStr.split('/')[0]);
-                                
                                 if (!isNaN(valRaw)) {
                                     parsed.push({ 
                                         y, m: mStr, client, 
@@ -216,214 +276,201 @@
             });
         }
 
-        // --- ANALYSIS ---
+        // --- CORE ANALYSIS ---
         function runAnalysis() {
-            const selectedClient = document.getElementById('clientSelect').value;
-            const selectedYear = document.getElementById('yearSelect').value;
+            const client = document.getElementById('clientSelect').value;
+            const year = document.getElementById('yearSelect').value;
+            const opBal = parseFloat(document.getElementById('inpBalance').value) || 0;
+            const curIdx = parseInt(document.getElementById('currentDateSelect').value);
             
-            // Filters
-            let salesFiltered = selectedClient === 'all' ? rawSales : rawSales.filter(d => d.client === selectedClient);
-            let receiptsFiltered = selectedClient === 'all' ? rawReceipts : rawReceipts.filter(d => d.client === selectedClient);
-            
-            // Data Range for Timeline
-            // We use ALL data to construct the timeline to ensure "Due" calculations (which look back in time) are correct
-            // Filtering by year happens mainly for display
-            
-            const timeMap = {};
-            const allIdx = new Set([...rawSales.map(d=>d.idx), ...rawReceipts.map(d=>d.idx)]);
-            const sortedAllIdx = Array.from(allIdx).sort((a,b)=>a-b);
+            // 1. Filter Data
+            let sFiltered = client === 'all' ? rawSales : rawSales.filter(d => d.client === client);
+            let rFiltered = client === 'all' ? rawReceipts : rawReceipts.filter(d => d.client === client);
 
-            sortedAllIdx.forEach(idx => {
+            // 2. Determine Timeline Range
+            const allIdx = new Set([...rawSales.map(d=>d.idx), ...rawReceipts.map(d=>d.idx)]);
+            const sortedIdx = Array.from(allIdx).sort((a,b)=>a-b);
+            
+            let minIndex = 0, maxIndex = 0;
+            if (year !== 'all') {
+                const yInt = parseInt(year);
+                minIndex = (yInt * 12) + 1; maxIndex = (yInt * 12) + 12;
+            } else {
+                minIndex = sortedIdx.length ? sortedIdx[0] : curIdx;
+                maxIndex = Math.max(sortedIdx.length ? sortedIdx[sortedIdx.length-1] : curIdx, curIdx);
+            }
+
+            // 3. Build Map & Calculate KPIs
+            const timeMap = {};
+            let kpi_TotalSales = 0; // Cumulative Total Contract
+            let kpi_ShareSales = 0; // Cumulative Share (includes opBal logic later)
+            
+            // Init Map
+            for (let idx = minIndex; idx <= maxIndex; idx++) {
                 const y = Math.floor((idx-1)/12);
                 const mIdx = ((idx-1)%12) + 1;
                 const mName = Object.keys(MONTH_MAP).find(k => MONTH_MAP[k] === mIdx && k !== 'ابان' && k !== 'اذر');
-                
-                timeMap[idx] = { 
-                    y, m: mName, 
-                    s: 0, r: 0, due: 0 
-                };
+                timeMap[idx] = { y, m: mName, s: 0, r: 0, due: 0 };
+            }
+
+            // Inject Opening Balance (Due at minIndex+2)
+            if (opBal !== 0 && timeMap[minIndex + 2]) {
+                timeMap[minIndex + 2].due += opBal;
+            }
+
+            // Populate Sales & Receipts
+            sFiltered.forEach(d => { 
+                if(timeMap[d.idx]) {
+                    timeMap[d.idx].s += d.amount; // Share amount for chart/table
+                    // Add to KPI if this month is within selected range (or all)
+                    if (year === 'all' || d.y === parseInt(year)) {
+                        kpi_TotalSales += d.total || 0;
+                    }
+                }
             });
+            rFiltered.forEach(d => { if(timeMap[d.idx]) timeMap[d.idx].r += d.amount; });
 
-            // Populate Sales & Receipts (Filtered Scope)
-            salesFiltered.forEach(d => { if(timeMap[d.idx]) timeMap[d.idx].s += d.amount; });
-            receiptsFiltered.forEach(d => { if(timeMap[d.idx]) timeMap[d.idx].r += d.amount; });
-
-            // Populate Due (Complex Logic)
-            // Due Amount for Month T = Sum of Sales where (SaleMonth + Lag) == T
-            // Note: We search in salesFiltered. If 'All' selected, we sum zamyad(T-3) + others(T-4)
-            // If specific client selected, we just do that client's logic
-            
-            salesFiltered.forEach(s => {
-                const lag = getLagForClient(s.client);
-                const dueIdx = s.idx + lag;
-                if (timeMap[dueIdx]) {
+            // Calculate Due
+            sFiltered.forEach(s => {
+                const dueIdx = s.idx + getLagForClient(s.client);
+                if (timeMap[dueIdx] && dueIdx <= curIdx) {
                     timeMap[dueIdx].due += s.amount;
                 }
             });
 
-            // Prepare Arrays for Chart/Table
-            const labels = [];
-            const dS = [], dR = [], dDue = []; // Monthly
-            const cS = [], cR = [], cDue = []; // Cumulative
-            const tableData = [];
+            // 4. Process Rows
+            const labels=[], dS=[], dR=[], dDue=[], cS=[], cR=[], cDue=[], rows=[];
+            let accS = 0, accR = 0, accDue = 0;
 
-            let accS=0, accR=0, accDue=0;
+            if (opBal !== 0) {
+                accS = opBal; // Sales cum starts with balance
+                if (year === 'all' || true) kpi_ShareSales += opBal; // Add balance to share KPI
+            }
 
-            sortedAllIdx.forEach(idx => {
+            // We must add "Share Sales" from filtered data to KPI
+            // Re-looping filtered sales to sum share for KPI correctly
+            sFiltered.forEach(d => {
+                if (timeMap[d.idx]) kpi_ShareSales += d.amount;
+            });
+
+            const keys = Object.keys(timeMap).map(Number).sort((a,b)=>a-b);
+            keys.forEach(idx => {
                 const item = timeMap[idx];
                 
-                // Cumulative Calcs (Always run on full timeline)
-                accS += item.s;
-                accR += item.r;
+                accS += item.s; 
+                accR += item.r; 
                 accDue += item.due;
 
-                // Display Filter: Year
-                if (selectedYear !== 'all' && item.y !== parseInt(selectedYear)) return;
-
                 labels.push(`${item.m} ${item.y}`);
-                dS.push(item.s);
-                dR.push(item.r);
-                dDue.push(item.due);
+                dS.push(item.s); dR.push(-item.r); dDue.push(item.due);
+                cS.push(accS); cR.push(accR); cDue.push(accDue);
 
-                cS.push(accS);
-                cR.push(accR);
-                cDue.push(accDue);
-
-                tableData.push({
-                    y: item.y, m: item.m,
-                    s: item.s, r: item.r, due: item.due,
-                    net: item.r - item.s
+                rows.push({
+                    ...item,
+                    cumS: accS, cumR: accR, cumDue: accDue,
+                    balance: accDue - accR,
+                    isCurrent: idx === curIdx,
+                    isFuture: idx > curIdx
                 });
             });
 
+            // 5. Update KPIs UI
+            const lastRow = rows[rows.length-1] || {cumDue:0, cumR:0, balance:0};
+            
+            document.getElementById('kpiTotalSales').innerText = kpi_TotalSales.toLocaleString(undefined, {maximumFractionDigits:1});
+            document.getElementById('kpiShareSales').innerText = accS.toLocaleString(undefined, {maximumFractionDigits:1}); // Use accumulated Share
+            document.getElementById('kpiDue').innerText = accDue.toLocaleString(undefined, {maximumFractionDigits:1});
+            document.getElementById('kpiPaid').innerText = accR.toLocaleString(undefined, {maximumFractionDigits:1});
+            
+            const bal = accDue - accR;
+            const balEl = document.getElementById('kpiBalance');
+            balEl.innerText = bal.toLocaleString(undefined, {maximumFractionDigits:1});
+            balEl.className = `text-xl font-black font-num dir-ltr ${bal > 0 ? 'text-red-600' : 'text-emerald-600'}`; // Positive balance here means Debt (Bad)
+
             renderCharts(labels, dS, dR, dDue, cS, cR, cDue);
-            renderTable(tableData);
+            renderTable(rows);
         }
 
         function renderCharts(labels, dS, dR, dDue, cS, cR, cDue) {
-            // 1. Monthly Bar Chart
-            const ctx1 = document.getElementById('chartMonthly').getContext('2d');
+            // Monthly Stacked
             if (charts.monthly) charts.monthly.destroy();
-            charts.monthly = new Chart(ctx1, {
+            charts.monthly = new Chart(document.getElementById('chartMonthly'), {
                 type: 'bar',
                 data: {
                     labels,
                     datasets: [
-                        { label: 'فروش', data: dS, backgroundColor: '#3b82f6', borderRadius: 4, order: 2 },
-                        { label: 'وصول', data: dR, backgroundColor: '#10b981', borderRadius: 4, order: 3 },
-                        { 
-                            label: 'سررسید (تعهد)', 
-                            data: dDue, 
-                            type: 'bar', // Can be bar or line depending on preference. Red bar stands out for comparison.
-                            backgroundColor: '#ef4444',
-                            borderRadius: 4,
-                            barThickness: 10, // Thinner to distinguish
-                            order: 1
-                        }
+                        { label: 'فروش (مثبت)', data: dS, backgroundColor: '#3b82f6', borderRadius: 4, order: 1 },
+                        { label: 'پرداخت (منفی)', data: dR, backgroundColor: '#ef4444', borderRadius: 4, order: 2 },
                     ]
                 },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }
-                }
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { stacked: true, ticks:{font:FONT_OPTS} }, x: { stacked: true, grid:{display:false}, ticks:{font:FONT_OPTS} } }, plugins:{legend:{labels:{font:FONT_OPTS}}} }
             });
 
-            // 2. Cumulative Line Chart
-            const ctx2 = document.getElementById('chartCumulative').getContext('2d');
+            // Cumulative
             if (charts.cum) charts.cum.destroy();
-            charts.cum = new Chart(ctx2, {
+            charts.cum = new Chart(document.getElementById('chartCumulative'), {
                 type: 'line',
                 data: {
                     labels,
                     datasets: [
-                        { label: 'فروش تجمعی', data: cS, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3 },
-                        { label: 'وصول تجمعی', data: cR, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: true, tension: 0.3 },
-                        { 
-                            label: 'تعهدات سررسید شده', 
-                            data: cDue, 
-                            borderColor: '#ef4444', 
-                            borderDash: [5, 5], 
-                            borderWidth: 2,
-                            pointRadius: 0,
-                            fill: false,
-                            tension: 0.1
-                        }
+                        { label: 'فروش تجمعی', data: cS, borderColor: '#1d4ed8', backgroundColor: 'transparent', borderWidth: 2, tension: 0.2 },
+                        { label: 'پرداخت تجمعی', data: cR, borderColor: '#16a34a', backgroundColor: 'transparent', borderWidth: 2, tension: 0.2 },
+                        { label: 'تعهدات سررسید', data: cDue, borderColor: '#dc2626', borderDash:[5,5], borderWidth: 2, pointRadius:0 },
+                        { label: 'تراز (مانده)', data: cDue.map((v,i)=>v-cR[i]), borderColor: '#64748b', backgroundColor: 'rgba(100,116,139,0.2)', fill: true, borderWidth:1, pointRadius:0 }
                     ]
                 },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    scales: { x: { grid: { display: false } }, y: { beginAtZero: true } }
-                }
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks:{font:FONT_OPTS} }, x: { grid:{display:false}, ticks:{font:FONT_OPTS} } }, plugins:{legend:{labels:{font:FONT_OPTS}}} }
             });
         }
 
         function renderTable(rows) {
             const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-            
-            let totS=0, totR=0, totDue=0;
+            const tfoot = document.getElementById('tableFooter');
+            tbody.innerHTML = ''; tfoot.innerHTML = '';
+            if(!rows.length) return;
 
-            rows.forEach(row => {
-                totS += row.s; totR += row.r; totDue += row.due;
-                const netClass = row.net >= 0 ? 'text-emerald-600' : 'text-red-500';
-                
+            const fmt = (v) => v.toLocaleString(undefined, {maximumFractionDigits:1});
+            const fmtNeg = (v) => v===0 ? "0" : `<span class="text-neg">(${fmt(v)})</span>`;
+
+            rows.forEach(r => {
                 const tr = document.createElement('tr');
+                if(r.isCurrent) tr.style.backgroundColor = "#eff6ff";
+                if(r.isFuture) tr.style.opacity = "0.6";
+                
                 tr.innerHTML = `
-                    <td class="text-center font-bold text-slate-800">${row.y}</td>
-                    <td class="text-center text-slate-500">${row.m}</td>
-                    <td class="dir-ltr text-blue-600">${row.s.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits: 1})}</td>
-                    <td class="dir-ltr text-red-500 bg-slate-50 font-bold border-l border-slate-100">${row.due.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits: 1})}</td>
-                    <td class="dir-ltr text-emerald-600 font-bold">${row.r.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits: 1})}</td>
-                    <td class="dir-ltr font-bold ${netClass}">${row.net.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits: 1})}</td>
+                    <td class="font-bold text-slate-800">${r.y}</td><td class="text-slate-600 font-bold">${r.m}</td>
+                    <td class="dir-ltr text-blue-600 bg-sales">${fmt(r.s)}</td><td class="dir-ltr text-blue-800 font-black bg-sales border-l border-blue-200">${fmt(r.cumS)}</td>
+                    <td class="dir-ltr text-pink-600 bg-due">${fmt(r.due)}</td><td class="dir-ltr text-pink-800 font-black bg-due border-l border-pink-200">${fmt(r.cumDue)}</td>
+                    <td class="dir-ltr bg-paid">${fmtNeg(r.r)}</td><td class="dir-ltr font-black bg-paid border-l border-emerald-200">${fmtNeg(r.cumR)}</td>
+                    <td class="dir-ltr font-black text-slate-800">${fmt(r.balance)}</td>
                 `;
                 tbody.appendChild(tr);
             });
 
-            document.getElementById('sumSales').innerText = totS.toLocaleString(undefined, {maximumFractionDigits: 1});
-            document.getElementById('sumReceipts').innerText = totR.toLocaleString(undefined, {maximumFractionDigits: 1});
-            document.getElementById('sumDue').innerText = totDue.toLocaleString(undefined, {maximumFractionDigits: 1});
-            document.getElementById('sumBalance').innerText = (totS - totR).toLocaleString(undefined, {maximumFractionDigits: 1});
+            const l = rows[rows.length-1];
+            tfoot.innerHTML = `<tr><td colspan="2">نهایی</td>
+                <td colspan="2" class="dir-ltr text-blue-900">${fmt(l.cumS)}</td>
+                <td colspan="2" class="dir-ltr text-pink-900">${fmt(l.cumDue)}</td>
+                <td colspan="2" class="dir-ltr text-red-700">(${fmt(l.cumR)})</td>
+                <td class="dir-ltr text-slate-900 bg-slate-200">${fmt(l.balance)}</td></tr>`;
         }
-
-        // --- INIT ---
-        const fileSales = document.getElementById('fileSales');
-        const fileReceipts = document.getElementById('fileReceipts');
 
         async function handleUpload(e, type) {
             if(!e.target.files[0]) return;
-            const data = await parseFile(e.target.files[0], type);
-            if(type === 'sales') {
-                rawSales = data;
-                document.getElementById('lblSales').innerText = "✅ فروش بارگذاری شد";
-                document.getElementById('lblSales').parentElement.classList.replace('bg-blue-600', 'bg-slate-700');
-            } else {
-                rawReceipts = data;
-                document.getElementById('lblReceipts').innerText = "✅ ورودی بارگذاری شد";
-                document.getElementById('lblReceipts').parentElement.classList.replace('bg-emerald-600', 'bg-slate-700');
-            }
-            updateClientSelect();
+            const d = await parseFile(e.target.files[0], type);
+            if(type==='sales') { rawSales=d; document.getElementById('lblSales').classList.replace('bg-blue-600','bg-slate-700'); }
+            else { rawReceipts=d; document.getElementById('lblReceipts').classList.replace('bg-emerald-600','bg-slate-700'); }
+            
+            const sel = document.getElementById('clientSelect');
+            sel.innerHTML = '<option value="all">همه کارفرمایان (تجمعی)</option>';
+            Array.from(uniqueClients).sort().forEach(c => sel.add(new Option(c,c)));
+            
             if(rawSales.length && rawReceipts.length) runAnalysis();
         }
 
-        fileSales.addEventListener('change', (e) => handleUpload(e, 'sales'));
-        fileReceipts.addEventListener('change', (e) => handleUpload(e, 'receipts'));
-
-        function updateClientSelect() {
-            const sel = document.getElementById('clientSelect');
-            sel.innerHTML = '<option value="all">همه کارفرمایان (تجمعی)</option>';
-            Array.from(uniqueClients).sort().forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c; opt.innerText = c; sel.appendChild(opt);
-            });
-        }
-
-        document.getElementById('clientSelect').addEventListener('change', runAnalysis);
-        document.getElementById('yearSelect').addEventListener('change', runAnalysis);
-
+        initTimeSelector();
+        ['fileSales','fileReceipts'].forEach(id=>document.getElementById(id).addEventListener('change',e=>handleUpload(e,id==='fileSales'?'sales':'receipts')));
+        ['clientSelect','yearSelect','inpBalance','currentDateSelect'].forEach(id=>document.getElementById(id).addEventListener('change',runAnalysis));
     </script>
 </body>
 </html>
