@@ -1188,8 +1188,8 @@
             { id: 55, name: "منوچهر خسروی اقکند", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1404/01/01" },
             { id: 56, name: "مهسا مشکین فر", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1404/07/01" },
             { id: 57, name: "نرگس ارجمندی نیا", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/01/15" },
-            { id: 58, name: "نسیرین نظری جوپیش", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1402/09/01" },
-            { id: 59, name: "وحید محمدزاده قمرکندی", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1404/09/30", hireDate: "1403/06/01" },
+            { id: 58, name: "نسیرین نظری جوپیش", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1402/09/01" },
+            { id: 59, name: "وحید محمدزاده قمرکندی", workType: "کارگاه دوخت", shift: "ثابت", contractEnd: "1403/06/01" },
         ];
 
         // --- LOGIC ---
@@ -1259,12 +1259,18 @@
             globalData = data;
             const stats = processData(data);
 
+            // Update HR specific Stats
             document.getElementById('totalPersonnel').innerText = stats.total.toLocaleString('fa-IR');
             document.getElementById('totalManagers').innerText = stats.managers.toLocaleString('fa-IR');
             document.getElementById('officialEmp').innerText = stats.official.toLocaleString('fa-IR');
             const sortedEdu = Object.entries(stats.education).sort((a,b) => b[1] - a[1]);
             document.getElementById('dominantDegree').innerText = sortedEdu.length > 0 ? sortedEdu[0][0] : '-';
             
+            // --- FIX: Update Global KPIs (Top Cards) ---
+            document.getElementById('global-total').innerText = stats.total.toLocaleString('fa-IR');
+            document.getElementById('global-saf').innerText = stats.age.safCount.toLocaleString('fa-IR');
+            document.getElementById('global-setad').innerText = stats.age.setadCount.toLocaleString('fa-IR');
+
             updateCharts(stats);
             updateTable(data);
             updateUnitList(stats.units);
@@ -1453,7 +1459,7 @@
             document.getElementById('budgetTableBody').innerHTML = budgetHTML;
             new Chart(document.getElementById('budgetChart'), { type: 'pie', data: { labels: ['حقوق خالص', 'بیمه', 'مالیات', 'سایر'], datasets: [{ data: [368, 89, 26, 27], backgroundColor: ['#059669', '#be123c', '#d97706', '#1e293b'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
             
-            // Renamed Debt Chart to financeDebtChart
+            // Renamed Debt Chart to financeDebtChart and using it here
             new Chart(document.getElementById('financeDebtChart'), { type: 'bar', data: { labels: ['ذخیره سنوات (کل)', 'تامین اجتماعی (جاری+اقساط)', 'مالیات حقوق (تجمعی)', 'معوقات رفاهی'], datasets: [{ label: 'بدهی (میلیارد ریال)', data: [1622, 439, 196, 229], backgroundColor: ['#b91c1c', '#c2410c', '#be123c', '#991b1b'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
         }
         
