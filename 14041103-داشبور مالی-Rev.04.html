@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد مدیریت تعهدات مالی | نسخه اجرایی</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;800&display=swap');
+        
+        body, input, select, button, table {
+            font-family: 'Vazirmatn', sans-serif !important;
+        }
+        
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        /* Number Font Specific Fix */
+        .num-font {
+            font-family: 'Vazirmatn', sans-serif;
+            font-feature-settings: "ss01";
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b; 
+        }
+
+        .sort-icon {
+            transition: transform 0.2s;
+            display: inline-block;
+            margin-right: 4px;
+            opacity: 0.5;
+        }
+        .sort-active {
+            opacity: 1;
+            color: #2563eb;
+        }
+        th {
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover {
+            background-color: #f1f5f9;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white p-5 shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold flex items-center gap-2">
+                    <i data-lucide="shield-alert" class="text-red-500"></i>
+                    داشبورد مدیریت تعهدات
+                </h1>
+                <p class="text-slate-400 text-xs mt-1 mr-8">ویژه مدیریت ارشد | تحلیل ریسک نقدینگی</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="currentDate" class="text-xs opacity-70 font-mono hidden md:block"></span>
+                <button onclick="resetApp()" class="text-sm bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg transition flex items-center gap-2">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    بارگذاری مجدد
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto p-6 space-y-8">
+
+        <!-- Upload Section -->
+        <div id="uploadSection" class="bg-white p-10 rounded-2xl shadow-xl border-2 border-dashed border-blue-200 text-center transition-all hover:bg-blue-50">
+            <div class="flex flex-col items-center justify-center cursor-pointer relative h-48">
+                <input type="file" id="csvInput" accept=".csv" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFileUpload(this)">
+                <i data-lucide="upload-cloud" class="w-20 h-20 text-blue-500 mb-4"></i>
+                <h3 class="text-2xl font-bold text-gray-700">بارگذاری فایل بدهی‌ها (CSV)</h3>
+                <p class="text-gray-500 mt-2 max-w-md mx-auto">
+                    فایل خروجی سیستم مالی را اینجا رها کنید.<br>
+                    <span class="text-xs text-gray-400 font-light">(فرمت استاندارد: ردیف، عنوان، موضوع، مبلغ، سال...)</span>
+                </p>
+            </div>
+            <div class="mt-6 bg-blue-50 text-blue-800 p-4 rounded-lg border-r-4 border-blue-600 text-right text-sm">
+                <strong>نکته فنی:</strong> داده‌ها به صورت امن در مرورگر شما پردازش می‌شوند. ۲ خط اول فایل (هدر) به صورت خودکار حذف می‌شود.
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div id="dashboardContent" class="hidden space-y-8">
+            
+            <!-- KPI Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Total Debt -->
+                <div class="bg-white p-6 rounded-xl shadow-md border-r-4 border-blue-500 flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium mb-1">کل تعهدات شناسایی شده</p>
+                        <h3 class="text-2xl font-bold text-gray-800 num-font" id="kpiTotal">0 <span class="text-xs text-gray-400 font-normal">میلیارد ریال</span></h3>
+                    </div>
+                    <div class="p-3 rounded-full bg-blue-100 text-blue-500">
+                        <i data-lucide="dollar-sign" class="w-8 h-8"></i>
+                    </div>
+                </div>
+
+                <!-- Critical Debt -->
+                <div class="bg-white p-6 rounded-xl shadow-md border-r-4 border-red-600 flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium mb-1">بدهی‌های حیاتی (ریسک توقف)</p>
+                        <h3 class="text-2xl font-bold text-gray-800 num-font" id="kpiCritical">0 <span class="text-xs text-gray-400 font-normal">میلیارد ریال</span></h3>
+                        <p class="text-xs text-red-500 mt-1 font-bold" id="kpiCriticalCount">0 مورد فوری</p>
+                    </div>
+                    <div class="p-3 rounded-full bg-red-100 text-red-600">
+                        <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+                    </div>
+                </div>
+
+                <!-- Liquidity Needed -->
+                <div class="bg-white p-6 rounded-xl shadow-md border-r-4 border-emerald-500 flex justify-between items-center">
+                    <div>
+                        <p class="text-gray-500 text-sm font-medium mb-1">برآورد نقدینگی مورد نیاز</p>
+                        <h3 class="text-2xl font-bold text-gray-800 num-font" id="kpiLiquidity">0 <span class="text-xs text-gray-400 font-normal">میلیارد ریال</span></h3>
+                        <p class="text-xs text-gray-400 mt-1">تخمینی جهت بودجه‌ریزی</p>
+                    </div>
+                    <div class="p-3 rounded-full bg-emerald-100 text-emerald-600">
+                        <i data-lucide="briefcase" class="w-8 h-8"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Filters & Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Global Filters Panel -->
+                <div class="bg-white p-6 rounded-xl shadow-md lg:col-span-1 space-y-4">
+                    <h3 class="font-bold text-gray-700 flex items-center gap-2 border-b pb-3 mb-2">
+                        <i data-lucide="filter" class="w-5 h-5"></i> فیلترهای کلان (دوره مالی)
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="col-span-1">
+                            <label class="block text-xs font-bold text-gray-500 mb-1">سال مالی</label>
+                            <select id="yearFilter" onchange="applyFilters()" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50 text-sm font-medium">
+                                <option value="همه">همه سال‌ها</option>
+                            </select>
+                        </div>
+                        <div class="col-span-1">
+                            <label class="block text-xs font-bold text-gray-500 mb-1">ماه سررسید</label>
+                            <select id="monthFilter" onchange="applyFilters()" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50 text-sm font-medium">
+                                <option value="همه">همه ماه‌ها</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">دسته بندی بدهی</label>
+                        <select id="categoryFilter" onchange="applyFilters()" class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-50 text-sm font-medium">
+                            <option value="همه">همه موارد</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Chart Container -->
+                <div class="bg-white p-6 rounded-xl shadow-md lg:col-span-2">
+                    <h3 class="font-bold text-gray-700 mb-4">توزیع بدهی بر اساس موضوع (ریال)</h3>
+                    <div class="relative h-64 w-full">
+                        <canvas id="debtChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Table with Quick Filters -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+                
+                <!-- Quick Filter & Sort Toolbar -->
+                <div class="p-5 border-b border-gray-200 bg-gray-50">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                        <h3 class="font-bold text-gray-800 text-lg whitespace-nowrap">لیست عملیاتی پرداخت‌ها</h3>
+                        
+                        <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+                            <!-- Quick Sort -->
+                            <div class="relative">
+                                <select id="quickSort" onchange="handleQuickSort(this.value)" class="pl-3 pr-8 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 hover:border-blue-400 transition cursor-pointer">
+                                    <option value="date-asc">📅 ترتیب: سررسید (نزدیک‌ترین)</option>
+                                    <option value="priority-desc">⚠️ ترتیب: ریسک (بالاترین)</option>
+                                    <option value="amount-desc">💰 ترتیب: مبلغ (بیشترین)</option>
+                                </select>
+                            </div>
+
+                            <!-- Quick Priority Filter -->
+                            <div class="relative">
+                                <select id="quickPriority" onchange="applyFilters()" class="pl-3 pr-8 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 hover:border-blue-400 transition cursor-pointer">
+                                    <option value="همه">🔖 اولویت: همه</option>
+                                    <option value="حیاتی">🔴 حیاتی (خطر توقف)</option>
+                                    <option value="الزامی">🟠 الزامی</option>
+                                    <option value="معوق">🟡 معوق سنواتی</option>
+                                    <option value="عادی">🔵 عادی</option>
+                                </select>
+                            </div>
+
+                            <!-- Quick Status Filter -->
+                            <div class="relative">
+                                <select id="quickStatus" onchange="applyFilters()" class="pl-3 pr-8 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 hover:border-blue-400 transition cursor-pointer">
+                                    <option value="همه">📌 وضعیت: همه</option>
+                                    <option value="باید پرداخت شود">❗ باید پرداخت شود</option>
+                                    <option value="معمولی">🔹 معمولی</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-right">
+                        <thead class="bg-white text-gray-600 font-bold border-b border-gray-200">
+                            <tr>
+                                <th class="p-4 w-32 group" onclick="sortData('priority')">
+                                    اولویت <i data-lucide="arrow-up-down" class="w-3 h-3 sort-icon group-hover:text-blue-600" id="sort-priority"></i>
+                                </th>
+                                <th class="p-4 w-32 group" onclick="sortData('date')">
+                                    تاریخ سررسید <i data-lucide="arrow-up-down" class="w-3 h-3 sort-icon group-hover:text-blue-600" id="sort-date"></i>
+                                </th>
+                                <th class="p-4 group" onclick="sortData('title')">
+                                    عنوان بدهی / توضیحات <i data-lucide="arrow-up-down" class="w-3 h-3 sort-icon group-hover:text-blue-600" id="sort-title"></i>
+                                </th>
+                                <th class="p-4 w-40 group" onclick="sortData('category')">
+                                    دسته بندی <i data-lucide="arrow-up-down" class="w-3 h-3 sort-icon group-hover:text-blue-600" id="sort-category"></i>
+                                </th>
+                                <th class="p-4 w-32 group" onclick="sortData('status')">
+                                    وضعیت <i data-lucide="arrow-up-down" class="w-3 h-3 sort-icon group-hover:text-blue-600" id="sort-status"></i>
+                                </th>
+                                <th class="p-4 w-48 text-left group" onclick="sortData('amount')">
+                                    مبلغ (ریال) <i data-lucide="arrow-up-down" class="w-3 h-3 sort-icon group-hover:text-blue-600" id="sort-amount"></i>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody" class="divide-y divide-gray-100 bg-white">
+                            <!-- Rows -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="noDataMessage" class="hidden p-12 text-center text-gray-400 font-light">
+                    موردی با این ترکیب فیلترها یافت نشد.
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="text-center p-6 text-gray-400 text-xs font-light">
+        <p>سیستم مدیریت مالی هوشمند | نسخه ۱.۲.۰</p>
+    </footer>
+
+    <!-- LOGIC -->
+    <script>
+        // --- Global State ---
+        let allData = [];
+        let filteredData = [];
+        let debtChartInstance = null;
+        let currentSort = { column: 'date', direction: 'asc' }; // Default sort by Date
+
+        // --- Init ---
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            const today = new Date().toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('currentDate').textContent = today;
+        });
+
+        function resetApp() {
+            document.getElementById('uploadSection').classList.remove('hidden');
+            document.getElementById('dashboardContent').classList.add('hidden');
+            document.getElementById('csvInput').value = '';
+            // Reset filters
+            document.getElementById('quickSort').value = 'date-asc';
+            document.getElementById('quickPriority').value = 'همه';
+            document.getElementById('quickStatus').value = 'همه';
+            allData = [];
+        }
+
+        // --- Parser ---
+        function parseCSVLine(text) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                if (char === '"') inQuotes = !inQuotes;
+                else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else current += char;
+            }
+            result.push(current);
+            return result.map(val => val.trim().replace(/^"|"$/g, '')); 
+        }
+
+        function parseCSV(text) {
+            const lines = text.split(/\r\n|\n/);
+            const headerIndex = lines.findIndex(line => line.includes('ردیف') && line.includes('عنوان بدهی'));
+            if (headerIndex === -1) return [];
+
+            const headers = parseCSVLine(lines[headerIndex]);
+            const data = [];
+
+            for (let i = headerIndex + 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                const values = parseCSVLine(line);
+                if (values.length >= 4) { 
+                    const row = {};
+                    headers.forEach((h, index) => {
+                        if (values[index] !== undefined) row[h.trim()] = values[index];
+                    });
+                    data.push(row);
+                }
+            }
+            return data;
+        }
+
+        function parseAmount(str) {
+            if (!str) return 0;
+            let cleanStr = str.toString().replace(/,/g, '');
+            const persianDigits = [/۰/g, /۱/g, /۲/g, /۳/g, /۴/g, /۵/g, /۶/g, /۷/g, /۸/g, /۹/g];
+            const englishDigits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+            for (let i = 0; i < 10; i++) {
+                cleanStr = cleanStr.replace(persianDigits[i], englishDigits[i]);
+            }
+            return parseInt(cleanStr, 10) || 0;
+        }
+
+        function formatCurrency(num) {
+            // Returns Persian digits with commas
+            return new Intl.NumberFormat('fa-IR').format(num);
+        }
+
+        function formatBillion(num) {
+            // Converts to Billion and formats with Persian digits
+            const billions = num / 1000000000;
+            return new Intl.NumberFormat('fa-IR', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(billions);
+        }
+
+        // --- Logic ---
+        function getPriorityInfo(item) {
+            let score = 0;
+            const subject = item['موضوع'] || '';
+            const status = item['وضعیت'] || '';
+            const desc = item['توضیحات'] || '';
+            const year = parseInt(item['سال'] || 0);
+
+            if (subject.includes('مالیات') || subject.includes('ارزش افزوده')) score += 1000;
+            if (subject.includes('بیمه')) score += 900;
+            if (status.includes('باید پرداخت شود')) score += 500;
+            if (year > 0 && year < 1403) score += 200;
+            if (desc.includes('پولشویی') || desc.includes('اجراییه')) score += 2000;
+
+            if (score >= 900) return { score, label: 'حیاتی', colorClass: 'bg-red-600 text-white', level: 'Critical' };
+            if (score >= 500) return { score, label: 'الزامی', colorClass: 'bg-orange-500 text-white', level: 'High' };
+            if (score >= 200) return { score, label: 'معوق', colorClass: 'bg-yellow-500 text-black', level: 'Medium' };
+            return { score, label: 'عادی', colorClass: 'bg-blue-100 text-blue-800', level: 'Low' };
+        }
+
+        // --- Handlers ---
+        function handleFileUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const text = e.target.result;
+                    const rawData = parseCSV(text);
+                    
+                    allData = rawData.map((item, index) => {
+                        if (!item['عنوان بدهی'] || !item['مبلغ']) return null;
+                        return {
+                            ...item,
+                            id: index,
+                            parsedAmount: parseAmount(item['مبلغ']),
+                            priority: getPriorityInfo(item),
+                            sortDate: item['تاریخ سررسید'] || '9999/99/99' // For sorting
+                        };
+                    }).filter(item => item !== null);
+
+                    if (allData.length === 0) {
+                        alert('داده‌ای یافت نشد.');
+                        return;
+                    }
+
+                    populateFilters();
+                    // Reset Quick Filters
+                    document.getElementById('quickSort').value = 'date-asc';
+                    currentSort = { column: 'date', direction: 'asc' };
+                    
+                    applyFilters();
+
+                    document.getElementById('uploadSection').classList.add('hidden');
+                    document.getElementById('dashboardContent').classList.remove('hidden');
+                } catch (err) {
+                    console.error(err);
+                    alert('خطا در فایل');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function populateFilters() {
+            const years = [...new Set(allData.map(d => d['سال']).filter(Boolean))].sort();
+            const months = [...new Set(allData.map(d => d['ماه']).filter(Boolean))];
+            const categories = [...new Set(allData.map(d => d['موضوع']).filter(Boolean))];
+
+            const yearSelect = document.getElementById('yearFilter');
+            const monthSelect = document.getElementById('monthFilter');
+            const catSelect = document.getElementById('categoryFilter');
+
+            yearSelect.innerHTML = '<option value="همه">همه سال‌ها</option>';
+            monthSelect.innerHTML = '<option value="همه">همه ماه‌ها</option>';
+            catSelect.innerHTML = '<option value="همه">همه موارد</option>';
+
+            years.forEach(y => {
+                const opt = document.createElement('option');
+                opt.value = y;
+                opt.textContent = y;
+                yearSelect.appendChild(opt);
+            });
+
+            months.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m;
+                monthSelect.appendChild(opt);
+            });
+
+            categories.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                catSelect.appendChild(opt);
+            });
+        }
+
+        function handleQuickSort(value) {
+            // Helper to map dropdown values to sort function logic
+            const [column, direction] = value.split('-');
+            currentSort = { column, direction };
+            
+            // Visual Update for header icons
+            document.querySelectorAll('.sort-icon').forEach(el => {
+                el.classList.remove('sort-active', 'text-blue-600');
+                el.style.transform = 'rotate(0deg)';
+            });
+            const activeIcon = document.getElementById(`sort-${column}`);
+            if (activeIcon) {
+                activeIcon.classList.add('sort-active');
+                if (direction === 'desc') {
+                    activeIcon.style.transform = 'rotate(180deg)';
+                }
+            }
+
+            doSort();
+            renderTable();
+        }
+
+        function applyFilters() {
+            // Global Filters
+            const selectedYear = document.getElementById('yearFilter').value;
+            const selectedMonth = document.getElementById('monthFilter').value;
+            const selectedCategory = document.getElementById('categoryFilter').value;
+
+            // Quick Filters (Table level)
+            const quickStatus = document.getElementById('quickStatus').value;
+            const quickPriority = document.getElementById('quickPriority').value;
+
+            filteredData = allData.filter(item => {
+                // Global Checks
+                const matchYear = selectedYear === 'همه' || item['سال'] === selectedYear;
+                const matchMonth = selectedMonth === 'همه' || item['ماه'] === selectedMonth;
+                const matchCat = selectedCategory === 'همه' || item['موضوع'] === selectedCategory;
+
+                // Quick Checks
+                const matchStatus = quickStatus === 'همه' || (item['وضعیت'] && item['وضعیت'].includes(quickStatus));
+                const matchPriority = quickPriority === 'همه' || (item.priority && item.priority.label.includes(quickPriority));
+
+                return matchYear && matchMonth && matchCat && matchStatus && matchPriority;
+            });
+
+            // Re-apply sorting based on current sort state (could be from headers or dropdown)
+            doSort(); 
+            updateUI();
+        }
+
+        // --- Sorting ---
+        function sortData(column) {
+            // Toggle direction if clicking same column
+            if (currentSort.column === column) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'asc'; // Default new sort to asc
+                // Exception: Priority and Amount usually wanted Descending first
+                if (column === 'priority' || column === 'amount') currentSort.direction = 'desc';
+            }
+            
+            // Sync dropdown if possible (optional UI polish)
+            const syncVal = `${column}-${currentSort.direction}`;
+            const dropdown = document.getElementById('quickSort');
+            if(dropdown.querySelector(`option[value="${syncVal}"]`)) {
+                dropdown.value = syncVal;
+            }
+
+            // Update Icons UI
+            document.querySelectorAll('.sort-icon').forEach(el => {
+                el.classList.remove('sort-active', 'text-blue-600');
+                el.style.transform = 'rotate(0deg)';
+            });
+            const activeIcon = document.getElementById(`sort-${column}`);
+            if (activeIcon) {
+                activeIcon.classList.add('sort-active');
+                if (currentSort.direction === 'desc') {
+                    activeIcon.style.transform = 'rotate(180deg)';
+                }
+            }
+
+            doSort();
+            renderTable(); // Re-render just the table
+        }
+
+        function doSort() {
+            filteredData.sort((a, b) => {
+                let valA, valB;
+
+                switch(currentSort.column) {
+                    case 'date':
+                        valA = a.sortDate;
+                        valB = b.sortDate;
+                        break;
+                    case 'priority':
+                        valA = a.priority.score;
+                        valB = b.priority.score;
+                        break;
+                    case 'amount':
+                        valA = a.parsedAmount;
+                        valB = b.parsedAmount;
+                        break;
+                    case 'category':
+                        valA = a['موضوع'] || '';
+                        valB = b['موضوع'] || '';
+                        break;
+                    case 'status':
+                        valA = a['وضعیت'] || '';
+                        valB = b['وضعیت'] || '';
+                        break;
+                    case 'title':
+                        valA = a['عنوان بدهی'] || '';
+                        valB = b['عنوان بدهی'] || '';
+                        break;
+                    default:
+                        return 0;
+                }
+
+                if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+                if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        // --- UI Updates ---
+        function updateUI() {
+            // KPIs in Billion Rials
+            const totalDebt = filteredData.reduce((sum, item) => sum + item.parsedAmount, 0);
+            const criticalItems = filteredData.filter(i => i.priority.level === 'Critical');
+            const criticalDebt = criticalItems.reduce((sum, item) => sum + item.parsedAmount, 0);
+
+            // Use formatBillion helper
+            document.getElementById('kpiTotal').innerHTML = `${formatBillion(totalDebt)} <span class="text-xs text-gray-400 font-normal">میلیارد ریال</span>`;
+            document.getElementById('kpiCritical').innerHTML = `${formatBillion(criticalDebt)} <span class="text-xs text-gray-400 font-normal">میلیارد ریال</span>`;
+            document.getElementById('kpiCriticalCount').textContent = `${criticalItems.length} مورد فوری`;
+            document.getElementById('kpiLiquidity').innerHTML = `${formatBillion(totalDebt)} <span class="text-xs text-gray-400 font-normal">میلیارد ریال</span>`;
+
+            renderTable();
+            updateChart();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('dataTableBody');
+            tbody.innerHTML = '';
+            
+            if (filteredData.length === 0) {
+                document.getElementById('noDataMessage').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('noDataMessage').classList.add('hidden');
+            filteredData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-blue-50 transition-colors border-b border-gray-50';
+                tr.innerHTML = `
+                    <td class="p-4">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold shadow-sm ${row.priority.colorClass}">
+                            ${row.priority.label}
+                        </span>
+                    </td>
+                    <td class="p-4 font-mono text-xs text-gray-600 num-font">
+                        ${row['تاریخ سررسید'] || 'نامشخص'}
+                    </td>
+                    <td class="p-4">
+                        <div class="font-bold text-gray-700 text-sm">${row['عنوان بدهی']}</div>
+                        <div class="text-xs text-gray-400 mt-1 truncate max-w-xs">${row['توضیحات'] || ''}</div>
+                    </td>
+                    <td class="p-4">
+                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium border border-gray-200">
+                            ${row['موضوع']}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        ${row['وضعیت'] === 'باید پرداخت شود' 
+                            ? '<span class="text-red-600 font-bold text-xs flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i> الزامی</span>' 
+                            : '<span class="text-gray-400 text-xs">عادی</span>'}
+                    </td>
+                    <td class="p-4 text-left font-bold text-gray-800 dir-ltr text-sm num-font">
+                        ${formatCurrency(row.parsedAmount)}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function updateChart() {
+            const ctx = document.getElementById('debtChart').getContext('2d');
+            const subjectMap = {};
+            filteredData.forEach(item => {
+                const sub = item['موضوع'] || 'سایر';
+                subjectMap[sub] = (subjectMap[sub] || 0) + item.parsedAmount;
+            });
+            const labels = Object.keys(subjectMap).sort((a, b) => subjectMap[b] - subjectMap[a]);
+            const values = labels.map(l => subjectMap[l]);
+
+            if (debtChartInstance) debtChartInstance.destroy();
+
+            debtChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'مبلغ بدهی (ریال)',
+                        data: values,
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 4,
+                        barThickness: 20,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            bodyFont: { family: 'Vazirmatn' },
+                            titleFont: { family: 'Vazirmatn' },
+                            callbacks: {
+                                label: function(context) { return formatCurrency(context.raw) + ' ریال'; }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                font: { family: 'Vazirmatn' },
+                                callback: function(value) { return (value / 1000000000).toFixed(1) + ' B'; }
+                            },
+                            grid: { display: false }
+                        },
+                        y: { ticks: { font: { family: 'Vazirmatn', size: 11, weight: 'bold' } } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
