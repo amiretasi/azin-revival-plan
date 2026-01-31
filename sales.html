@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد فروش - منطق دقیق سررسید</title>
+    <title>داشبورد فروش - مبنای بهمن ۱۴۰۴</title>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -65,8 +65,8 @@
             <div>
                 <h1 class="text-3xl font-black text-slate-800 tracking-tight">داشبورد جامع فروش و مطالبات</h1>
                 <p class="text-slate-500 mt-2 font-bold text-sm">
-                    تاریخ مبنا: <span class="text-blue-600 font-bold bg-blue-50 px-2 rounded">۱۶ دی ۱۴۰۴</span> |
-                    شرط وصول: <span class="text-red-600 bg-red-50 px-2 rounded font-bold">پایان ماه سررسید</span>
+                    تاریخ سیستم: <span class="text-blue-600 font-bold bg-blue-50 px-2 rounded">بهمن ۱۴۰۴</span> |
+                    وضعیت سررسید: <span class="text-emerald-600 bg-emerald-50 px-2 rounded font-bold">لحاظ سررسیدهای بهمن (باز شده)</span>
                 </p>
             </div>
             
@@ -104,7 +104,7 @@
                 <p class="text-xs text-gray-400 mt-1">میلیارد ریال</p>
             </div>
             <div class="card border-t-4 border-red-500">
-                <p class="text-xs font-bold text-red-500 mb-1">فروش ۱۴۰۴ (تاکنون)</p>
+                <p class="text-xs font-bold text-red-500 mb-1">فروش ۱۴۰۴ (کل)</p>
                 <p class="text-xl font-black text-red-700 dir-ltr" id="kpi1404">0</p>
                 <p class="text-xs text-red-400 mt-1">میلیارد ریال</p>
             </div>
@@ -114,9 +114,9 @@
                 <p class="text-xs text-emerald-500 mt-1">ست / قطعه</p>
             </div>
             <div class="card border-t-4 border-indigo-600 bg-indigo-50">
-                <p class="text-xs font-bold text-indigo-800 mb-1">مطالبات نقد شده (واقعی)</p>
+                <p class="text-xs font-bold text-indigo-800 mb-1">مطالبات نقد شده</p>
                 <p class="text-xl font-black text-indigo-900 dir-ltr" id="kpiDueTotal">0</p>
-                <p class="text-xs text-indigo-600 mt-1">سررسید گذشته (پاس شده)</p>
+                <p class="text-xs text-indigo-600 mt-1">شامل سررسیدهای ماه جاری (بهمن)</p>
             </div>
             <div class="card border-t-4 border-amber-500">
                 <p class="text-xs font-bold text-amber-600 mb-1">مجموع سهم شرکت</p>
@@ -158,8 +158,8 @@
             <div class="flex justify-between items-center mb-6">
                 <h3 class="font-bold text-slate-800 text-lg">ریز داده‌های فروش و وضعیت وصول</h3>
                 <div class="flex gap-2 items-center flex-wrap">
-                    <span class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-100 font-bold">زامیاد: پایان ماه ۳ (وصول در ماه ۴)</span>
-                    <span class="text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded-full border border-slate-200 font-bold">سایرین: پایان ماه ۴ (وصول در ماه ۵)</span>
+                    <span class="text-xs bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full border border-indigo-100 font-bold">زامیاد: +۳ ماه</span>
+                    <span class="text-xs bg-slate-100 text-slate-700 px-3 py-1 rounded-full border border-slate-200 font-bold">سایرین: +۴ ماه</span>
                 </div>
             </div>
             
@@ -206,9 +206,9 @@
 
         const monthsList = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
         
-        // --- FIXED DATE LOGIC (TODAY IS 16 DEY 1404) ---
+        // --- FIXED DATE LOGIC (UPDATED: WE ARE IN BAHMAN 1404) ---
         const REPORT_YEAR = 1404;
-        const REPORT_MONTH_IDX = 9; // Dey is Index 9 (0-based)
+        const REPORT_MONTH_IDX = 10; // Bahman is Index 10 (0-based)
 
         let globalData = [];
         let currentFilteredData = [];
@@ -218,8 +218,8 @@
         const initialCSVData = `ردیف,سال,ماه,کارفرما,تعداد (ست),"مبلغ کل (میلیون ریال)","مبلغ سهم (میلیون ریال)"
 1,1403,فروردین,سازه گستر,"11,987","773,264","497,242"
 2,1403,اردیبهشت,سازه گستر,"54,328","1,978,107","2,305,251"
-13,1403,فروردین,زامیاد,0,0,0
-14,1403,اردیبهشت,زامیاد,50,"2,508","2,508"`;
+13,1404,مهر,سایرین,100,"10,000","10,000"
+14,1404,آبان,زامیاد,100,"5,000","5,000"`;
 
         // --- DATA PARSING & LOGIC ---
         function parseCSVLine(text) {
@@ -236,6 +236,16 @@
             return result;
         }
 
+        function normalizeMonthName(input) {
+            if (!input) return "";
+            let m = input.trim();
+            m = m.replace(/ي/g, 'ی').replace(/ك/g, 'ک');
+            if (m === 'اذر') return 'آذر';
+            if (m === 'ابان') return 'آبان';
+            if (m.startsWith('دی')) return 'دی'; 
+            return m;
+        }
+
         function parseCSV(text) {
             const rows = [];
             const lines = text.split('\n');
@@ -246,18 +256,23 @@
                 if(!line) continue;
                 
                 const parts = parseCSVLine(line);
-                if(parts.length < 6) continue;
+                if(parts.length < 4) continue; 
 
                 let id = parts[0].trim();
                 let year = parseInt(parts[1].trim());
-                let month = parts[2].trim().replace('ابان', 'آبان');
+                let rawMonth = parts[2];
+                let month = normalizeMonthName(rawMonth);
                 let source = parts[3].trim();
                 
-                let count = parseFloat((parts[4] || "0").replace(/["',]/g, '')) || 0;
-                let amountBillion = (parseFloat((parts[5] || "0").replace(/["',]/g, '')) || 0) / 1000;
-                let shareBillion = (parseFloat((parts[6] || "0").replace(/["',]/g, '')) || 0) / 1000;
+                let countStr = parts[4] || "0";
+                let amountStr = parts[5] || "0";
+                let shareStr = parts[6] || "0";
 
-                // --- STRICT 90/120 DAY LOGIC ---
+                let count = parseFloat(countStr.replace(/["',]/g, '')) || 0;
+                let amountBillion = (parseFloat(amountStr.replace(/["',]/g, '')) || 0) / 1000;
+                let shareBillion = (parseFloat(shareStr.replace(/["',]/g, '')) || 0) / 1000;
+
+                // --- LOGIC ---
                 let mIndex = monthsList.indexOf(month); 
                 let shareDue = 0;
                 let receivableAmount = 0;
@@ -266,27 +281,25 @@
                 if (mIndex !== -1) {
                     let saleAbsMonth = (year * 12) + mIndex;
                     
-                    // Logic:
-                    // Zamyad: Sale Month + 3 (Due End of M+3). So Realized in M+4.
-                    // Others: Sale Month + 4 (Due End of M+4). So Realized in M+5.
+                    // Zamyad: +3 months, Others: +4 months
                     let addMonths = source.includes("زامیاد") ? 3 : 4;
                     
-                    // The month INDEX of the due date (End of this month it matures)
                     let dueAbsMonth = saleAbsMonth + addMonths;
                     let currentAbsMonth = (REPORT_YEAR * 12) + REPORT_MONTH_IDX;
 
-                    // STRICT CONDITION: Current Month must be GREATER than Due Month to be fully realized cash
-                    // OR if we consider "End of Month" as the check date, and today is 16th, it's not cashed yet.
-                    if (currentAbsMonth > dueAbsMonth) {
+                    // UPDATED LOGIC: If Current Month >= Due Month, treat as "Released/Open"
+                    // Meaning if we are in Bahman (10) and Due is Bahman (10), it is green.
+                    if (currentAbsMonth >= dueAbsMonth) {
                         shareDue = shareBillion; 
                         receivableAmount = amountBillion;
-                        dueText = "نقد شده";
+                        dueText = (currentAbsMonth === dueAbsMonth) ? "سررسید ماه جاری (وصول)" : "نقد شده";
                     } else {
-                        // Not yet realized
                         let dYear = Math.floor(dueAbsMonth / 12);
                         let dMonthIdx = dueAbsMonth % 12;
                         dueText = `سررسید: انتهای ${monthsList[dMonthIdx]} ${dYear}`;
                     }
+                } else {
+                    dueText = "نامشخص (خطای ماه)";
                 }
 
                 rows.push({
@@ -323,7 +336,6 @@
             const empVal = document.getElementById('employerSelect').value;
             const yearVal = document.getElementById('yearSelect').value;
 
-            // Filter for KPI & Table
             const filteredForKPI = globalData.filter(d => {
                 const empMatch = empVal === 'all' || d.source === empVal;
                 const yearMatch = yearVal === 'all' || d.year.toString() === yearVal;
@@ -332,8 +344,6 @@
 
             updateKPIs(filteredForKPI);
             renderTable(filteredForKPI);
-            
-            // Charts (Year Independent)
             updateAllCharts(empVal); 
         }
 
@@ -362,18 +372,16 @@
             let acc1403 = 0, acc1404 = 0;
 
             monthsList.forEach((m, idx) => {
-                const v1403 = data.filter(d => d.year === 1403 && d.month.includes(m.substring(0,3))).reduce((s,d)=>s+d[metricKey],0);
-                const v1404 = data.filter(d => d.year === 1404 && d.month.includes(m.substring(0,3))).reduce((s,d)=>s+d[metricKey],0);
+                const v1403 = data.filter(d => d.year === 1403 && d.month === m).reduce((s,d)=>s+d[metricKey],0);
+                const v1404 = data.filter(d => d.year === 1404 && d.month === m).reduce((s,d)=>s+d[metricKey],0);
                 
                 m1403.push(v1403);
                 acc1403 += v1403;
                 c1403.push(acc1403);
-
-                if(idx > 7) { // Cutoff for 1404 visuals
-                    m1404.push(null); c1404.push(null);
-                } else {
-                    m1404.push(v1404); acc1404 += v1404; c1404.push(acc1404);
-                }
+                
+                m1404.push(v1404); 
+                acc1404 += v1404; 
+                c1404.push(acc1404);
             });
 
             const ctx = document.getElementById(chartId).getContext('2d');
@@ -428,7 +436,12 @@
                 let recVal = d.dueText;
                 
                 if (d.receivable > 0) {
-                    recClass = "text-indigo-700 font-bold bg-indigo-50";
+                    // Logic: if dueText includes "ماه جاری", maybe use different color?
+                    if (d.dueText.includes("ماه جاری")) {
+                        recClass = "text-emerald-600 font-black bg-emerald-100 border-2 border-emerald-200";
+                    } else {
+                        recClass = "text-indigo-700 font-bold bg-indigo-50";
+                    }
                     recVal = d.amount.toLocaleString(undefined, {maximumFractionDigits: 3});
                 }
 
@@ -439,7 +452,7 @@
                     <td class="font-mono dir-ltr text-emerald-600">${d.count.toLocaleString()}</td>
                     <td class="font-mono dir-ltr font-bold text-blue-700">${d.amount.toLocaleString(undefined, {maximumFractionDigits: 3})}</td>
                     <td class="font-mono dir-ltr text-amber-600 text-sm">${d.share.toLocaleString(undefined, {maximumFractionDigits: 3})}</td>
-                    <td class="font-mono dir-ltr ${recClass} border-r border-slate-100 text-sm">${recVal}</td>
+                    <td class="font-mono dir-ltr ${recClass} border-r border-slate-100 text-sm text-center">${d.dueText}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -450,7 +463,6 @@
             document.getElementById('sumDue').innerText = sRec.toLocaleString(undefined, {maximumFractionDigits: 3});
         }
 
-        // Sorting
         let sortDir = 1;
         window.sortTable = function(key) {
             sortDir *= -1;
