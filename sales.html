@@ -66,7 +66,7 @@
                 <h1 class="text-3xl font-black text-slate-800 tracking-tight">داشبورد جامع فروش و مطالبات</h1>
                 <p class="text-slate-500 mt-2 font-bold text-sm">
                     تاریخ سیستم: <span class="text-blue-600 font-bold bg-blue-50 px-2 rounded">بهمن ۱۴۰۴</span> |
-                    وضعیت سررسید: <span class="text-emerald-600 bg-emerald-50 px-2 rounded font-bold">لحاظ سررسیدهای بهمن (باز شده)</span>
+                    منطق آزادسازی: <span class="text-red-600 bg-red-50 px-2 rounded font-bold">فقط پس از اتمام ماه سررسید</span>
                 </p>
             </div>
             
@@ -114,9 +114,9 @@
                 <p class="text-xs text-emerald-500 mt-1">ست / قطعه</p>
             </div>
             <div class="card border-t-4 border-indigo-600 bg-indigo-50">
-                <p class="text-xs font-bold text-indigo-800 mb-1">مطالبات نقد شده</p>
+                <p class="text-xs font-bold text-indigo-800 mb-1">مطالبات آزاد شده</p>
                 <p class="text-xl font-black text-indigo-900 dir-ltr" id="kpiDueTotal">0</p>
-                <p class="text-xs text-indigo-600 mt-1">شامل سررسیدهای ماه جاری (بهمن)</p>
+                <p class="text-xs text-indigo-600 mt-1">وجه نقد قطعی (قابل برداشت)</p>
             </div>
             <div class="card border-t-4 border-amber-500">
                 <p class="text-xs font-bold text-amber-600 mb-1">مجموع سهم شرکت</p>
@@ -206,7 +206,7 @@
 
         const monthsList = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"];
         
-        // --- FIXED DATE LOGIC (UPDATED: WE ARE IN BAHMAN 1404) ---
+        // --- FIXED DATE LOGIC (TODAY IS BAHMAN 1404) ---
         const REPORT_YEAR = 1404;
         const REPORT_MONTH_IDX = 10; // Bahman is Index 10 (0-based)
 
@@ -218,8 +218,10 @@
         const initialCSVData = `ردیف,سال,ماه,کارفرما,تعداد (ست),"مبلغ کل (میلیون ریال)","مبلغ سهم (میلیون ریال)"
 1,1403,فروردین,سازه گستر,"11,987","773,264","497,242"
 2,1403,اردیبهشت,سازه گستر,"54,328","1,978,107","2,305,251"
-13,1404,مهر,سایرین,100,"10,000","10,000"
-14,1404,آبان,زامیاد,100,"5,000","5,000"`;
+13,1404,شهریور,سایرین,100,"10,000","10,000"
+14,1404,مهر,سایرین,100,"10,000","10,000"
+15,1404,مهر,زامیاد,100,"10,000","10,000"
+16,1404,آبان,زامیاد,100,"10,000","10,000"`;
 
         // --- DATA PARSING & LOGIC ---
         function parseCSVLine(text) {
@@ -281,22 +283,30 @@
                 if (mIndex !== -1) {
                     let saleAbsMonth = (year * 12) + mIndex;
                     
-                    // Zamyad: +3 months, Others: +4 months
+                    // Zamyad: +3 months (Due end of M+3)
+                    // Others: +4 months (Due end of M+4)
                     let addMonths = source.includes("زامیاد") ? 3 : 4;
                     
                     let dueAbsMonth = saleAbsMonth + addMonths;
                     let currentAbsMonth = (REPORT_YEAR * 12) + REPORT_MONTH_IDX;
 
-                    // UPDATED LOGIC: If Current Month >= Due Month, treat as "Released/Open"
-                    // Meaning if we are in Bahman (10) and Due is Bahman (10), it is green.
-                    if (currentAbsMonth >= dueAbsMonth) {
+                    // STRICT LOGIC FIX:
+                    // Funds are released ONLY when Current Month > Due Month.
+                    // If Due is Bahman (10) and Current is Bahman (10), funds are NOT released.
+                    // Funds release on 1st of Esfand.
+                    if (currentAbsMonth > dueAbsMonth) {
                         shareDue = shareBillion; 
                         receivableAmount = amountBillion;
-                        dueText = (currentAbsMonth === dueAbsMonth) ? "سررسید ماه جاری (وصول)" : "نقد شده";
+                        dueText = "آزاد شده (نقد)";
                     } else {
                         let dYear = Math.floor(dueAbsMonth / 12);
                         let dMonthIdx = dueAbsMonth % 12;
-                        dueText = `سررسید: انتهای ${monthsList[dMonthIdx]} ${dYear}`;
+                        
+                        if (currentAbsMonth === dueAbsMonth) {
+                             dueText = "سررسید: انتهای همین ماه";
+                        } else {
+                             dueText = `سررسید: انتهای ${monthsList[dMonthIdx]} ${dYear}`;
+                        }
                     }
                 } else {
                     dueText = "نامشخص (خطای ماه)";
@@ -436,13 +446,10 @@
                 let recVal = d.dueText;
                 
                 if (d.receivable > 0) {
-                    // Logic: if dueText includes "ماه جاری", maybe use different color?
-                    if (d.dueText.includes("ماه جاری")) {
-                        recClass = "text-emerald-600 font-black bg-emerald-100 border-2 border-emerald-200";
-                    } else {
-                        recClass = "text-indigo-700 font-bold bg-indigo-50";
-                    }
+                    recClass = "text-indigo-700 font-bold bg-indigo-50";
                     recVal = d.amount.toLocaleString(undefined, {maximumFractionDigits: 3});
+                } else if (d.dueText.includes("انتهای همین ماه")) {
+                    recClass = "text-amber-600 font-bold bg-amber-50 border border-amber-200";
                 }
 
                 tr.innerHTML = `
