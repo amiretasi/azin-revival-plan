@@ -8,12 +8,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-color: #f1f5f9;
+            --bg-color: #f8fafc;
             --card-bg: #ffffff;
-            --primary: #0f172a; /* Slate 900 */
+            --primary: #1e293b; /* Slate 800 */
             --secondary: #64748b; /* Slate 500 */
-            --accent-1403: #3b82f6; /* Blue for 1403 (Baseline) */
-            --accent-1404: #ef4444; /* Red for 1404 (Warning) */
+            --accent-1403: #3b82f6; /* Blue */
+            --accent-1404: #ef4444; /* Red */
+            --oem-color: #059669; /* Emerald for Automaker */
+            --azin-color: #d97706; /* Amber 600 for Azin */
             --success: #10b981;
             --text-main: #334155;
         }
@@ -26,16 +28,63 @@
             padding: 20px;
         }
 
+        /* Tabs Styling */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Vazirmatn';
+            font-size: 1rem;
+            cursor: pointer;
+            color: var(--secondary);
+            transition: all 0.3s;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
         .header {
             background: var(--card-bg);
             padding: 20px;
             border-radius: 16px;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
             margin-bottom: 25px;
-            border-right: 6px solid var(--accent-1404);
+            border-right: 6px solid var(--primary);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .header h1 { margin: 0; font-size: 1.6rem; color: var(--primary); }
@@ -89,36 +138,17 @@
         .diff-neg { color: var(--accent-1404); }
         .diff-pos { color: var(--success); }
 
-        /* Tables */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-        .data-table th { background: #f8fafc; padding: 12px; text-align: right; color: var(--secondary); }
-        .data-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
-
-        .analysis-box {
-            background: #fff1f2;
-            border-right: 4px solid #be123c;
-            padding: 15px;
-            margin-top: 10px;
-            font-size: 0.95rem;
-            line-height: 1.8;
-            color: #881337;
-        }
-
-        /* Form Controls */
         .control-panel {
             margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 10px;
-            background: #f8fafc;
+            background: #f1f5f9;
             padding: 10px;
             border-radius: 8px;
+            flex-wrap: wrap;
         }
-
+        
         select {
             padding: 8px 12px;
             border-radius: 6px;
@@ -126,11 +156,7 @@
             font-family: 'Vazirmatn';
             font-size: 1rem;
             min-width: 250px;
-        }
-
-        label {
-            font-weight: bold;
-            color: var(--primary);
+            flex-grow: 1;
         }
     </style>
 </head>
@@ -138,411 +164,510 @@
 
     <div class="header">
         <div>
-            <h1>داشبورد استراتژیک تولید</h1>
-            <p>مقایسه عملکرد ۱۴۰۳ (کامل) با ۱۴۰۴ (تا پایان آبان + ۱۳ روز آذر)</p>
+            <h1>داشبورد استراتژیک تولید و سهم بازار</h1>
+            <p>تحلیل عملکرد داخلی (آذین) و مقایسه با تولید کل خودروساز (۱۴۰۳ vs ۱۴۰۴)</p>
         </div>
         <div style="text-align: left;">
-            <span style="background: #e2e8f0; padding: 5px 10px; border-radius: 8px; font-size: 0.8rem;">Last Updated: 15 Azar 1404</span>
+            <span style="background: #e2e8f0; padding: 5px 10px; border-radius: 8px; font-size: 0.8rem;">Updated: Bahman 1404</span>
         </div>
     </div>
 
-    <!-- KPIs -->
-    <div class="kpi-grid">
-        <div class="card kpi-card">
-            <span class="kpi-label">مجموع تولید ۱۴۰۳ (کل سال)</span>
-            <span class="kpi-value">293,457</span>
-            <span class="kpi-diff" style="color: gray;">Base Line</span>
-        </div>
-        <div class="card kpi-card">
-            <span class="kpi-label">مجموع تولید ۱۴۰۴ (تا امروز)</span>
-            <span class="kpi-value">113,025</span>
-            <span class="kpi-diff diff-neg">عقب‌ماندگی شدید از برنامه</span>
-        </div>
-        <div class="card kpi-card">
-            <span class="kpi-label">میانگین تولید ماهانه ۱۴۰۴</span>
-            <span class="kpi-value">14,128</span>
-            <span class="kpi-diff diff-neg">▼ ۴۲٪ کاهش نسبت به ۱۴۰۳</span>
-        </div>
-        <div class="card kpi-card">
-            <span class="kpi-label">محصول پرخطر (نیسان)</span>
-            <span class="kpi-value" style="color: var(--accent-1404);">1</span>
-            <span class="kpi-diff diff-neg">تولید ماه آبان (توقف کامل)</span>
-        </div>
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('internal')">📊 تحلیل داخلی (Internal)</button>
+        <button class="tab-btn" onclick="switchTab('market')">🤝 سهم بازار (Share of Wallet)</button>
     </div>
 
-    <!-- NEW SECTION: Detailed Product Analysis -->
-    <div class="chart-row">
-        <div class="card" style="border: 2px solid #e2e8f0;">
-            <div class="control-panel">
-                <label for="productSelect">🔍 تحلیل عمیق محصول (انتخاب کنید):</label>
-                <select id="productSelect" onchange="updateProductChart()">
-                    <!-- Options populated by JS -->
-                </select>
+    <!-- TAB 1: Internal Analysis -->
+    <div id="tab-internal" class="tab-content active">
+        <!-- KPIs -->
+        <div class="kpi-grid">
+            <div class="card kpi-card">
+                <span class="kpi-label">مجموع تولید آذین ۱۴۰۳</span>
+                <span class="kpi-value">293,457</span>
+                <span class="kpi-diff" style="color: gray;">Base Line</span>
             </div>
-            <div style="height: 400px;">
-                <canvas id="productSpecificChart"></canvas>
+            <div class="card kpi-card">
+                <span class="kpi-label">مجموع تولید آذین ۱۴۰۴</span>
+                <span class="kpi-value">136,600</span>
+                <span class="kpi-diff diff-neg">۵۳٪ کاهش نسبت به سال قبل</span>
             </div>
-            <p style="font-size: 0.8rem; text-align: center; color: gray; margin-top: 10px;">
-                خط‌چین آبی: عملکرد سال ۱۴۰۳ (هدف/سابقه) | خط ممتد قرمز: عملکرد سال ۱۴۰۴ (واقعی)
-            </p>
+            <div class="card kpi-card">
+                <span class="kpi-label">عملکرد ماه بهمن ۱۴۰۴</span>
+                <span class="kpi-value" style="color: var(--accent-1404);">3,415</span>
+                <span class="kpi-diff diff-neg">⚠️ وضعیت بحرانی</span>
+            </div>
         </div>
-    </div>
 
-    <!-- Chart Row 1: Monthly Comparison (Total) -->
-    <div class="chart-row">
-        <div class="card">
-            <h3 style="margin-bottom: 20px; color: var(--secondary);">۱. مقایسه ماهانه کل تولید شرکت (Bar Chart)</h3>
-            <div style="height: 350px;">
-                <canvas id="monthlyBarChart"></canvas>
+        <div class="chart-row-split">
+            <div class="card">
+                <h3 style="color: var(--secondary);">روند نوسانات کل (Trend)</h3>
+                <div style="height: 300px;"><canvas id="monthlyTrendChart"></canvas></div>
+            </div>
+            <div class="card">
+                <h3 style="color: var(--secondary);">عملکرد تجمعی آذین (Cumulative Gap)</h3>
+                <div style="height: 300px;"><canvas id="cumulativeChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="chart-row">
+            <div class="card" style="border: 2px solid #e2e8f0;">
+                <div class="control-panel">
+                    <label>🔍 تحلیل محصول داخلی (۱۸ محصول):</label>
+                    <select id="productSelect" onchange="updateProductChart()"></select>
+                </div>
+                <div style="height: 400px;"><canvas id="productSpecificChart"></canvas></div>
             </div>
         </div>
     </div>
 
-    <!-- Chart Row 2: Trends (Split) -->
-    <div class="chart-row-split">
-        <!-- Monthly Trend Line -->
-        <div class="card">
-            <h3 style="color: var(--secondary);">۲. روند نوسانات کل (Trend)</h3>
-            <p style="font-size: 0.8rem; color: gray;">بررسی پایداری خط تولید (Volatility)</p>
-            <div style="height: 300px;">
-                <canvas id="monthlyTrendChart"></canvas>
+    <!-- TAB 2: Market Share Analysis -->
+    <div id="tab-market" class="tab-content">
+        
+        <!-- Controls for Tab 2 -->
+        <div class="control-panel" style="background: #e0f2fe; border: 1px solid #bae6fd;">
+            <label>📅 فیلتر سال (انتخاب کنید):</label>
+            <select id="marketYearFilter" onchange="updateMarketTab()">
+                <option value="both">مقایسه دو سال (۱۴۰۳ و ۱۴۰۴)</option>
+                <option value="1404" selected>فقط سال ۱۴۰۴ (بحران فعلی)</option>
+                <option value="1403">فقط سال ۱۴۰۳ (سابقه)</option>
+            </select>
+        </div>
+
+        <!-- Market KPIs -->
+        <div class="kpi-grid">
+            <div class="card kpi-card" style="border-right: 4px solid var(--oem-color);">
+                <span class="kpi-label">تولید کل خودروساز (۱۴۰۴ YTD)</span>
+                <span class="kpi-value" style="color: var(--oem-color);">259,306</span>
+                <span class="kpi-diff">کل نیاز بازار</span>
+            </div>
+            <div class="card kpi-card" style="border-right: 4px solid var(--azin-color);">
+                <span class="kpi-label">تولید آذین (۱۴۰۴ YTD)</span>
+                <span class="kpi-value" style="color: var(--azin-color);">136,600</span>
+                <span class="kpi-diff">تأمین شده توسط ما</span>
+            </div>
+            <div class="card kpi-card">
+                <span class="kpi-label">میانگین سهم بازار (Share)</span>
+                <span class="kpi-value">52.7%</span>
+                <span class="kpi-diff diff-neg">▼ سقوط از ۶۳٪ در سال ۱۴۰۳</span>
+            </div>
+             <div class="card kpi-card" style="background: #fff1f2;">
+                <span class="kpi-label">سهم بازار آذین در بهمن ۱۴۰۴</span>
+                <span class="kpi-value" style="color: var(--accent-1404);">31.2%</span>
+                <span class="kpi-diff diff-neg">⚠️ پایین‌ترین حد تاریخی</span>
             </div>
         </div>
 
-        <!-- Cumulative Trend Line -->
-        <div class="card">
-            <h3 style="color: var(--secondary);">۳. عملکرد تجمعی (Cumulative Gap)</h3>
-            <p style="font-size: 0.8rem; color: gray;">فاصله باز شده بین دو نمودار = کسری تولید</p>
-            <div style="height: 300px;">
-                <canvas id="cumulativeChart"></canvas>
+        <!-- Cumulative Comparison Chart -->
+        <div class="chart-row">
+            <div class="card">
+                <h3>📉 مقایسه تجمعی تولید: خودروساز vs آذین (Cumulative Gap Analysis)</h3>
+                <p style="font-size: 0.8rem; color: gray;">فاصله بین خط سبز (خودروساز) و نارنجی (آذین) نشان‌دهنده حجم بازاری است که از دست رفته است.</p>
+                <div style="height: 350px;">
+                    <canvas id="cumulativeMarketChart"></canvas>
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Analysis & Tables -->
-    <div class="chart-row">
-        <div class="card">
-            <h3>تحلیل شکاف عملکرد (Performance Gap Analysis)</h3>
-            <div class="analysis-box">
-                <strong>⚠️ تحلیل وضعیت راهبردی:</strong><br>
-                بررسی نمودارهای تفکیکی حاکی از <strong>انحراف منفی شدید</strong> در تیراژ محصولات قدیمی (نیسان و خانواده X200) نسبت به خط مبنای سال ۱۴۰۳ است. نمودار عملکرد (۱۴۰۴) در این گروه محصولات، فاصله معناداری با اهداف سنواتی پیدا کرده است.
-                <br>در مقابل، عملکرد <strong>خانواده اطلس</strong> و ورود <strong>کامیونت اکستند</strong> به چرخه تولید، تنها نقاطی هستند که «روند مثبت» و حرکت بالاتر از خط مبنا را نشان می‌دهند.
-                <br><strong>نتیجه‌گیری:</strong> با توجه به داده‌های موجود، تغییر اولویت‌های لجستیک و تخصیص منابع از محصولات زیان‌ده با روند نزولی، به سمت محصولات جدید (اکستند و اطلس) جهت مدیریت حاشیه سود و جریان نقدینگی ضروری است.
+        <!-- NEW: Charts Split Row -->
+        <div class="chart-row-split">
+            <div class="card">
+                <h3>روند سهم بازار ماهانه (Share Trend)</h3>
+                <p style="font-size: 0.8rem; color: gray;">درصد تأمین قطعات توسط آذین</p>
+                <div style="height: 300px;">
+                    <canvas id="sharePercentChart"></canvas>
+                </div>
             </div>
             
-            <h4 style="margin-top: 30px;">وضعیت سبد محصول (Product Mix)</h4>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>محصول</th>
-                        <th>۱۴۰۳ (کل)</th>
-                        <th>۱۴۰۴ (YTD)</th>
-                        <th>تغییر وضعیت</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>خانواده اطلس</td>
-                        <td>۲۵,۷۲۵</td>
-                        <td>۱۶,۲۱۴</td>
-                        <td style="color: var(--success); font-weight: bold;">محصول جایگزین (Stable)</td>
-                    </tr>
-                    <tr>
-                        <td>نیسان و پادرا</td>
-                        <td>۴۹,۶۷۲</td>
-                        <td>۱۷,۳۹۶</td>
-                        <td style="color: var(--accent-1404); font-weight: bold;">بحرانی (Critical Drop)</td>
-                    </tr>
-                    <tr>
-                        <td>شاهین (همه مدل‌ها)</td>
-                        <td>۲۱,۴۱۰</td>
-                        <td>۷,۸۰۴</td>
-                        <td style="color: #f59e0b; font-weight: bold;">نیاز به بررسی زنجیره تأمین</td>
-                    </tr>
-                </tbody>
-            </table>
+            <div class="card">
+                <h3>مقایسه ماهانه کل تولید (Monthly Total Comparison)</h3>
+                <p style="font-size: 0.8rem; color: gray;">میله‌ها: خودروساز | خطوط: آذین (مطابق فیلتر سال)</p>
+                <div style="height: 300px;">
+                    <canvas id="monthlyTotalComparisonChart"></canvas>
+                </div>
+            </div>
         </div>
+
+        <!-- Product Comparison -->
+        <div class="chart-row">
+            <div class="card">
+                <div class="control-panel">
+                    <label>⚖️ مقایسه محصول به محصول (شامل موارد صفر):</label>
+                    <select id="compareProductSelect" onchange="updateCompareChart()"></select>
+                </div>
+                <div style="height: 400px;">
+                    <canvas id="compareProductChart"></canvas>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // --- DATA SETUP ---
-        const labels = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
-
-        // Total Data
-        const total1403 = [15861, 33150, 30828, 28040, 20318, 20808, 31300, 23627, 22708, 22212, 23326, 21279];
-        const total1404 = [12174, 25148, 13143, 12074, 8264, 17073, 14800, 10349, null, null, null, null];
-
-        // Cumulative Data
-        const cum1403 = [];
-        total1403.reduce((a, b, i) => cum1403[i] = a + b, 0);
-
-        const cum1404 = [];
-        let sum = 0;
-        for(let val of total1404) {
-            if(val !== null) {
-                sum += val;
-                cum1404.push(sum);
-            } else {
-                cum1404.push(null);
-            }
+        // --- TABS LOGIC ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + tabId).classList.add('active');
+            event.target.classList.add('active');
         }
 
-        // Product Breakdown Data (The "Meat" of the new chart)
-        const productsData = {
-            '131_Export': {
+        // --- DATA SETUP (Internal) ---
+        const labels = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
+        
+        // Azin Data (Supplier)
+        const total1403 = [15861, 33150, 30828, 28040, 20318, 20808, 31300, 23627, 22708, 22212, 23326, 21279];
+        const total1404 = [12174, 25148, 13143, 12074, 8264, 17073, 14800, 10349, 11324, 8836, 3415, null];
+
+        // Automaker Data (OEM)
+        const oem1403 = [25259, 46759, 45493, 40372, 30772, 33067, 46959, 35593, 37026, 40747, 41761, 36816];
+        const oem1404 = [17907, 38904, 22255, 21477, 21105, 29069, 26148, 19681, 29508, 22324, 10928, null];
+
+        // Cumulative Internal Calculation
+        const cum1403 = []; total1403.reduce((a, b, i) => cum1403[i] = a + b, 0);
+        const cum1404 = []; 
+        let sumAzin = 0;
+        for(let val of total1404) { if(val !== null) { sumAzin += val; cum1404.push(sumAzin); } else { cum1404.push(null); } }
+
+        // Cumulative OEM Calculation
+        const cumOem1404 = [];
+        let sumOem = 0;
+        for(let val of oem1404) { if(val !== null) { sumOem += val; cumOem1404.push(sumOem); } else { cumOem1404.push(null); } }
+        
+        const cumOem1403 = [];
+        oem1403.reduce((a, b, i) => cumOem1403[i] = a + b, 0);
+
+        // Share Calculation
+        const share1404 = total1404.map((val, i) => {
+            if (val === null || !oem1404[i] || oem1404[i] === 0) return null;
+            return ((val / oem1404[i]) * 100).toFixed(1);
+        });
+        
+        const share1403 = total1403.map((val, i) => {
+             if (val === null || !oem1403[i] || oem1403[i] === 0) return 0;
+             return Math.min(((val / oem1403[i]) * 100), 100).toFixed(1);
+        });
+
+
+        // --- FULL PRODUCT MAPPING ---
+        const allProducts = {
+            '131': {
                 name: 'صندلی 131 صادرات',
-                d1403: [1, 128, 112, 0, 12, 0, 120, 480, 0, 0, 232, 72],
-                d1404: [56, 184, 128, 60, 0, 240, 60, 128, null, null, null, null]
+                oem: [0, 240, 128, 60, 0, 292, 172, 128, 64, 112, 0, null],
+                my:  [56, 184, 128, 60, 0, 240, 60, 128, 64, 112, 32, null],
+                oem1403: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                my1403: [1, 128, 112, 0, 12, 0, 120, 480, 0, 0, 232, 72]
             },
-            '151_Benro': {
-                name: 'صندلی 151 (طرح کوییک - بن‌رو)',
-                d1403: [3584, 7360, 6824, 6008, 5264, 5448, 7032, 5848, 5896, 6317, 6465, 5808],
-                d1404: [160, 4592, 3304, 2192, 1232, 5264, 3621, 2596, null, null, null, null]
+            '151': {
+                name: 'وانت 151 (طرح کوییک)',
+                oem: [0, 4597, 3277, 2399, 1752, 5046, 3045, 2450, 3944, 2819, 1502, null],
+                my:  [160, 4592, 3304, 2192, 1232, 5264, 3621, 2596, 3656, 2680, 1152, null],
+                oem1403: [3524, 7108, 6877, 6038, 5026, 5764, 7004, 5614, 5966, 6378, 6585, 5951],
+                my1403: [3584, 7360, 6824, 6008, 5264, 5448, 7032, 5848, 5896, 6317, 6465, 5808]
             },
             '212_Saipa': {
                 name: 'صندلی 212 سایپا',
-                d1403: [5124, 10172, 8112, 5148, 2120, 2480, 6528, 2748, 3024, 2468, 3820, 4672],
-                d1404: [2716, 5536, 2488, 2084, 1560, 1336, 920, 884, null, null, null, null]
+                oem: [2395, 5070, 2529, 2546, 2755, 3162, 2931, 2391, 3884, 3339, 1889, null],
+                my:  [2716, 5536, 2488, 2084, 1560, 1336, 920, 884, 364, 368, 36, null],
+                oem1403: [3669, 7632, 6196, 4252, 2751, 2665, 7275, 5427, 4385, 4635, 5469, 3732],
+                my1403: [5124, 10172, 8112, 5148, 2120, 2480, 6528, 2748, 3024, 2468, 3820, 4672]
+            },
+            '212_Pars': {
+                name: 'صندلی 212 پارس خودرو (بحرانی)',
+                oem: [3419, 7068, 3226, 2931, 2883, 3512, 3272, 1839, 3539, 2608, 1406, null],
+                my:  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, null],
+                oem1403: [4628, 8535, 6998, 2830, 1497, 2751, 5664, 3824, 4455, 5172, 6973, 6663],
+                my1403: [0,0,0,0,0,0,0,0,0,0,0,0]
             },
             '212R_Pars': {
                 name: 'صندلی 212-R پارس خودرو',
-                d1403: [232, 600, 296, 768, 444, 576, 1148, 580, 484, 408, 320, 64],
-                d1404: [372, 680, 320, 304, 0, 192, 0, 128, null, null, null, null]
+                oem: [444, 572, 388, 281, 140, 131, 11, 0, 193, 85, 0, null],
+                my:  [372, 680, 320, 304, 0, 192, 0, 128, 192, 0, 0, null],
+                oem1403: [243, 571, 323, 1158, 575, 568, 960, 625, 537, 377, 284, 202],
+                my1403: [232, 600, 296, 768, 444, 576, 1148, 580, 484, 408, 320, 64]
             },
             '232_Kashan': {
                 name: 'صندلی 232 کاشان',
-                d1403: [2524, 5596, 5260, 5936, 4268, 2924, 4488, 3256, 3880, 3868, 2852, 1816],
-                d1404: [1880, 3696, 1888, 1456, 1240, 1588, 1464, 840, null, null, null, null]
+                oem: [4708, 9048, 5336, 5578, 6464, 7012, 5586, 5029, 7141, 4503, 1914, null],
+                my:  [1880, 3696, 1888, 1456, 1240, 1588, 1464, 840, 380, 44, 0, null],
+                oem1403: [6463, 11062, 10035, 9448, 7137, 7227, 9660, 7104, 8588, 8995, 9391, 7862],
+                my1403: [2524, 5596, 5260, 5936, 4268, 2924, 4488, 3256, 3880, 3868, 2852, 1816]
             },
-            'Shahin_Normal': {
-                name: 'صندلی شاهین معمولی',
-                d1403: [512, 1504, 1408, 1112, 776, 264, 912, 520, 648, 600, 416, 416],
-                d1404: [280, 792, 352, 472, 152, 616, 728, 192, null, null, null, null]
+            'Shahin_N': {
+                name: 'شاهین معمولی',
+                oem: [332, 1603, 702, 808, 552, 1922, 1937, 799, 1432, 1050, 603, null],
+                my:  [280, 792, 352, 472, 152, 616, 728, 192, 96, 104, 32, null],
+                oem1403: [2305, 4159, 3547, 3045, 2439, 1199, 2671, 1187, 1400, 2274, 1020, 1009],
+                my1403: [512, 1504, 1408, 1112, 776, 264, 912, 520, 648, 600, 416, 416]
             },
             'Shahin_CVT': {
-                name: 'صندلی شاهین CVT',
-                d1403: [568, 1160, 1064, 976, 632, 576, 784, 1024, 488, 672, 720, 792],
-                d1404: [168, 728, 752, 432, 420, 80, 128, 216, null, null, null, null]
+                name: 'شاهین CVT',
+                oem: [915, 1428, 1033, 1071, 848, 189, 629, 766, 407, 466, 191, null],
+                my:  [168, 728, 752, 432, 420, 80, 128, 216, 104, 0, 16, null],
+                oem1403: [1025, 1388, 1671, 1655, 1177, 1385, 1950, 1360, 1249, 2043, 2435, 2422],
+                my1403: [568, 1160, 1064, 976, 632, 576, 784, 1024, 488, 672, 720, 792]
             },
             'Shahin_Plus': {
-                name: 'صندلی شاهین پلاس (برقی)',
-                d1403: [0, 38, 204, 40, 0, 136, 760, 32, 0, 248, 920, 488],
-                d1404: [712, 584, 0, 0, 0, 0, 0, 0, null, null, null, null]
+                name: 'شاهین پلاس (برقی)',
+                oem: [711, 1298, 795, 532, 545, 471, 774, 285, 1240, 731, 356, null],
+                my:  [712, 584, 0, 0, 0, 0, 0, 0, 0, 0, 0, null],
+                oem1403: [0, 20, 50, 86, 0, 110, 820, 82, 10, 188, 904, 500],
+                my1403: [0, 38, 204, 40, 0, 136, 760, 32, 0, 248, 920, 488]
+            },
+            'Arya': {
+                name: 'صندلی آریا',
+                oem: [0, 0, 0, 0, 0, 0, 0, 5, 1, 4, 63, null],
+                my:  [0, 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, null],
+                oem1403: [0, 0, 0, 0, 0, 3, 7, 7, 9, 3, 2, 0],
+                my1403: [0,0,0,0,0,0,8,8,4,7,1,0]
             },
             'Atlas': {
-                name: 'صندلی اطلس (کل)',
-                d1403: [856, 160, 1596, 2968, 1784, 3052, 808, 1964, 2764, 3368, 2972, 3313],
-                d1404: [1988, 3046, 864, 1440, 1820, 2572, 2360, 1656, null, null, null, null]
+                name: 'صندلی اطلس',
+                oem: [1802, 2780, 1262, 1520, 1955, 2585, 2352, 1875, 1782, 599, 696, null],
+                my:  [1988, 3046, 864, 1440, 1820, 2572, 2360, 1656, 1708, 976, 192, null],
+                oem1403: [741, 0, 1778, 2695, 1748, 3313, 583, 1834, 2999, 3459, 2587, 3502],
+                my1403: [856, 160, 1596, 2968, 1784, 3052, 808, 1964, 2764, 3368, 2972, 3313]
             },
-            'Sahand_Cloth': {
-                name: 'صندلی سهند پارچه‌ای',
-                d1403: [0, 80, 160, 464, 1668, 2548, 3200, 2628, 1588, 316, 696, 636],
-                d1404: [872, 952, 748, 984, 596, 1240, 1464, 768, null, null, null, null]
+            'Atlas_M': {
+                name: 'صندلی اطلس مارون',
+                oem: [7, 69, 50, 0, 35, 41, 17, 29, 28, 2, 0, null],
+                my:  [60, 28, 52, 100, 64, 136, 28, 0, 0, 0, 0, null],
+                oem1403: [0, 6, 3, 2, 1, 2, 13, 4, 9, 11, 28, 23],
+                my1403: [0, 16, 0, 0, 0, 4, 12, 8, 12, 20, 32, 16]
+            },
+            'Sahand_LC': {
+                name: 'سهند چرم و پارچه',
+                oem: [15, 41, 28, 0, 0, 236, 343, 5, 0, 5, 6, null],
+                my:  [20, 60, 32, 0, 0, 360, 332, 0, 0, 0, 0, null],
+                oem1403: [2, 122, 28, 0, 0, 0, 0, 0, 5, 10, 5, 29],
+                my1403: [0, 136, 101, 2, 0, 0, 0, 0, 0, 0, 0, 36]
+            },
+            'Sahand_C': {
+                name: 'سهند پارچه‌ای',
+                oem: [558, 1165, 927, 1135, 1217, 1469, 1692, 1000, 1569, 1043, 368, null],
+                my:  [872, 952, 748, 984, 596, 1240, 1464, 768, 940, 732, 80, null],
+                oem1403: [0, 8, 179, 353, 1675, 2482, 3153, 2449, 1538, 482, 804, 807],
+                my1403: [0, 80, 160, 464, 1668, 2548, 3200, 2628, 1588, 316, 696, 636]
             },
             'Nissan': {
-                name: 'صندلی نیسان',
-                d1403: [2440, 5910, 5691, 4530, 3350, 2800, 5500, 4521, 3870, 3870, 3820, 3060],
-                d1404: [2740, 3950, 1810, 2140, 200, 20, 30, 1, null, null, null, null]
+                name: 'وانت نیسان',
+                oem: [2541, 3619, 2286, 2235, 552, 0, 20, 0, 0, 0, 0, null],
+                my:  [2740, 3950, 1810, 2140, 200, 20, 30, 1, 0, 0, 0, null],
+                oem1403: [2659, 5598, 5271, 4515, 3211, 3136, 5048, 4435, 3745, 3813, 3772, 3436],
+                my1403: [2440, 5910, 5691, 4530, 3350, 2800, 5500, 4521, 3870, 3870, 3820, 3060]
             },
-            'Padra_Plus': {
-                name: 'صندلی پادرا پلاس',
-                d1403: [0, 50, 0, 0, 0, 0, 0, 10, 50, 50, 60, 90],
-                d1404: [150, 320, 405, 410, 980, 3405, 485, 350, null, null, null, null]
+            'Padra': {
+                name: 'پادرا پلاس',
+                oem: [60, 306, 288, 381, 1407, 3001, 452, 290, 375, 0, 130, null],
+                my:  [150, 320, 405, 410, 980, 3405, 485, 350, 150, 0, 50, null],
+                oem1403: [0, 0, 0, 0, 0, 0, 0, 0, 105, 90, 95, 80],
+                my1403: [0, 50, 0, 0, 0, 0, 0, 10, 50, 50, 60, 90]
             },
             'Extend': {
                 name: 'کامیونت اکستند',
-                d1403: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                d1404: [0, 0, 0, 0, 0, 0, 3180, 2590, null, null, null, null]
+                oem: [0, 0, 0, 0, 0, 0, 2915, 2790, 3380, 4026, 1804, null],
+                my:  [0, 0, 0, 0, 0, 0, 3180, 2590, 3522, 3820, 1825, null],
+                oem1403: [0,0,0,0,0,0,0,0,0,0,0,0],
+                my1403: [0,0,0,0,0,0,0,0,0,0,0,0]
+            },
+            'Atlas_S': {
+                name: 'اطلس S پارچه (جدید)',
+                oem: [0, 0, 0, 0, 0, 0, 0, 0, 529, 932, 0, null],
+                my:  [0, 0, 0, 0, 0, 0, 0, 0, 140, 0, 0, null],
+                oem1403: [0,0,0,0,0,0,0,0,0,0,0,0],
+                my1403: [0,0,0,0,0,0,0,0,0,0,0,0]
             }
         };
+
 
         // --- CHART CONFIGURATION ---
         const commonOptions = {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: { font: { family: 'Vazirmatn' } }
-                },
-                tooltip: {
-                    titleFont: { family: 'Vazirmatn' },
-                    bodyFont: { family: 'Vazirmatn' },
-                    rtl: true,
-                    textDirection: 'rtl'
-                }
-            },
-            scales: {
-                x: { ticks: { font: { family: 'Vazirmatn' } } },
-                y: { ticks: { font: { family: 'Vazirmatn' } }, beginAtZero: true }
-            }
+            plugins: { legend: { labels: { font: { family: 'Vazirmatn' } } } },
+            scales: { x: { ticks: { font: { family: 'Vazirmatn' } } }, y: { ticks: { font: { family: 'Vazirmatn' } } } },
+            elements: { line: { tension: 0.4 } }
         };
 
-        // 1. Initial Product Chart
-        let productChartInstance = null;
-
-        function initProductChart() {
-            const ctx = document.getElementById('productSpecificChart').getContext('2d');
-            productChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: []
-                },
-                options: {
-                    ...commonOptions,
-                    plugins: {
-                        ...commonOptions.plugins,
-                        title: {
-                            display: true,
-                            text: 'روند تولید محصول (مقایسه سالانه)',
-                            font: { family: 'Vazirmatn', size: 16 }
-                        }
-                    }
-                }
-            });
-            
-            // Populate Select Options
-            const select = document.getElementById('productSelect');
-            for (const key in productsData) {
-                const opt = document.createElement('option');
-                opt.value = key;
-                opt.innerHTML = productsData[key].name;
-                select.appendChild(opt);
-            }
-            
-            // Set default to 151 or Atlas
-            select.value = '151_Benro';
-            updateProductChart();
-        }
-
-        function updateProductChart() {
-            const selectedKey = document.getElementById('productSelect').value;
-            const pData = productsData[selectedKey];
-            
-            productChartInstance.data.datasets = [
-                {
-                    label: '۱۴۰۳ (هدف/سابقه)',
-                    data: pData.d1403,
-                    borderColor: '#3b82f6', // Blue
-                    borderWidth: 2,
-                    borderDash: [5, 5], // Dashed
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    pointRadius: 3,
-                    tension: 0.3
-                },
-                {
-                    label: '۱۴۰۴ (عملکرد واقعی)',
-                    data: pData.d1404,
-                    borderColor: '#ef4444', // Red
-                    borderWidth: 3, // Thicker solid line
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    pointRadius: 5,
-                    tension: 0.3
-                }
-            ];
-            productChartInstance.update();
-        }
-
-        // 2. Monthly Bar Chart (Total)
-        new Chart(document.getElementById('monthlyBarChart'), {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'تولید ۱۴۰۳',
-                        data: total1403,
-                        backgroundColor: '#cbd5e1', 
-                        borderRadius: 4
-                    },
-                    {
-                        label: 'تولید ۱۴۰۴',
-                        data: total1404,
-                        backgroundColor: '#ef4444', 
-                        borderRadius: 4
-                    }
-                ]
-            },
-            options: commonOptions
-        });
-
-        // 3. Monthly Trend Chart (Total Line)
+        // --- INTERNAL CHARTS (TAB 1) ---
         new Chart(document.getElementById('monthlyTrendChart'), {
             type: 'line',
             data: {
                 labels: labels,
                 datasets: [
-                    {
-                        label: 'روند کل ۱۴۰۳',
-                        data: total1403,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        tension: 0.3,
-                        borderDash: [5, 5], // Dashed
-                        fill: false
-                    },
-                    {
-                        label: 'روند کل ۱۴۰۴',
-                        data: total1404,
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(220, 38, 38, 0.1)',
-                        tension: 0.3,
-                        borderWidth: 3, // Solid
-                        fill: false
-                    }
+                    { label: 'آذین ۱۴۰۳', data: total1403, borderColor: '#3b82f6', borderDash: [5,5], tension: 0.4 },
+                    { label: 'آذین ۱۴۰۴', data: total1404, borderColor: '#ef4444', borderWidth: 3, tension: 0.4 }
                 ]
-            },
-            options: commonOptions
+            }, options: commonOptions
         });
 
-        // 4. Cumulative Chart
         new Chart(document.getElementById('cumulativeChart'), {
             type: 'line',
             data: {
                 labels: labels,
                 datasets: [
-                    {
-                        label: 'تجمعی ۱۴۰۳',
-                        data: cum1403,
-                        borderColor: '#3b82f6',
-                        borderWidth: 2,
-                        tension: 0.1,
-                        borderDash: [5, 5], // Dashed as per request
-                        pointRadius: 0
-                    },
-                    {
-                        label: 'تجمعی ۱۴۰۴',
-                        data: cum1404,
-                        borderColor: '#ef4444',
-                        borderWidth: 3,
-                        tension: 0.1
-                    }
+                    { label: 'تجمعی آذین ۱۴۰۳', data: cum1403, borderColor: '#3b82f6', borderDash: [5,5], tension: 0.4 },
+                    { label: 'تجمعی آذین ۱۴۰۴', data: cum1404, borderColor: '#ef4444', borderWidth: 3, tension: 0.4 }
                 ]
-            },
-            options: {
-                ...commonOptions,
-                plugins: {
-                    ...commonOptions.plugins,
-                    tooltip: {
-                        ...commonOptions.plugins.tooltip,
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) { label += ': '; }
-                                if (context.parsed.y !== null) {
-                                    label += new Intl.NumberFormat('fa-IR').format(context.parsed.y);
-                                }
-                                return label;
-                            }
-                        }
-                    }
-                }
-            }
+            }, options: commonOptions
         });
 
-        // Initialize
-        initProductChart();
+        // Internal Product Chart Logic
+        let internalChartInstance = null;
+        function initInternalChart() {
+            const ctx = document.getElementById('productSpecificChart').getContext('2d');
+            internalChartInstance = new Chart(ctx, { type: 'line', data: { labels: labels, datasets: [] }, options: commonOptions });
+            const select = document.getElementById('productSelect');
+            for(const key in allProducts) {
+                const opt = document.createElement('option'); opt.value = key; opt.innerHTML = allProducts[key].name; select.appendChild(opt);
+            }
+            select.value = '212_Pars'; 
+            updateProductChart();
+        }
+        function updateProductChart() {
+            const key = document.getElementById('productSelect').value;
+            const d = allProducts[key];
+            internalChartInstance.data.datasets = [
+                { label: 'سابقه ۱۴۰۳', data: d.my1403, borderColor: '#3b82f6', borderDash: [5,5], tension: 0.4 },
+                { label: 'عملکرد ۱۴۰۴', data: d.my, borderColor: '#ef4444', borderWidth: 3, tension: 0.4 }
+            ];
+            internalChartInstance.update();
+        }
+
+        // --- MARKET SHARE CHARTS (TAB 2) ---
+        let shareChartInstance, compareChartInstance, cumulativeMarketChartInstance, monthlyTotalComparisonChartInstance;
+
+        function initMarketCharts() {
+            // 1. Cumulative Market Gap Chart (NEW)
+            const ctxCumMarket = document.getElementById('cumulativeMarketChart').getContext('2d');
+            cumulativeMarketChartInstance = new Chart(ctxCumMarket, {
+                type: 'line',
+                data: { labels: labels, datasets: [] },
+                options: commonOptions
+            });
+
+            // 2. Share Trend
+            const ctxShare = document.getElementById('sharePercentChart').getContext('2d');
+            shareChartInstance = new Chart(ctxShare, {
+                type: 'line',
+                data: { labels: labels, datasets: [] },
+                options: {
+                    ...commonOptions,
+                    scales: { y: { min: 0, max: 100, ticks: { callback: function(value){return value + '%'} } } }
+                }
+            });
+
+            // 3. Monthly Total Comparison Chart (NEW - Replacing Analysis)
+            const ctxTotalComp = document.getElementById('monthlyTotalComparisonChart').getContext('2d');
+            monthlyTotalComparisonChartInstance = new Chart(ctxTotalComp, {
+                type: 'bar', // Base type
+                data: { labels: labels, datasets: [] },
+                options: commonOptions
+            });
+
+            // 4. Compare Product
+            const ctxCompare = document.getElementById('compareProductChart').getContext('2d');
+            compareChartInstance = new Chart(ctxCompare, { type: 'bar', data: { labels: labels, datasets: [] }, options: commonOptions });
+            
+            // Populate select
+            const select = document.getElementById('compareProductSelect');
+            select.innerHTML = '';
+            for(const key in allProducts) {
+                const opt = document.createElement('option'); opt.value = key; opt.innerHTML = allProducts[key].name; select.appendChild(opt);
+            }
+            select.value = '212_Pars';
+            
+            updateMarketTab(); // Initial Load
+        }
+
+        function updateMarketTab() {
+            const yearMode = document.getElementById('marketYearFilter').value;
+            
+            // A. Update Cumulative Market Chart (Filter Aware)
+            let cumDatasets = [];
+            if (yearMode === '1404' || yearMode === 'both') {
+                cumDatasets.push({ label: 'تولید تجمعی خودروساز ۱۴۰۴', data: cumOem1404, borderColor: '#059669', borderWidth: 3, tension: 0.4 });
+                cumDatasets.push({ label: 'تولید تجمعی آذین ۱۴۰۴', data: cum1404, borderColor: '#d97706', borderWidth: 3, tension: 0.4 });
+            }
+            if (yearMode === '1403' || yearMode === 'both') {
+                cumDatasets.push({ label: 'تجمعی خودروساز ۱۴۰۳', data: cumOem1403, borderColor: '#6ee7b7', borderDash: [5,5], tension: 0.4 });
+                cumDatasets.push({ label: 'تجمعی آذین ۱۴۰۳', data: cum1403, borderColor: '#fcd34d', borderDash: [5,5], tension: 0.4 });
+            }
+            cumulativeMarketChartInstance.data.datasets = cumDatasets;
+            cumulativeMarketChartInstance.update();
+
+
+            // B. Update Share Trend Chart
+            let shareDatasets = [];
+            if (yearMode === '1404' || yearMode === 'both') {
+                shareDatasets.push({
+                    label: 'سهم بازار آذین ۱۴۰۴ (%)',
+                    data: share1404,
+                    borderColor: '#7c3aed', 
+                    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                    fill: false,
+                    tension: 0.4,
+                    borderWidth: 3
+                });
+            }
+            if (yearMode === '1403' || yearMode === 'both') {
+                shareDatasets.push({
+                    label: 'سهم بازار آذین ۱۴۰۳ (%)',
+                    data: share1403,
+                    borderColor: '#a78bfa',
+                    backgroundColor: 'rgba(167, 139, 250, 0.1)',
+                    fill: false,
+                    tension: 0.4,
+                    borderDash: [5,5],
+                    borderWidth: 2
+                });
+            }
+            shareChartInstance.data.datasets = shareDatasets;
+            shareChartInstance.update();
+
+            // C. Update Monthly Total Comparison Chart (Replacing Analysis)
+            let totalCompDatasets = [];
+            if (yearMode === '1403' || yearMode === 'both') {
+                 totalCompDatasets.push({ type: 'bar', label: 'خودروساز ۱۴۰۳', data: oem1403, backgroundColor: '#94a3b8', order: 4, barPercentage: 0.6 });
+                 totalCompDatasets.push({ type: 'line', label: 'آذین ۱۴۰۳', data: total1403, borderColor: '#3b82f6', borderDash: [5,5], borderWidth: 2, tension: 0.4, order: 3 });
+            }
+
+            if (yearMode === '1404' || yearMode === 'both') {
+                 totalCompDatasets.push({ type: 'bar', label: 'خودروساز ۱۴۰۴', data: oem1404, backgroundColor: '#059669', order: 2, barPercentage: 0.6 });
+                 totalCompDatasets.push({ type: 'line', label: 'آذین ۱۴۰۴', data: total1404, borderColor: '#d97706', borderWidth: 3, tension: 0.4, order: 1 });
+            }
+            monthlyTotalComparisonChartInstance.data.datasets = totalCompDatasets;
+            monthlyTotalComparisonChartInstance.update();
+
+
+            // D. Update Product Compare Chart
+            updateCompareChart();
+        }
+
+        function updateCompareChart() {
+            const key = document.getElementById('compareProductSelect').value;
+            const yearMode = document.getElementById('marketYearFilter').value;
+            const d = allProducts[key];
+            
+            let datasets = [];
+
+            if (yearMode === '1403' || yearMode === 'both') {
+                 datasets.push({ type: 'bar', label: 'تولید خودروساز ۱۴۰۳', data: d.oem1403, backgroundColor: '#94a3b8', order: 4, barPercentage: 0.6 });
+                 datasets.push({ type: 'line', label: 'تولید آذین ۱۴۰۳', data: d.my1403, borderColor: '#3b82f6', borderDash: [5,5], borderWidth: 2, tension: 0.4, order: 3 });
+            }
+
+            if (yearMode === '1404' || yearMode === 'both') {
+                 datasets.push({ type: 'bar', label: 'تولید خودروساز ۱۴۰۴', data: d.oem, backgroundColor: '#059669', order: 2, barPercentage: 0.6 });
+                 datasets.push({ type: 'line', label: 'تولید آذین ۱۴۰۴', data: d.my, borderColor: '#d97706', borderWidth: 3, tension: 0.4, order: 1 });
+            }
+
+            compareChartInstance.data.datasets = datasets;
+            compareChartInstance.update();
+        }
+
+        // Initialization
+        initInternalChart();
+        initMarketCharts();
 
     </script>
 </body>
