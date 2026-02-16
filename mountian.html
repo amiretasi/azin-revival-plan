@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اینفوگرافیک کوهنوردی سایپا آذین</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Vazirmatn Font -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #F0F4F8;
+            color: #264653;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px; 
+            max-height: 450px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased">
+
+    <!-- Header -->
+    <header class="bg-[#264653] text-white py-12 px-4 shadow-lg">
+        <div class="max-w-6xl mx-auto text-center">
+            <h1 class="text-4xl md:text-6xl font-black mb-4 text-[#E9C46A] drop-shadow-md">
+                صعود و فرود: جنگل کارا 🏔️
+            </h1>
+            <p class="text-xl md:text-2xl font-medium text-[#2A9D8F] mb-6">
+                نقشه راه کامل کوهنوردی شرکت سایپا آذین
+            </p>
+            <div class="inline-flex flex-wrap justify-center gap-4 mt-4">
+                <div class="bg-[#2A9D8F] px-6 py-3 rounded-full font-bold shadow-md">
+                    📅 جمعه ۱ اسفند ۱۴۰۴
+                </div>
+                <div class="bg-[#E76F51] px-6 py-3 rounded-full font-bold shadow-md">
+                    ⏱️ بازه کل برنامه: ۰۷:۰۰ تا ۱۱:۰۰
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-12 space-y-16">
+
+        <!-- Info Section -->
+        <section class="max-w-4xl mx-auto text-center bg-white p-8 rounded-2xl shadow-md border-t-4 border-[#2A9D8F]">
+            <h2 class="text-2xl font-bold mb-4 text-[#264653]">برنامه اصلاح شده رفت و برگشت</h2>
+            <p class="text-lg leading-relaxed text-gray-600">
+                بر اساس زمان‌بندی جدید: ۱.۵ ساعت صعود، ۱.۵ ساعت استراحت و صبحانه، و ۱ ساعت فرود تا درکه.
+            </p>
+        </section>
+
+        <!-- Main Chart: Route Profile -->
+        <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+            <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center">
+                <div>
+                    <h3 class="text-2xl font-bold text-[#264653] border-r-4 border-[#E76F51] pr-3">نمودار ارتفاع و زمان‌بندی دقیق</h3>
+                    <p class="text-sm text-gray-500 mt-2">
+                        نمایش گرافیکی مسیر با احتساب ۱.۵ ساعت صبحانه در جنگل کارا.
+                    </p>
+                </div>
+                <div class="mt-4 md:mt-0 flex gap-4">
+                    <span class="flex items-center text-xs font-bold text-[#2A9D8F]"><span class="w-3 h-3 bg-[#2A9D8F] ml-1 rounded-sm"></span> صعود</span>
+                    <span class="flex items-center text-xs font-bold text-[#E9C46A]"><span class="w-3 h-3 bg-[#E9C46A] ml-1 rounded-sm"></span> صبحانه</span>
+                    <span class="flex items-center text-xs font-bold text-[#E76F51]"><span class="w-3 h-3 bg-[#E76F51] ml-1 rounded-sm"></span> فرود</span>
+                </div>
+            </div>
+            <div class="chart-container !max-w-full">
+                <canvas id="fullRouteChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Logistics & Gear Tables -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- Table 1: Logistics Responsibility -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex flex-col">
+                <div class="mb-4">
+                    <h3 class="text-xl font-bold text-[#264653] border-r-4 border-[#E9C46A] pr-3">جدول تفکیک وظایف و تدارکات</h3>
+                    <p class="text-sm text-gray-500 mt-2">
+                        مسئولیت تامین هر مورد با چه کسی است؟
+                    </p>
+                </div>
+                
+                <div class="overflow-x-auto flex-grow">
+                    <table class="w-full text-sm text-right text-gray-600">
+                        <thead class="text-xs text-white uppercase bg-[#264653]">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 rounded-tr-lg">موضوع / آیتم</th>
+                                <th scope="col" class="px-4 py-3 text-center bg-[#E76F51]">عهده همنورد</th>
+                                <th scope="col" class="px-4 py-3 text-center bg-[#2A9D8F] rounded-tl-lg">عهده شرکت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-white border-b hover:bg-gray-50">
+                                <td class="px-4 py-4 font-bold text-gray-900">ایاب و ذهاب (تا درکه)</td>
+                                <td class="px-4 py-4 text-center text-[#E76F51] font-bold text-lg">✅</td>
+                                <td class="px-4 py-4 text-center text-gray-300">➖</td>
+                            </tr>
+                            <tr class="bg-gray-50 border-b hover:bg-gray-100">
+                                <td class="px-4 py-4 font-bold text-gray-900">صبحانه و نوشیدنی</td>
+                                <td class="px-4 py-4 text-center text-[#E76F51] font-bold text-lg">✅</td>
+                                <td class="px-4 py-4 text-center text-gray-300">➖</td>
+                            </tr>
+                            <tr class="bg-white border-b hover:bg-gray-50">
+                                <td class="px-4 py-4 font-bold text-gray-900">سرپرستی و لیدری</td>
+                                <td class="px-4 py-4 text-center text-gray-300">➖</td>
+                                <td class="px-4 py-4 text-center text-[#2A9D8F] font-bold text-lg">✅</td>
+                            </tr>
+                            <tr class="bg-gray-50 hover:bg-gray-100">
+                                <td class="px-4 py-4 font-bold text-gray-900">هماهنگی و برنامه‌ریزی</td>
+                                <td class="px-4 py-4 text-center text-gray-300">➖</td>
+                                <td class="px-4 py-4 text-center text-[#2A9D8F] font-bold text-lg">✅</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 text-center text-xs font-bold text-[#E76F51] bg-orange-50 p-3 rounded-lg border border-orange-100">
+                    ⚠️ توجه: ایاب و ذهاب تا پای کوه و وعده صبحانه کاملاً شخصی می‌باشد.
+                </div>
+            </div>
+
+            <!-- Table 2: Gear Checklist -->
+            <div class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 flex flex-col">
+                <div class="mb-4">
+                    <h3 class="text-xl font-bold text-[#264653] border-r-4 border-[#2A9D8F] pr-3">چک‌لیست تجهیزات ضروری</h3>
+                    <p class="text-sm text-gray-500 mt-2">
+                         تامین تمامی موارد زیر بر عهده <span class="font-bold text-[#E76F51]">همنورد</span> است.
+                    </p>
+                </div>
+                
+                <div class="overflow-x-auto flex-grow">
+                    <table class="w-full text-sm text-right text-gray-600">
+                        <thead class="text-xs text-white uppercase bg-[#264653]">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 rounded-tr-lg">تجهیزات</th>
+                                <th scope="col" class="px-4 py-3 text-center">وضعیت</th>
+                                <th scope="col" class="px-4 py-3 rounded-tl-lg">توضیحات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="bg-white border-b hover:bg-gray-50 border-l-4 border-l-[#E76F51]">
+                                <td class="px-4 py-4 font-bold text-gray-900">کفش کوهنوردی</td>
+                                <td class="px-4 py-4 text-center"><span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded border border-red-400">الزامی</span></td>
+                                <td class="px-4 py-4 text-xs">ساق‌دار با کفی مناسب</td>
+                            </tr>
+                            <tr class="bg-gray-50 border-b hover:bg-gray-100 border-l-4 border-l-[#E76F51]">
+                                <td class="px-4 py-4 font-bold text-gray-900">لباس گرم (کاپشن)</td>
+                                <td class="px-4 py-4 text-center"><span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded border border-red-400">الزامی</span></td>
+                                <td class="px-4 py-4 text-xs">بادگیر یا پلار (لایه لایه)</td>
+                            </tr>
+                            <tr class="bg-white border-b hover:bg-gray-50 border-l-4 border-l-[#F4A261]">
+                                <td class="px-4 py-4 font-bold text-gray-900">باتوم کوهنوردی</td>
+                                <td class="px-4 py-4 text-center"><span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded border border-yellow-300">توصیه اکید</span></td>
+                                <td class="px-4 py-4 text-xs">حفظ تعادل و سلامت زانو</td>
+                            </tr>
+                            <tr class="bg-gray-50 border-b hover:bg-gray-100">
+                                <td class="px-4 py-4 font-bold text-gray-900">کوله پشتی</td>
+                                <td class="px-4 py-4 text-center"><span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded border border-green-400">معمولی</span></td>
+                                <td class="px-4 py-4 text-xs">سبک و استاندارد</td>
+                            </tr>
+                             <tr class="bg-white hover:bg-gray-50">
+                                <td class="px-4 py-4 font-bold text-gray-900">زیرانداز انفرادی</td>
+                                <td class="px-4 py-4 text-center"><span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded border border-green-400">معمولی</span></td>
+                                <td class="px-4 py-4 text-xs">جهت نشستن برای صبحانه</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaders Section (CLEAN PATTERN) -->
+        <div class="bg-white border border-gray-200 rounded-2xl shadow-lg p-6 mb-12 mt-8 text-center relative overflow-hidden mx-auto max-w-5xl">
+            <div class="absolute top-0 right-0 w-2 h-full bg-[#264653]"></div>
+            <h4 class="text-xl font-bold text-[#264653] mb-4">تیم سرپرستی و اجرایی</h4>
+            <div class="flex flex-col md:flex-row justify-center gap-6">
+                <div class="bg-[#F0F4F8] px-6 py-3 rounded-xl border border-[#264653] shadow-sm flex items-center justify-center">
+                    <span class="w-2 h-2 bg-[#264653] rounded-full ml-2"></span>
+                    <div>
+                        <span class="text-[#264653] font-bold block">جناب آقای ناصر جباری</span>
+                        <span class="text-xs text-gray-500">سرپرست و لیدر برنامه</span>
+                    </div>
+                </div>
+                <div class="bg-[#F0F4F8] px-6 py-3 rounded-xl border border-[#2A9D8F] shadow-sm flex items-center justify-center">
+                     <span class="w-2 h-2 bg-[#2A9D8F] rounded-full ml-2"></span>
+                    <div>
+                        <span class="text-[#264653] font-bold block">سرکار خانم مرضیه فلاحی</span>
+                        <span class="text-xs text-gray-500">هماهنگ‌کننده و برنامه‌ریز</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Section -->
+        <section class="max-w-3xl mx-auto">
+            <h3 class="text-3xl font-bold text-center text-[#264653] mb-10">جدول زمانی نهایی برنامه</h3>
+            <div class="relative border-r-4 border-[#2A9D8F] mr-4 space-y-12">
+                
+                <!-- Event 1 -->
+                <div class="relative flex items-center">
+                    <div class="absolute -right-[1.3rem] w-8 h-8 bg-[#2A9D8F] rounded-full border-4 border-white flex items-center justify-center text-white text-sm font-bold shadow-sm">۱</div>
+                    <div class="mr-12 bg-white p-6 rounded-xl shadow-md w-full">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-lg font-bold text-[#264653]">شروع پیمایش از درکه</h4>
+                            <span class="bg-[#2A9D8F] text-white text-xs px-3 py-1 rounded-full">۰۷:۰۰ صبح</span>
+                        </div>
+                        <p class="text-gray-600 text-sm">حرکت گروهی به سمت جنگل کارا. لطفا راس ساعت در محل حضور داشته باشید.</p>
+                    </div>
+                </div>
+
+                <!-- Event 2 -->
+                <div class="relative flex items-center">
+                    <div class="absolute -right-[1.3rem] w-8 h-8 bg-[#E9C46A] rounded-full border-4 border-white flex items-center justify-center text-white text-sm font-bold shadow-sm">۲</div>
+                    <div class="mr-12 bg-white p-6 rounded-xl shadow-md w-full border-r-4 border-[#E9C46A]">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-lg font-bold text-[#264653]">تایم صبحانه و استراحت</h4>
+                            <span class="bg-[#E9C46A] text-white text-xs px-3 py-1 rounded-full">۰۸:۳۰ تا ۱۰:۰۰</span>
+                        </div>
+                        <p class="text-gray-600 text-sm">۱.۵ ساعت توقف برای صرف صبحانه شخصی در طبیعت زیبای جنگل کارا.</p>
+                    </div>
+                </div>
+
+                <!-- Event 3 -->
+                <div class="relative flex items-center">
+                    <div class="absolute -right-[1.3rem] w-8 h-8 bg-[#E76F51] rounded-full border-4 border-white flex items-center justify-center text-white text-sm font-bold shadow-sm">۳</div>
+                    <div class="mr-12 bg-white p-6 rounded-xl shadow-md w-full">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-lg font-bold text-[#264653]">فرود و بازگشت</h4>
+                            <span class="bg-[#E76F51] text-white text-xs px-3 py-1 rounded-full">۱۰:۰۰ تا ۱۱:۰۰</span>
+                        </div>
+                        <p class="text-gray-600 text-sm">۱ ساعت مسیر بازگشت به سمت درکه و پایان برنامه.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Contact Box -->
+            <div class="mt-16 bg-white border border-gray-200 rounded-2xl shadow-lg p-8 text-center relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-2 h-full bg-[#E9C46A]"></div>
+                <h4 class="text-xl font-bold text-[#264653] mb-4">هماهنگی و ثبت نام</h4>
+                <p class="text-gray-600 mb-6">
+                    برای حضور در این برنامه جذاب، لطفاً با همکاران محترم <span class="font-bold text-[#2A9D8F]">واحد روابط عمومی</span> تماس حاصل فرمایید:
+                </p>
+                <div class="flex flex-col md:flex-row justify-center gap-6">
+                    <div class="flex items-center justify-center bg-[#F0F4F8] px-6 py-3 rounded-xl border border-[#2A9D8F] shadow-sm">
+                        <span class="w-8 h-8 bg-[#2A9D8F] text-white rounded-full flex items-center justify-center ml-3 text-sm font-bold">👤</span>
+                        <span class="text-[#264653] font-bold">آقای حمید قلی‌زاده</span>
+                    </div>
+                    <div class="flex items-center justify-center bg-[#F0F4F8] px-6 py-3 rounded-xl border border-[#2A9D8F] shadow-sm">
+                        <span class="w-8 h-8 bg-[#2A9D8F] text-white rounded-full flex items-center justify-center ml-3 text-sm font-bold">👤</span>
+                        <span class="text-[#264653] font-bold">آقای حسین کمالی</span>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <footer class="bg-[#264653] text-white py-8 text-center mt-12">
+        <p class="text-lg font-bold text-[#E9C46A]">ساعت ۱۱:۰۰ پایان برنامه در میدان درکه</p>
+        <p class="text-xs opacity-60 mt-2">مدیریت شرکت سایپا آذین</p>
+    </footer>
+
+    <script>
+        Chart.defaults.font.family = "'Vazirmatn', sans-serif";
+        Chart.defaults.color = '#264653';
+
+        const tooltipConfig = {
+            callbacks: {
+                title: function(items) {
+                    let label = items[0].chart.data.labels[items[0].dataIndex];
+                    return Array.isArray(label) ? label.join(' ') : label;
+                }
+            }
+        };
+
+        // 1. Full Route Chart
+        const ctxRoute = document.getElementById('fullRouteChart').getContext('2d');
+        const routeLabels = [
+            ['شروع درکه', '(۰۷:۰۰)'],
+            ['پلازا', '(۰۷:۴۰)'],
+            ['هفت‌حوض', '(۰۸:۰۵)'],
+            ['ورود به جنگل', '(۰۸:۳۰)'],
+            ['پایان صبحانه', '(۱۰:۰۰)'],
+            ['پایان برنامه', '(۱۱:۰۰)']
+        ];
+
+        new Chart(ctxRoute, {
+            type: 'line',
+            data: {
+                labels: routeLabels,
+                datasets: [{
+                    label: 'پروفایل زمانی (متر)',
+                    data: [1700, 1750, 1850, 2100, 2100, 1700],
+                    borderColor: '#264653',
+                    borderWidth: 3,
+                    pointBackgroundColor: function(context) {
+                        const index = context.dataIndex;
+                        if (index < 4) return '#2A9D8F'; 
+                        if (index === 4) return '#E9C46A'; 
+                        return '#E76F51'; 
+                    },
+                    pointRadius: 8,
+                    fill: {
+                        target: 'origin',
+                        above: 'rgba(42, 157, 143, 0.1)'
+                    },
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: tooltipConfig
+                },
+                scales: {
+                    y: { min: 1600, max: 2200 },
+                    x: { ticks: { font: { size: 10, weight: 'bold' } } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
