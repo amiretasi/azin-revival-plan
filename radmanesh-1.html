@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>گزارش راهبردی عبور از بحران - سایپا آذین</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #003366;
+            --accent-red: #cc0000;
+            --bg-light: #f8fafc;
+            --text-dark: #1e293b;
+            --secondary-gray: #64748b;
+            --warning-orange: #f59e0b;
+            --success-green: #16a34a;
+        }
+
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 20px 0; background-color: #cbd5e1; display: grid; place-items: center; gap: 20px; font-family: 'Vazirmatn', sans-serif; }
+
+        .slide-container {
+            width: 1280px; height: 720px; background-color: #fff; border-radius: 8px; position: relative;
+            overflow: hidden; display: flex; flex-direction: column; padding: 50px 60px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .slide-title { font-size: 32px; color: var(--primary-blue); border-right: 8px solid var(--primary-blue); padding-right: 20px; margin-bottom: 30px; z-index: 1; text-align: right; font-weight: 700; }
+        .content-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-start; z-index: 1; overflow-y: hidden; }
+
+        .title-layout { text-align: center; justify-content: center; height: 100%; display: flex; flex-direction: column; }
+        .title-layout h1 { font-size: 60px; color: var(--primary-blue); margin: 0; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        th { background: var(--primary-blue); color: white; padding: 12px; text-align: right; }
+        td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
+
+        .hr-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 10px; }
+        .hr-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; text-align: center; transition: all 0.3s; }
+        .hr-card i { font-size: 40px; color: var(--primary-blue); margin-bottom: 15px; }
+        .hr-card .val { font-size: 42px; font-weight: 700; color: var(--accent-red); display: block; }
+        .hr-card .lbl { font-size: 18px; font-weight: 700; color: var(--text-dark); }
+
+        .impact-box { background: #f0fdf4; border-right: 5px solid var(--success-green); padding: 15px; border-radius: 8px; margin-top: 20px; }
+
+        .chart-row { display: flex; gap: 30px; margin-top: 10px; height: 320px; }
+        .chart-item { flex: 1; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; align-items: center; }
+
+        .bar-container { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .bar-item { display: flex; align-items: center; gap: 10px; }
+        .bar-label { width: 150px; font-size: 13px; font-weight: 700; }
+        .bar-track { flex-grow: 1; height: 28px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+        .bar-fill { height: 100%; display: flex; align-items: center; padding-right: 10px; color: white; font-size: 12px; font-weight: 700; }
+
+        .legal-card { background: #f0fdf4; border: 2px solid var(--success-green); padding: 20px; border-radius: 15px; position: relative; margin-bottom: 10px; }
+        .legal-card .discount-tag { position: absolute; left: 30px; top: -15px; background: var(--accent-red); color: white; padding: 5px 15px; border-radius: 30px; font-weight: 700; font-size: 16px; }
+
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+
+<!-- اسلاید ۱: عنوان -->
+<div class="slide-container" id="slide1">
+    <div class="title-layout">
+        <div style="margin-bottom: 40px;">
+             <span style="font-size: 40px; font-weight: bold; color: var(--primary-blue);">SAIPA AZIN</span>
+        </div>
+        <h1>برنامه استراتژیک عبور از بحران و احیای پایدار</h1>
+        <p style="font-size: 24px; color: var(--secondary-gray);">گزارش عملکرد، بهینه‌سازی منابع و نقشه راه نجات</p>
+        <div style="margin-top: 80px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+            <p>جلسه با مدیریت ارشد گروه خودروسازی سایپا - اسفند ۱۴۰۴</p>
+        </div>
+    </div>
+</div>
+
+<!-- اسلاید ۲: دیوار بدهی و انسداد نقدینگی -->
+<div class="slide-container" id="slide2">
+    <h2 class="slide-title">تصویر بحران: انسداد نقدینگی و تهدید توقف کامل</h2>
+    <div class="content-area">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div style="background: #fee2e2; border: 2px solid var(--accent-red); padding: 25px; border-radius: 12px;">
+                <h3 style="margin-top:0; color: var(--accent-red);"><i class="fa-solid fa-hand-holding-dollar"></i> بدهی به تامین‌کنندگان</h3>
+                <div style="font-size: 48px; font-weight: 700;">۱,۰۰۰ <small style="font-size: 18px;">میلیارد تومان</small></div>
+                <p>توقف تامین مواد اولیه استراتژیک به دلیل رسوب بدهی‌های سنواتی.</p>
+            </div>
+            <div style="background: #fff7ed; border: 2px solid var(--warning-orange); padding: 25px; border-radius: 12px;">
+                <h3 style="margin-top:0; color: var(--warning-orange);"><i class="fa-solid fa-building-columns"></i> دیون دولتی (بیمه و مالیات)</h3>
+                <div style="font-size: 48px; font-weight: 700;">۸۰۰ <small style="font-size: 18px;">میلیارد تومان</small></div>
+                <p>بدهی تجمعی به همراه جرائم؛ عامل اصلی انسداد حساب‌های بانکی شرکت.</p>
+            </div>
+        </div>
+        <div style="margin-top: 20px; background: #fef2f2; border: 2px solid var(--accent-red); padding: 15px; border-radius: 12px; text-align: center;">
+            <div style="font-size: 24px; font-weight: 700; color: var(--accent-red);">مشمولیت قطعی ماده ۱۴۱ قانون تجارت (زیان ۱۱۲٪ سرمایه)</div>
+            <p style="margin: 5px 0 0;">مصرف ۸۵٪ از سرمایه ثبت‌شده تنها در ۹ ماهه سال ۱۴۰۴</p>
+        </div>
+    </div>
+</div>
+
+<!-- اسلاید ۳: تحلیل ورودی‌ها و نقدینگی (جدید) -->
+<div class="slide-container" id="slide3">
+    <h2 class="slide-title">تحلیل جریان ورودی منابع و نقدینگی (Cash Inflow)</h2>
+    <div class="content-area">
+        <div class="chart-row">
+            <div class="chart-item">
+                <h3 style="color: var(--primary-blue); margin: 0;">وضعیت ورودی نقدینگی (میلیارد ریال)</h3>
+                <div class="bar-container" style="margin-top: 30px;">
+                    <div class="bar-item">
+                        <div class="bar-label">کل فروش قراردادی</div>
+                        <div class="bar-track"><div class="bar-fill" style="width: 100%; background: var(--secondary-gray);">۴۰,۷۶۰</div></div>
+                    </div>
+                    <div class="bar-item">
+                        <div class="bar-label">درآمد وصول شده</div>
+                        <div class="bar-track"><div class="bar-fill" style="width: 91%; background: var(--success-green);">۳۷,۲۰۲</div></div>
+                    </div>
+                    <div class="bar-item">
+                        <div class="bar-label">کل پرداخت‌ها</div>
+                        <div class="bar-track"><div class="bar-fill" style="width: 83%; background: var(--primary-blue);">۳۳,۹۰۹</div></div>
+                    </div>
+                </div>
+                <div style="margin-top: 40px; background: #fff1f2; padding: 15px; border-radius: 8px; width: 100%; text-align: center; border: 1px solid var(--accent-red);">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--accent-red);">۱۹۴.۵ میلیارد ریال</div>
+                    <p style="margin:0; font-weight: 700;">مانده نهایی نقدینگی (وضعیت بسیار شکننده)</p>
+                </div>
+            </div>
+            <div class="chart-item">
+                <h3 style="color: var(--primary-blue); margin: 0;">تحلیل کارایی وصول (Efficiency)</h3>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                    <div style="font-size: 80px; font-weight: 700; color: var(--success-green);">۹۱٪</div>
+                    <div style="font-size: 20px; font-weight: 700;">نرخ وصول مطالبات</div>
+                    <p style="text-align: center; color: var(--secondary-gray); margin-top: 15px;">علیرغم وصول ۹۱ درصدی، به دلیل حجم بالای دیون سنواتی و هزینه‌های جاری، جریان نقدینگی آزاد (Free Cash Flow) شرکت به صفر میل کرده است.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- اسلاید ۴: سقوط تولید و سهم بازار -->
+<div class="slide-container" id="slide4">
+    <h2 class="slide-title">کالبدشکافی بحران تولید و سقوط سهم بازار</h2>
+    <div class="content-area">
+        <div class="chart-row">
+            <div class="chart-item">
+                <h3 style="color: var(--primary-blue); margin: 0;">میزان ورودی/خروجی تولید (واحد)</h3>
+                <div style="width: 100%; margin-top: 30px;">
+                    <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                        <span style="width: 120px; font-weight: 700;">سال ۱۴۰۳</span>
+                        <div style="flex-grow: 1; height: 35px; background: var(--success-green); border-radius: 5px; color: white; padding-right: 15px; display: flex; align-items: center; font-weight: 700;">۲۹۳,۴۵۷</div>
+                    </div>
+                    <div style="display: flex; align-items: center;">
+                        <span style="width: 120px; font-weight: 700;">سال ۱۴۰۴</span>
+                        <div style="width: 46%; height: 35px; background: var(--accent-red); border-radius: 5px; color: white; padding-right: 15px; display: flex; align-items: center; font-weight: 700;">۱۳۶,۶۰۰</div>
+                    </div>
+                </div>
+                <div style="margin-top: 40px; text-align: center;">
+                    <span style="font-size: 50px; font-weight: 700; color: var(--accent-red);">۵۳٪-</span>
+                    <p style="font-weight: 700; font-size: 20px;">کاهش تیراژ تولید ناشی از عدم تامین نقدینگی</p>
+                </div>
+            </div>
+            <div class="chart-item">
+                <h3 style="color: var(--primary-blue); margin: 0;">ریزش سهم بازار (Share of Wallet)</h3>
+                <div style="display: flex; gap: 30px; align-items: center; margin-top: 40px;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 45px; font-weight: 700; color: var(--success-green);">۶۳٪</div>
+                        <p>سهم در ۱۴۰۳</p>
+                    </div>
+                    <div style="font-size: 40px; color: var(--secondary-gray);"><i class="fa-solid fa-chevron-left"></i></div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 45px; font-weight: 700; color: var(--accent-red);">۳۱.۲٪</div>
+                        <p>سهم در بهمن ۱۴۰۴</p>
+                    </div>
+                </div>
+                <div style="margin-top: 40px; background: #fee2e2; padding: 15px; border-radius: 8px; width: 100%; text-align: center;">
+                    <p style="margin: 0; color: var(--accent-red); font-weight: 700;">هشدار: خطر جایگزینی دائمی توسط رقبای بخش خصوصی</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- اسلاید ۵: بهینه‌سازی منابع انسانی و کاهش سربار -->
+<div class="slide-container" id="slide5">
+    <h2 class="slide-title">مهندسی مجدد منابع انسانی و کاهش هزینه‌های سربار ثابت</h2>
+    <div class="content-area">
+        <div class="hr-grid">
+            <div class="hr-card">
+                <i class="fa-solid fa-user-check"></i>
+                <span class="val">۱۲۰ <small style="font-size: 16px;">نفر</small></span>
+                <span class="lbl">تعیین تکلیف بازنشستگان</span>
+                <p style="font-size: 13px; margin-top: 10px;">تسویه نهایی سنوات و خروج قطعی بازنشستگان سنوات قبل جهت رفع انسدادهای حقوقی و توقف تنش‌های کارگری.</p>
+            </div>
+            <div class="hr-card" style="border-top: 5px solid var(--accent-red);">
+                <i class="fa-solid fa-people-arrows"></i>
+                <span class="val">۱۵۰ <small style="font-size: 16px;">نفر</small></span>
+                <span class="lbl">مامور به شرکت‌های گروه</span>
+                <p style="font-size: 13px; margin-top: 10px;">ارسال پرسنل مازاد به سایر شرکت‌های هلدینگ سایپا جهت کاهش فوری هزینه‌های دستمزد مستقیم و سربار شرکت سایپا آذین.</p>
+            </div>
+            <div class="hr-card">
+                <i class="fa-solid fa-sitemap"></i>
+                <span class="val">Lean</span>
+                <span class="lbl">کوچک‌سازی چارت</span>
+                <p style="font-size: 13px; margin-top: 10px;">بازنگری چارت سازمانی با رویکرد چابک‌سازی، حذف پست‌های موازی و لایه‌های مدیریتی غیرمولد.</p>
+            </div>
+        </div>
+
+        <div class="impact-box">
+            <div style="display: flex; gap: 20px; align-items: center;">
+                <div style="font-size: 35px; color: var(--success-green);"><i class="fa-solid fa-hand-holding-medical"></i></div>
+                <div>
+                    <h3 style="margin: 0; color: var(--success-green);">اثرات مالی و عملیاتی:</h3>
+                    <p style="margin: 5px 0 0; font-size: 15px;">کاهش مستقیم هزینه‌های سربار، آزادسازی نقدینگی ماهانه برای تامین مواد اولیه و بهبود شاخص بهره‌وری نیروی انسانی (Productivity Index).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- اسلاید ۶: صلح و سازش پرونده زرین صدف ماهان -->
+<div class="slide-container" id="slide6">
+    <h2 class="slide-title">مدیریت دعاوی حقوقی و صلح و سازش استراتژیک</h2>
+    <div class="content-area">
+        <div class="legal-card">
+            <div class="discount-tag">۴۰ میلیارد تومان سود از محل صلح</div>
+            <div style="display: flex; gap: 20px; align-items: flex-start;">
+                <div style="flex: 0 0 80px; font-size: 50px; color: var(--warning-orange);"><i class="fa-solid fa-gavel"></i></div>
+                <div>
+                    <h3 style="font-size: 24px; margin: 0; color: var(--primary-blue);">پرونده شرکت زرین صدف ماهان (پیمانکار غذا)</h3>
+                    <p style="font-size: 16px; margin-top: 8px; line-height: 1.6;">
+                        <strong>بحران:</strong> ادعای طلب <strong>۱۲۰ میلیارد تومانی</strong> و اقدام به گروگان‌گیری عملیاتی از طریق <strong>توقف پخت غذا</strong> در اوج بحران.
+                        <br>
+                        <strong>نتیجه عملیاتی:</strong> خروج قطعی پیمانکار از مجموعه و توافق نهایی بر مبلغ <strong>۸۰ میلیارد تومان</strong> (کاهش ۴۰ میلیارد تومانی دیون غیرواقعی).
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <table style="margin-top: 15px;">
+            <thead>
+                <tr><th>طرف پرونده حقوقی</th><th>مبلغ ادعایی</th><th>وضعیت صلح و سازش نهایی</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>جهش فام</td><td>۴۵ میلیارد تومان</td><td>توافق بر پرداخت ۳۲ میلیارد تومان (۱۳ میلیارد بخشودگی)</td></tr>
+                <tr><td>مفتول اشتهارد</td><td>۱.۶ میلیارد تومان</td><td>تقسیط در ۴ قسط (قسط اول پرداخت شد)</td></tr>
+                <tr><td>بیمه دانا</td><td>۲۵ میلیارد تومان</td><td>در حال توافق نهایی جهت تهاتر با مطالبات پرسنل</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- اسلاید ۷: اقدامات انجام شده و نقشه راه -->
+<div class="slide-container" id="slide7">
+    <h2 class="slide-title">اقدامات انجام شده و نقشه راه ۹۰ روزه</h2>
+    <div class="content-area">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div style="background: #f0f9ff; padding: 15px; border-radius: 12px; border-right: 5px solid var(--primary-blue);">
+                <h3 style="color: var(--primary-blue); margin-top: 0;">دستاوردها (۲ ماه اخیر)</h3>
+                <ul style="font-size: 13px; line-height: 1.8;">
+                    <li>رفع مسدودی حساب‌های بانکی با تودیع چک‌های تضمین.</li>
+                    <li>مذاکره با بانک‌های مسکن و شهر جهت اخذ تسهیلات ۳۰۰ م.ت.</li>
+                    <li>آغاز فرآیند افزایش سرمایه جهت خروج از ماده ۱۴۱.</li>
+                    <li>ساماندهی خطوط تولید و تعیین تکلیف اقلام نیمه‌ساخته (WIP).</li>
+                    <li>داخلی‌سازی سنسور SBR و ریل مکانیزم برقی شاهین.</li>
+                </ul>
+            </div>
+            <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px dashed var(--primary-blue);">
+                <h3 style="color: var(--primary-blue); margin-top: 0;">نقشه راه (پیش‌رو)</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="background: var(--primary-blue); color: white; width: 25px; height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">۱</span>
+                        <span style="font-size: 13px;">تزریق نقدینگی فوری و خروج از ماده ۱۴۱</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="background: var(--secondary-gray); color: white; width: 25px; height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">۲</span>
+                        <span style="font-size: 13px;">تامین مواد استراتژیک و بازگشت به سهم بازار ۴۵٪</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="background: var(--secondary-gray); color: white; width: 25px; height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px;">۳</span>
+                        <span style="font-size: 13px;">استقرار کامل ERP و اتوماسیون خطوط تولید</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- اسلاید ۸: الزامات و درخواست‌ها -->
+<div class="slide-container" id="slide8">
+    <h2 class="slide-title">انتظارات و الزامات از مدیریت ارشد گروه</h2>
+    <div class="content-area">
+        <div style="background: #fff; border: 2px solid var(--primary-blue); padding: 35px; border-radius: 15px;">
+            <ul style="font-size: 22px; line-height: 2.2;">
+                <li><i class="fa-solid fa-circle-check" style="color: var(--primary-blue);"></i> حمایت در فرآیند <strong>افزایش سرمایه</strong> فوری جهت خروج قانونی از شمول ماده ۱۴۱.</li>
+                <li><i class="fa-solid fa-circle-check" style="color: var(--primary-blue);"></i> ابلاغ پذیرش <strong>تعدیلات نرخ</strong> از سوی شرکت سازه‌گستر بابت سال ۱۴۰۴.</li>
+                <li><i class="fa-solid fa-circle-check" style="color: var(--primary-blue);"></i> تسهیل فرآیند <strong>انتقال ۱۵۰ نفر</strong> از پرسنل مازاد به سایر شرکت‌های گروه.</li>
+                <li><i class="fa-solid fa-circle-check" style="color: var(--primary-blue);"></i> تخصیص نقدینگی اضطراری جهت تامین مواد اولیه و خرید <strong>CNC برش و ربات‌های جوش</strong>.</li>
+            </ul>
+        </div>
+        <div style="text-align: center; margin-top: 50px;">
+            <p style="font-size: 24px; font-weight: 700; color: var(--primary-blue);">سایپا آذین | احیای تولید، اقتدار در زنجیره تامین</p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
