@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مرکز فرماندهی کلان | سایپا آذین</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'sans-serif'],
+                    },
+                    colors: {
+                        corporate: {
+                            50: '#f0f7fb',
+                            100: '#e1eff7',
+                            500: '#1a73e8',
+                            700: '#005082',
+                            900: '#003355',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f8fafc; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dir-ltr { direction: ltr; display: inline-block; }
+        
+        .tab-content { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        .glass-header { background: rgba(0, 51, 85, 0.95); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="text-slate-800 antialiased custom-scrollbar">
+
+    <header class="glass-header text-white sticky top-0 z-50 shadow-lg border-b border-corporate-700">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="bg-gradient-to-br from-blue-400 to-blue-600 p-2.5 rounded-lg shadow-inner border border-blue-300/30">
+                    <i class="fa-solid fa-chart-line text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-tight">داشبورد استراتژیک و ارزیابی عملکرد مدیران</h1>
+                    <p class="text-xs text-blue-200 mt-1 font-medium">سایپا آذین | پایش تفکیکی شاخص‌های حاکمیتی و تخصصی (نسخه ۳۶۰ درجه)</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 text-sm">
+                <button onclick="resetData()" class="hidden md:flex items-center gap-2 bg-rose-500/90 hover:bg-rose-500 px-3 py-1.5 rounded-lg transition text-xs font-bold border border-rose-400">
+                    <i class="fa-solid fa-rotate-left"></i> بازنشانی فرم
+                </button>
+                <div class="text-left font-mono bg-corporate-900/50 px-3 py-1.5 rounded-lg border border-corporate-700 shadow-inner">
+                    امروز: ۱۴۰۴/۰۹/۱۶
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-6">
+        
+        <!-- Navigation -->
+        <div class="flex border-b border-slate-200 mb-6 gap-1 relative">
+            <button onclick="switchTab('data-entry')" id="tab-btn-data-entry" class="px-6 py-3 font-bold text-sm rounded-t-lg transition-all bg-corporate-700 text-white shadow-sm border-b-2 border-transparent z-10">
+                <i class="fa-solid fa-keyboard ml-2"></i>۱. ماتریس ورود داده (Data Entry)
+            </button>
+            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="px-6 py-3 font-bold text-sm rounded-t-lg transition-all text-slate-500 hover:bg-slate-100 hover:text-slate-700 border-b-2 border-transparent z-10">
+                <i class="fa-solid fa-table-cells-large ml-2"></i>۲. داشبورد فرماندهی (Command Center)
+            </button>
+            <div class="absolute bottom-0 left-0 w-full h-0.5 bg-slate-200 z-0"></div>
+        </div>
+
+        <!-- TAB 1: Data Entry -->
+        <div id="data-entry" class="tab-content active space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-lg font-black text-slate-800">کاربرگ ارزیابی تفکیک‌شده واحدها</h2>
+                        <p class="text-xs text-slate-500 mt-1 font-medium">ارزیابی بر اساس دو رکن اصلی: <span class="text-indigo-600 font-bold">شاخص‌های عمومی (۴۰٪)</span> و <span class="text-emerald-600 font-bold">شاخص تخصصی واحد (۶۰٪)</span></p>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-right border-collapse">
+                        <thead>
+                            <!-- Grouped Headers -->
+                            <tr>
+                                <th colspan="2" class="px-3 py-2 bg-slate-100 border-b border-l border-slate-200"></th>
+                                <th colspan="4" class="px-3 py-2 bg-indigo-50 text-indigo-800 font-black text-center border-b border-l border-indigo-100 text-xs tracking-wide">
+                                    <i class="fa-solid fa-users-viewfinder ml-1"></i> شاخص‌های عمومی و حاکمیتی (از ۱۰۰٪)
+                                </th>
+                                <th colspan="4" class="px-3 py-2 bg-emerald-50 text-emerald-800 font-black text-center border-b border-emerald-100 text-xs tracking-wide">
+                                    <i class="fa-solid fa-crosshairs ml-1"></i> شاخص طلایی تخصصی واحد (Golden KPI)
+                                </th>
+                            </tr>
+                            <tr class="bg-slate-50 text-slate-600 font-bold text-[11px] uppercase">
+                                <th class="px-3 py-3 text-center w-10 border-b border-slate-200">ردیف</th>
+                                <th class="px-3 py-3 border-b border-l border-slate-200 min-w-[140px]">واحد سازمانی</th>
+                                
+                                <!-- General KPIs -->
+                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-indigo-50/30" title="پاسخگویی به‌موقع به مکاتبات اداری">نظم اداری<br><span class="text-[9px] text-slate-400 font-normal">مکاتبات</span></th>
+                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-indigo-50/30" title="میزان تحقق مصوبات هیئت‌مدیره و کمیته‌ها">تحقق<br><span class="text-[9px] text-slate-400 font-normal">مصوبات</span></th>
+                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-indigo-50/30" title="مدیریت بودجه و انضباط مالی واحد">انضباط<br><span class="text-[9px] text-slate-400 font-normal">مالی/بودجه</span></th>
+                                <th class="px-2 py-3 text-center border-b border-l border-indigo-100 bg-indigo-50/50" title="رعایت الزامات ایمنی و رفتار سازمانی پرسنل">رفتار/HSE<br><span class="text-[9px] text-slate-400 font-normal">سازمانی</span></th>
+                                
+                                <!-- Specialized KPIs -->
+                                <th class="px-3 py-3 border-b border-slate-200 bg-emerald-50/30">عنوان شاخص تخصصی</th>
+                                <th class="px-3 py-3 text-center border-b border-slate-200 bg-emerald-50/30">هدف</th>
+                                <th class="px-3 py-3 text-center border-b border-slate-200 bg-emerald-100/50 text-emerald-900">عملکرد واقعی</th>
+                                <th class="px-3 py-3 text-center border-b border-slate-200 bg-slate-100">نمره نهایی</th>
+                            </tr>
+                        </thead>
+                        <tbody id="data-table-body" class="divide-y divide-slate-100">
+                            <!-- Rows injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Dashboard -->
+        <div id="dashboard" class="tab-content space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-2 gap-4">
+                <div>
+                    <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-corporate-500"></i> ماتریس جامع عملکرد واحدها
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-1">تلفیق عملکرد تخصصی و انضباط سازمانی جهت تصمیم‌گیری هیئت‌مدیره</p>
+                </div>
+                <div class="flex gap-3 text-[10px] font-bold">
+                    <div class="flex items-center gap-1.5 bg-white px-2 py-1 rounded border shadow-sm"><div class="w-3 h-3 rounded-full bg-emerald-500"></div>مطلوب (≥ ۸۵)</div>
+                    <div class="flex items-center gap-1.5 bg-white px-2 py-1 rounded border shadow-sm"><div class="w-3 h-3 rounded-full bg-amber-500"></div>هشدار (۷۰ تا ۸۴)</div>
+                    <div class="flex items-center gap-1.5 bg-white px-2 py-1 rounded border shadow-sm"><div class="w-3 h-3 rounded-full bg-rose-500"></div>بحرانی (< ۷۰)</div>
+                </div>
+            </div>
+            
+            <div id="kpi-cards-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <!-- Cards injected via JS -->
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // 1. Core Data Structure - Tailored for Saipa Azin's professional context
+        const initialData = [
+            { id: 'prod', name: 'مهندسی تولید', icon: 'fa-industry', kpiName: 'اثربخشی کلی تجهیزات (OEE)', unit: '%', target: 85, actual: null, type: 'higher', genLtr: null, genTsk: null, genFin: null, genHse: null },
+            { id: 'buy', name: 'بازرگانی خرید', icon: 'fa-cart-flatbed', kpiName: 'تحویل به‌موقع مواد (OTD)', unit: '%', target: 95, actual: null, type: 'higher', genLtr: null, genTsk: null, genFin: null, genHse: null },
+            { id: 'sell', name: 'بازرگانی فروش', icon: 'fa-handshake', kpiName: 'سهم از تأمین خطوط خودروساز', unit: '%', target: 80, actual: null, type: 'higher', genLtr: null, genTsk: null, genFin: null, genHse: null },
+            { id: 'fin', name: 'معاونت مالی', icon: 'fa-vault', kpiName: 'چرخه تبدیل وجه نقد (CCC)', unit: 'روز', target: 90, actual: null, type: 'lower', genLtr: null, genTsk: null, genFin: null, genHse: null },
+            { id: 'plan', name: 'برنامه‌ریزی و لجستیک', icon: 'fa-route', kpiName: 'تحقق برنامه تولید (MPS)', unit: '%', target: 98, actual: null, type: 'higher', genLtr: null, genTsk: null, genFin: null, genHse: null },
+            { id: 'sec', name: 'حراست و امنیت', icon: 'fa-shield-halved', kpiName: 'کشف انحرافات و حوادث', unit: 'مورد', target: 0, actual: null, type: 'lower', genLtr: null, genTsk: null, genFin: null, genHse: null },
+            { id: 'hr', name: 'سرمایه انسانی', icon: 'fa-users-gear', kpiName: 'خروج نیروهای کلیدی', unit: 'نفر', target: 2, actual: null, type: 'lower', genLtr: null, genTsk: null, genFin: null, genHse: null },
+            { id: 'pm', name: 'طرح و توسعه (R&D)', icon: 'fa-microchip', kpiName: 'پیشرفت پروژه‌های بومی‌سازی', unit: '%', target: 90, actual: null, type: 'higher', genLtr: null, genTsk: null, genFin: null, genHse: null },
+            { id: 'pr', name: 'روابط عمومی و ارتباطات', icon: 'fa-bullhorn', kpiName: 'ضریب تعلق سازمانی (eNPS)', unit: 'امتیاز', target: 60, actual: null, type: 'higher', genLtr: null, genTsk: null, genFin: null, genHse: null },
+            { id: 'legal', name: 'امور حقوقی', icon: 'fa-scale-balanced', kpiName: 'موفقیت در پرونده‌های باز', unit: '%', target: 85, actual: null, type: 'higher', genLtr: null, genTsk: null, genFin: null, genHse: null },
+            { id: 'com', name: 'کمیسیون معاملات', icon: 'fa-file-signature', kpiName: 'انطباق قراردادها (بدون ترک تشریفات)', unit: '%', target: 100, actual: null, type: 'higher', genLtr: null, genTsk: null, genFin: null, genHse: null },
+            { id: 'eng', name: 'مهندسی فرآیند', icon: 'fa-screwdriver-wrench', kpiName: 'کاهش بهای تمام‌شده (BOM)', unit: 'م.تومان', target: 9000, actual: null, type: 'higher', genLtr: null, genTsk: null, genFin: null, genHse: null },
+            { id: 'qc', name: 'تضمین کیفیت', icon: 'fa-microscope', kpiName: 'نرخ ضایعات (Scrap Rate)', unit: '%', target: 5, actual: null, type: 'lower', genLtr: null, genTsk: null, genFin: null, genHse: null },
+            { id: 'audit', name: 'حسابرسی داخلی', icon: 'fa-magnifying-glass-chart', kpiName: 'تحقق برنامه ممیزی دوره‌ای', unit: '%', target: 100, actual: null, type: 'higher', genLtr: null, genTsk: null, genFin: null, genHse: null }
+        ];
+
+        let state = JSON.parse(JSON.stringify(initialData));
+
+        // 2. Logic Functions
+        function calculateScores(item) {
+            // General Score Calculation (Average of the 4 inputs, treating nulls as 0 if any is filled, or null if all empty)
+            let hasGenData = item.genLtr !== null || item.genTsk !== null || item.genFin !== null || item.genHse !== null;
+            let genTotal = 0;
+            if (hasGenData) {
+                const l = item.genLtr || 0;
+                const t = item.genTsk || 0;
+                const f = item.genFin || 0;
+                const h = item.genHse || 0;
+                genTotal = (l + t + f + h) / 4;
+            }
+
+            // Specialized Score Calculation
+            let specScore = 0;
+            let hasSpecData = item.actual !== null && item.actual !== "";
+            
+            if (hasSpecData) {
+                let v = parseFloat(item.actual);
+                let t = item.target;
+                if (item.type === 'higher') {
+                    specScore = Math.min((v / t) * 100, 100);
+                } else {
+                    if (t === 0) specScore = v === 0 ? 100 : 0;
+                    else specScore = v <= t ? 100 : Math.max(0, 100 - (((v - t) / t) * 100));
+                }
+            }
+
+            // Final Weighted Score (40% General, 60% Specialized)
+            let finalScore = 0;
+            let hasAnyData = hasGenData || hasSpecData;
+
+            if (hasAnyData) {
+                // If only one side is filled, assume 0 for the other side for the final calculation to encourage complete data entry
+                let wGen = hasGenData ? genTotal : 0;
+                let wSpec = hasSpecData ? specScore : 0;
+                finalScore = (wGen * 0.4) + (wSpec * 0.6);
+            }
+
+            let status = 'critical';
+            if (finalScore >= 85) status = 'good';
+            else if (finalScore >= 70) status = 'warning';
+
+            return {
+                genScore: Math.round(genTotal),
+                specScore: Math.round(specScore),
+                finalScore: Math.round(finalScore),
+                status: status,
+                hasData: hasAnyData,
+                hasGenData: hasGenData,
+                hasSpecData: hasSpecData
+            };
+        }
+
+        function getStatusClasses(status, hasData) {
+            if (!hasData) return { text: 'text-slate-400', bg: 'bg-slate-100', border: 'border-slate-200', hex: 'bg-slate-300', lightBg: 'bg-slate-50' };
+            if (status === 'good') return { text: 'text-emerald-700', bg: 'bg-emerald-100', border: 'border-emerald-500', hex: 'bg-emerald-500', lightBg: 'bg-emerald-50/50' };
+            if (status === 'warning') return { text: 'text-amber-700', bg: 'bg-amber-100', border: 'border-amber-500', hex: 'bg-amber-500', lightBg: 'bg-amber-50/50' };
+            return { text: 'text-rose-700', bg: 'bg-rose-100', border: 'border-rose-500', hex: 'bg-rose-500', lightBg: 'bg-rose-50/50' };
+        }
+
+        // 3. Render Table
+        function renderTable() {
+            const tbody = document.getElementById('data-table-body');
+            tbody.innerHTML = '';
+            
+            state.forEach((item, index) => {
+                const scores = calculateScores(item);
+                const sCls = getStatusClasses(scores.status, scores.hasData);
+                
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors group';
+                
+                // Helper for inputs
+                const genInputCls = "w-12 md:w-14 text-center border border-slate-200 rounded py-1 px-1 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs font-mono dir-ltr";
+                
+                tr.innerHTML = `
+                    <td class="px-2 py-3 text-center text-slate-400 font-mono text-xs border-b border-slate-100">${index + 1}</td>
+                    <td class="px-2 py-3 font-bold text-slate-700 whitespace-nowrap border-b border-l border-slate-100 text-xs md:text-sm">
+                        <i class="fa-solid ${item.icon} text-slate-400 w-5 ml-1 text-center"></i>${item.name}
+                    </td>
+                    
+                    <!-- General Inputs -->
+                    <td class="px-1 py-3 text-center border-b border-slate-100 bg-indigo-50/10">
+                        <input type="number" max="100" class="${genInputCls}" value="${item.genLtr !== null ? item.genLtr : ''}" oninput="updateData('${item.id}', 'genLtr', this.value)" placeholder="%">
+                    </td>
+                    <td class="px-1 py-3 text-center border-b border-slate-100 bg-indigo-50/10">
+                        <input type="number" max="100" class="${genInputCls}" value="${item.genTsk !== null ? item.genTsk : ''}" oninput="updateData('${item.id}', 'genTsk', this.value)" placeholder="%">
+                    </td>
+                    <td class="px-1 py-3 text-center border-b border-slate-100 bg-indigo-50/10">
+                        <input type="number" max="100" class="${genInputCls}" value="${item.genFin !== null ? item.genFin : ''}" oninput="updateData('${item.id}', 'genFin', this.value)" placeholder="%">
+                    </td>
+                    <td class="px-1 py-3 text-center border-b border-l border-indigo-50 bg-indigo-50/20">
+                        <input type="number" max="100" class="${genInputCls}" value="${item.genHse !== null ? item.genHse : ''}" oninput="updateData('${item.id}', 'genHse', this.value)" placeholder="%">
+                    </td>
+
+                    <!-- Specialized Inputs -->
+                    <td class="px-2 py-3 border-b border-slate-100 bg-emerald-50/10 text-xs font-bold text-slate-600">
+                        ${item.kpiName}
+                        <div class="text-[9px] text-slate-400 font-normal mt-0.5">${item.type === 'higher' ? '↑ بالاتر بهتر' : '↓ پایین‌تر بهتر'}</div>
+                    </td>
+                    <td class="px-2 py-3 bg-emerald-50/10 text-center font-bold text-slate-500 dir-ltr text-xs border-b border-slate-100">
+                        ${item.target} ${item.unit}
+                    </td>
+                    <td class="px-2 py-3 bg-emerald-50/30 text-center border-b border-slate-100 group-hover:bg-emerald-100/40 transition-colors">
+                        <input type="number" class="w-20 md:w-24 text-center border-2 border-emerald-200 rounded py-1 px-1 focus:outline-none focus:border-emerald-500 text-xs md:text-sm font-mono dir-ltr font-black text-slate-800 bg-white" 
+                            value="${item.actual !== null ? item.actual : ''}" 
+                            oninput="updateData('${item.id}', 'actual', this.value)" placeholder="...">
+                    </td>
+                    
+                    <!-- Final Score -->
+                    <td class="px-2 py-3 border-b border-slate-100 text-center ${sCls.lightBg}">
+                        <div class="flex flex-col items-center justify-center">
+                            <span class="inline-block px-2.5 py-1 rounded text-sm font-black font-mono dir-ltr ${sCls.bg} ${sCls.text} shadow-sm border ${sCls.border}">
+                                ${scores.hasData ? scores.finalScore + '%' : '-'}
+                            </span>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            renderCards();
+        }
+
+        // 4. Render Dashboard Cards
+        function renderCards() {
+            const container = document.getElementById('kpi-cards-container');
+            container.innerHTML = '';
+
+            state.forEach((item) => {
+                const scores = calculateScores(item);
+                const sCls = getStatusClasses(scores.status, scores.hasData);
+                const hasAct = item.actual !== null && item.actual !== "";
+
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-xl shadow-sm border border-slate-200 relative overflow-hidden flex flex-col group hover:shadow-md transition-shadow`;
+                
+                card.innerHTML = `
+                    <!-- Top Ribbon -->
+                    <div class="h-2 w-full ${sCls.hex}"></div>
+                    
+                    <div class="p-5 flex-grow flex flex-col">
+                        <!-- Header -->
+                        <div class="flex justify-between items-start mb-5">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl ${sCls.lightBg} flex items-center justify-center border ${sCls.border}">
+                                    <i class="fa-solid ${item.icon} ${sCls.text} text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-black text-base text-slate-800 tracking-tight">${item.name}</h3>
+                                    <span class="text-[10px] font-bold text-slate-400">نمره تلفیقی واحد (حاکمیتی + تخصصی)</span>
+                                </div>
+                            </div>
+                            <div class="text-center bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 min-w-[4rem]">
+                                <div class="text-2xl font-black font-mono dir-ltr ${sCls.text}">
+                                    ${scores.hasData ? scores.finalScore : '--'}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Section 2: Specialized (60%) -->
+                        <div class="bg-emerald-50/50 rounded-lg p-3 border border-emerald-100 mb-4 relative">
+                            <div class="absolute -top-2 -right-1 bg-emerald-100 text-emerald-800 text-[9px] font-bold px-2 py-0.5 rounded border border-emerald-200">بخش تخصصی (وزن: ۶۰٪)</div>
+                            <p class="text-xs text-slate-600 font-bold mb-3 mt-1 truncate" title="${item.kpiName}">${item.kpiName}</p>
+                            
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <span class="text-[10px] text-slate-500 block mb-1">عملکرد ثبت‌شده</span>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="text-xl font-black text-slate-800 font-mono dir-ltr tracking-tight">${hasAct ? item.actual : '---'}</span>
+                                        <span class="text-[10px] text-slate-500 font-bold">${item.unit}</span>
+                                    </div>
+                                </div>
+                                <div class="text-left">
+                                    <span class="text-[10px] text-slate-400 block mb-1">هدف (Target)</span>
+                                    <span class="text-sm font-bold text-emerald-700 font-mono dir-ltr bg-emerald-100/50 px-2 py-0.5 rounded">${item.target} ${item.unit}</span>
+                                </div>
+                            </div>
+                            <!-- Mini progress for specialized score -->
+                            <div class="w-full bg-emerald-100 rounded-full h-1 mt-3 overflow-hidden">
+                                <div class="bg-emerald-500 h-1 rounded-full transition-all duration-500" style="width: ${scores.specScore}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Section 1: General (40%) -->
+                        <div class="bg-indigo-50/30 rounded-lg p-3 border border-indigo-50 relative flex-grow">
+                            <div class="absolute -top-2 -right-1 bg-indigo-100 text-indigo-800 text-[9px] font-bold px-2 py-0.5 rounded border border-indigo-200">بخش حاکمیتی (وزن: ۴۰٪)</div>
+                            
+                            <div class="flex justify-between items-center mb-3 mt-1">
+                                <span class="text-xs text-slate-500 font-bold">نمره کل انضباط عمومی:</span>
+                                <span class="text-sm font-black text-indigo-700 font-mono dir-ltr">${scores.hasGenData ? scores.genScore + '%' : '--'}</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-3">
+                                <div>
+                                    <div class="flex justify-between text-[9px] mb-1">
+                                        <span class="text-slate-500">نظم مکاتبات</span>
+                                        <span class="font-bold font-mono dir-ltr ${item.genLtr ? 'text-slate-700' : 'text-slate-300'}">${item.genLtr || 0}%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-1 overflow-hidden"><div class="bg-indigo-400 h-1 rounded-full" style="width: ${item.genLtr || 0}%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[9px] mb-1">
+                                        <span class="text-slate-500">تحقق مصوبات</span>
+                                        <span class="font-bold font-mono dir-ltr ${item.genTsk ? 'text-slate-700' : 'text-slate-300'}">${item.genTsk || 0}%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-1 overflow-hidden"><div class="bg-indigo-400 h-1 rounded-full" style="width: ${item.genTsk || 0}%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[9px] mb-1">
+                                        <span class="text-slate-500">انضباط مالی</span>
+                                        <span class="font-bold font-mono dir-ltr ${item.genFin ? 'text-slate-700' : 'text-slate-300'}">${item.genFin || 0}%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-1 overflow-hidden"><div class="bg-indigo-400 h-1 rounded-full" style="width: ${item.genFin || 0}%"></div></div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[9px] mb-1">
+                                        <span class="text-slate-500">رفتار سازمانی/HSE</span>
+                                        <span class="font-bold font-mono dir-ltr ${item.genHse ? 'text-slate-700' : 'text-slate-300'}">${item.genHse || 0}%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-100 rounded-full h-1 overflow-hidden"><div class="bg-indigo-400 h-1 rounded-full" style="width: ${item.genHse || 0}%"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 5. Actions
+        function updateData(id, field, value) {
+            const itemIndex = state.findIndex(i => i.id === id);
+            if (itemIndex > -1) {
+                state[itemIndex][field] = value === "" ? null : parseFloat(value);
+                renderTable(); // Re-calculates and re-renders both table and cards
+            }
+        }
+
+        function resetData() {
+            if(confirm('آیا از پاک کردن تمامی داده‌ها اطمینان دارید؟')) {
+                state = JSON.parse(JSON.stringify(initialData));
+                renderTable();
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            // Tab styling reset
+            const inactiveClass = "px-6 py-3 font-bold text-sm rounded-t-lg transition-all text-slate-500 hover:bg-slate-100 hover:text-slate-700 border-b-2 border-transparent z-10";
+            document.getElementById('tab-btn-data-entry').className = inactiveClass;
+            document.getElementById('tab-btn-dashboard').className = inactiveClass;
+            
+            // Tab styling active
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            activeBtn.className = "px-6 py-3 font-bold text-sm rounded-t-lg transition-all bg-corporate-700 text-white shadow-sm border-b-2 border-transparent z-10";
+        }
+
+        // Initialization
+        document.addEventListener("DOMContentLoaded", () => {
+            renderTable();
+        });
+    </script>
+</body>
+</html>
