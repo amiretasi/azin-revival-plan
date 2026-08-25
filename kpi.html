@@ -102,7 +102,7 @@
                         <thead>
                             <tr>
                                 <th colspan="1" class="px-3 py-2 bg-slate-100 border-b border-l border-slate-200"></th>
-                                <th colspan="3" class="px-3 py-2 bg-indigo-50 text-indigo-800 font-black text-center border-b border-l border-indigo-100 text-xs tracking-wide">
+                                <th colspan="4" class="px-3 py-2 bg-indigo-50 text-indigo-800 font-black text-center border-b border-l border-indigo-100 text-xs tracking-wide">
                                     <i class="fa-solid fa-users-viewfinder ml-1"></i> شاخص‌های عمومی / انضباطی (وزن ۴۰٪)
                                 </th>
                                 <th colspan="3" class="px-3 py-2 bg-emerald-50 text-emerald-800 font-black text-center border-b border-emerald-100 text-xs tracking-wide">
@@ -113,9 +113,10 @@
                             <tr class="bg-slate-50 text-slate-600 font-bold text-[11px] uppercase">
                                 <th class="px-4 py-3 border-b border-l border-slate-200 min-w-[280px]">ساختار سازمانی (معاونت / اداره)</th>
                                 
-                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-indigo-50/30" title="پاسخگویی به مکاتبات">مکاتبات</th>
-                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-indigo-50/30" title="انضباط پرسنلی و رعایت HSE">رفتار / HSE</th>
-                                <th class="px-2 py-3 text-center border-b border-l border-indigo-100 bg-indigo-50/50" title="اجرای مصوبات هیئت مدیره و جلسات">پیگیری مصوبات</th>
+                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-indigo-50/30" title="پاسخگویی مکاتبات">پاسخگویی مکاتبات</th>
+                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-indigo-50/30" title="پیگیری امور محوله">پیگیری امور</th>
+                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-indigo-50/30" title="نهایی سازی کارهای واگذار شده">نهایی‌سازی کارها</th>
+                                <th class="px-2 py-3 text-center border-b border-l border-indigo-100 bg-indigo-50/50" title="اثر گذاری در فرآیند تولید">اثرگذاری تولید</th>
                                 
                                 <th class="px-3 py-3 border-b border-slate-200 bg-emerald-50/30">عنوان شاخص تخصصی</th>
                                 <th class="px-2 py-3 text-center border-b border-slate-200 bg-emerald-50/30">هدف</th>
@@ -168,90 +169,89 @@
             {
                 id: 'prod', name: 'معاونت تولید', icon: 'fa-industry', isGroup: true, isOpen: false,
                 children: [
-                    { id: 'p_weld', name: 'اداره فلزی (جوشکاری)', kpiName: 'اثربخشی تجهیزات (OEE)', unit: '%', target: 85, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'p_mech', name: 'اداره ریل و مکانیزم و رنگ', kpiName: 'راندمان تولید ریل', unit: '%', target: 90, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'p_foam', name: 'اداره تولید فوم', kpiName: 'نرخ ضایعات فوم', unit: '%', target: 3, type: 'lower', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'p_asm', name: 'اداره مونتاژ نهایی', kpiName: 'تحقق برنامه مونتاژ', unit: '%', target: 95, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'p_sew', name: 'اداره برش و دوخت', kpiName: 'بهره‌وری نیروی کار', unit: '%', target: 85, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'p_maint', name: 'اداره نگهداری و تعمیرات تولیدی', kpiName: 'زمان توقفات (Downtime)', unit: 'ساعت', target: 20, type: 'lower', gen1: null, gen2: null, gen3: null, spec: null }
+                    { id: 'p_weld', name: 'اداره فلزی (جوشکاری)', kpiName: 'اثربخشی تجهیزات (OEE)', unit: '%', target: 85, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'p_mech', name: 'اداره ریل و مکانیزم و رنگ', kpiName: 'راندمان تولید ریل', unit: '%', target: 90, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'p_foam', name: 'اداره تولید فوم', kpiName: 'نرخ ضایعات فوم', unit: '%', target: 3, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'p_asm', name: 'اداره مونتاژ نهایی', kpiName: 'تحقق برنامه مونتاژ', unit: '%', target: 95, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'p_sew', name: 'اداره برش و دوخت', kpiName: 'بهره‌وری نیروی کار', unit: '%', target: 85, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'p_maint', name: 'اداره نگهداری و تعمیرات تولیدی', kpiName: 'زمان توقفات (Downtime)', unit: 'ساعت', target: 20, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
                 ]
             },
             {
                 id: 'com', name: 'معاونت بازرگانی و فروش', icon: 'fa-handshake-angle', isGroup: true, isOpen: false,
                 children: [
-                    { id: 'c_met', name: 'اداره تامین فلزی', kpiName: 'تحویل به‌موقع (OTD)', unit: '%', target: 95, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'c_nmet', name: 'اداره تامین غیر فلزی', kpiName: 'تامین شیمیایی/فوم', unit: '%', target: 95, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'c_np', name: 'اداره خرید غیر تولیدی', kpiName: 'کاهش زمان خرید', unit: 'روز', target: 14, type: 'lower', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'c_for', name: 'اداره بازرگانی خارجی', kpiName: 'ترخیص به‌موقع گمرک', unit: '%', target: 90, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'c_sale', name: 'اداره بازاریابی و فروش', kpiName: 'سهم از مشتری (Share)', unit: '%', target: 80, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null }
+                    { id: 'c_met', name: 'اداره تامین فلزی', kpiName: 'تحویل به‌موقع (OTD)', unit: '%', target: 95, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'c_nmet', name: 'اداره تامین غیر فلزی', kpiName: 'تامین شیمیایی/فوم', unit: '%', target: 95, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'c_np', name: 'اداره خرید غیر تولیدی', kpiName: 'کاهش زمان خرید', unit: 'روز', target: 14, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'c_for', name: 'اداره بازرگانی خارجی', kpiName: 'ترخیص به‌موقع گمرک', unit: '%', target: 90, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'c_sale', name: 'اداره بازاریابی و فروش', kpiName: 'سهم از مشتری (Share)', unit: '%', target: 80, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
                 ]
             },
             {
                 id: 'eng_qc', name: 'معاونت مهندسی و کیفیت', icon: 'fa-microscope', isGroup: true, isOpen: false,
                 children: [
-                    { id: 'q_mat', name: 'اداره کنترل مواد و ورودیه', kpiName: 'نرخ رد مواد ورودی', unit: '%', target: 2, type: 'lower', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'q_proc', name: 'اداره کنترل فرآیند', kpiName: 'هزینه کیفیت (COPQ)', unit: '%', target: 5, type: 'lower', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'q_assur', name: 'اداره تضمین کیفیت', kpiName: 'انطباق سیستم IATF', unit: '%', target: 100, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'e_des', name: 'اداره مهندسی طراحی', kpiName: 'تاییدیه‌های طراحی (DV)', unit: '%', target: 100, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'e_ind', name: 'اداره مهندسی صنایع/فرآیند', kpiName: 'صرفه‌جویی BOM', unit: 'م.تومان', target: 5000, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null }
+                    { id: 'q_mat', name: 'اداره کنترل مواد و ورودیه', kpiName: 'نرخ رد مواد ورودی', unit: '%', target: 2, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'q_proc', name: 'اداره کنترل فرآیند', kpiName: 'هزینه کیفیت (COPQ)', unit: '%', target: 5, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'q_assur', name: 'اداره تضمین کیفیت', kpiName: 'انطباق سیستم IATF', unit: '%', target: 100, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'e_des', name: 'اداره مهندسی طراحی', kpiName: 'تاییدیه‌های طراحی (DV)', unit: '%', target: 100, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'e_ind', name: 'اداره مهندسی صنایع/فرآیند', kpiName: 'صرفه‌جویی BOM', unit: 'م.تومان', target: 5000, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
                 ]
             },
             {
                 id: 'fin', name: 'مدیریت مالی و اقتصادی', icon: 'fa-vault', isGroup: true, isOpen: false,
                 children: [
-                    { id: 'f_trs', name: 'اداره خزانه داری و تامین منابع', kpiName: 'موجودی نقد عملیاتی', unit: 'روز', target: 15, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'f_fin', name: 'اداره حسابداری مالی', kpiName: 'دوره وصول (DSO)', unit: 'روز', target: 90, type: 'lower', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'f_ind', name: 'اداره حسابداری صنعتی', kpiName: 'دقت بهای تمام شده', unit: '%', target: 98, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'f_com', name: 'اداره حسابداری بازرگانی', kpiName: 'دوره پرداخت (DPO)', unit: 'روز', target: 120, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null }
+                    { id: 'f_trs', name: 'اداره خزانه داری و تامین منابع', kpiName: 'موجودی نقد عملیاتی', unit: 'روز', target: 15, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'f_fin', name: 'اداره حسابداری مالی', kpiName: 'دوره وصول (DSO)', unit: 'روز', target: 90, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'f_ind', name: 'اداره حسابداری صنعتی', kpiName: 'دقت بهای تمام شده', unit: '%', target: 98, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'f_com', name: 'اداره حسابداری بازرگانی', kpiName: 'دوره پرداخت (DPO)', unit: 'روز', target: 120, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
                 ]
             },
             {
                 id: 'plan', name: 'مدیریت برنامه ریزی', icon: 'fa-chart-gantt', isGroup: true, isOpen: false,
                 children: [
-                    { id: 'pl_prod', name: 'اداره برنامه ریزی تولید', kpiName: 'تحقق برنامه (MPS)', unit: '%', target: 98, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'pl_mat', name: 'اداره برنامه ریزی مواد', kpiName: 'دقت موجودی انبارها', unit: '%', target: 95, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'pl_log', name: 'اداره لجستیک داخلی', kpiName: 'توقف خط ناشی از لجستیک', unit: 'ساعت', target: 0, type: 'lower', gen1: null, gen2: null, gen3: null, spec: null }
+                    { id: 'pl_prod', name: 'اداره برنامه ریزی تولید', kpiName: 'تحقق برنامه (MPS)', unit: '%', target: 98, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'pl_mat', name: 'اداره برنامه ریزی مواد', kpiName: 'دقت موجودی انبارها', unit: '%', target: 95, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'pl_log', name: 'اداره لجستیک داخلی', kpiName: 'توقف خط ناشی از لجستیک', unit: 'ساعت', target: 0, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
                 ]
             },
             {
                 id: 'hr', name: 'مدیریت اداری و توسعه منابع انسانی', icon: 'fa-users-gear', isGroup: true, isOpen: false,
                 children: [
-                    { id: 'h_serv', name: 'اداره خدمات اداری و رفاه', kpiName: 'رضایت از خدمات', unit: '%', target: 80, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'h_hse', name: 'اداره ایمنی و بهداشت (HSE)', kpiName: 'ضریب تکرار حوادث', unit: 'نرخ', target: 0, type: 'lower', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'h_emp', name: 'اداره برنامه ریزی و آموزش', kpiName: 'سرانه آموزش', unit: 'ساعت', target: 40, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null }
+                    { id: 'h_serv', name: 'اداره خدمات اداری و رفاه', kpiName: 'رضایت از خدمات', unit: '%', target: 80, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'h_hse', name: 'اداره ایمنی و بهداشت (HSE)', kpiName: 'ضریب تکرار حوادث', unit: 'نرخ', target: 0, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'h_emp', name: 'اداره برنامه ریزی و آموزش', kpiName: 'سرانه آموزش', unit: 'ساعت', target: 40, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
                 ]
             },
             {
                 id: 'sec', name: 'مدیریت حراست', icon: 'fa-shield-halved', isGroup: true, isOpen: false,
                 children: [
-                    { id: 's_phys', name: 'اداره حراست فیزیکی', kpiName: 'نفوذ / سرقت', unit: 'مورد', target: 0, type: 'lower', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 's_pers', name: 'اداره حراست پرسنلی', kpiName: 'تخلفات انضباطی', unit: 'مورد', target: 5, type: 'lower', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 's_fire', name: 'اداره اطفاء حریق', kpiName: 'آمادگی تجهیزات', unit: '%', target: 100, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null }
+                    { id: 's_phys', name: 'اداره حراست فیزیکی', kpiName: 'نفوذ / سرقت', unit: 'مورد', target: 0, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 's_pers', name: 'اداره حراست پرسنلی', kpiName: 'تخلفات انضباطی', unit: 'مورد', target: 5, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 's_fire', name: 'اداره اطفاء حریق', kpiName: 'آمادگی تجهیزات', unit: '%', target: 100, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
                 ]
             },
             {
                 id: 'strat', name: 'مدیریت طرح و برنامه', icon: 'fa-lightbulb', isGroup: true, isOpen: false,
                 children: [
-                    { id: 'st_str', name: 'اداره استراتژی', kpiName: 'تحقق اهداف کلان', unit: '%', target: 90, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'st_sys', name: 'اداره مهندسی سیستم‌ها', kpiName: 'بهبود فرآیندها', unit: 'پروژه', target: 5, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'st_it', name: 'اداره فناوری اطلاعات (IT)', kpiName: 'پایداری شبکه (Uptime)', unit: '%', target: 99, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null }
+                    { id: 'st_str', name: 'اداره استراتژی', kpiName: 'تحقق اهداف کلان', unit: '%', target: 90, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'st_sys', name: 'اداره مهندسی سیستم‌ها', kpiName: 'بهبود فرآیندها', unit: 'پروژه', target: 5, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'st_it', name: 'اداره فناوری اطلاعات (IT)', kpiName: 'پایداری شبکه (Uptime)', unit: '%', target: 99, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
                 ]
             },
             {
                 id: 'indep', name: 'حوزه‌های مستقل و حاکمیتی', icon: 'fa-scale-balanced', isGroup: true, isOpen: false,
                 children: [
-                    { id: 'i_leg', name: 'اداره حقوقی و قراردادها', kpiName: 'موفقیت پرونده‌ها', unit: '%', target: 85, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'i_com', name: 'کمیسیون معاملات', kpiName: 'انطباق مناقصات', unit: '%', target: 100, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'i_aud', name: 'اداره حسابرسی داخلی', kpiName: 'کشف انحرافات', unit: 'مورد', target: 0, type: 'lower', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'i_ceo', name: 'حوزه مدیرعامل و ارتباطات', kpiName: 'نفوذ پیام شرکتی', unit: '%', target: 85, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null },
-                    { id: 'i_insp', name: 'اداره بازرسی', kpiName: 'رسیدگی به شکایات', unit: '%', target: 100, type: 'higher', gen1: null, gen2: null, gen3: null, spec: null }
+                    { id: 'i_leg', name: 'اداره حقوقی و قراردادها', kpiName: 'موفقیت پرونده‌ها', unit: '%', target: 85, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'i_com', name: 'کمیسیون معاملات', kpiName: 'انطباق مناقصات', unit: '%', target: 100, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'i_aud', name: 'اداره حسابرسی داخلی', kpiName: 'کشف انحرافات', unit: 'مورد', target: 0, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'i_ceo', name: 'حوزه مدیرعامل و ارتباطات', kpiName: 'نفوذ پیام شرکتی', unit: '%', target: 85, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
+                    { id: 'i_insp', name: 'اداره بازرسی', kpiName: 'رسیدگی به شکایات', unit: '%', target: 100, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
                 ]
             }
         ];
 
         let state = [];
 
-        // STREAMING_CHUNK:Implementing Core Calculation Logic...
         function calculateSingleSpecScore(target, actual, type) {
             if (actual === null || actual === "") return null;
             let v = parseFloat(actual);
@@ -268,8 +268,9 @@
             let gen1 = child.gen1 !== null ? parseFloat(child.gen1) : null;
             let gen2 = child.gen2 !== null ? parseFloat(child.gen2) : null;
             let gen3 = child.gen3 !== null ? parseFloat(child.gen3) : null;
+            let gen4 = child.gen4 !== null ? parseFloat(child.gen4) : null;
             
-            let genArray = [gen1, gen2, gen3].filter(v => v !== null);
+            let genArray = [gen1, gen2, gen3, gen4].filter(v => v !== null);
             let genScore = genArray.length > 0 ? genArray.reduce((a,b)=>a+b,0) / genArray.length : null;
             
             let specScore = calculateSingleSpecScore(child.target, child.spec, child.type);
@@ -323,7 +324,6 @@
             return { text: 'text-rose-700', bg: 'bg-rose-100', border: 'border-rose-500', hex: 'bg-rose-500', lightBg: 'bg-rose-50/50' };
         }
 
-        // STREAMING_CHUNK:Rendering the Complex Table...
         function renderTable() {
             const tbody = document.getElementById('data-table-body');
             tbody.innerHTML = '';
@@ -350,17 +350,17 @@
                         <span class="text-[10px] bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">${parent.children.length} زیرمجموعه</span>
                     </td>
                     
-                    <td colspan="3" class="px-2 py-3 text-center border-l border-indigo-100 bg-indigo-50/20 text-xs font-bold text-slate-500">
-                        معدل شاخص‌های عمومی: <span class="font-mono dir-ltr ${parentScores.avgGen !== null ? 'text-indigo-700' : ''}">${parentScores.avgGen !== null ? parentScores.avgGen + '%' : '--'}</span>
+                    <td colspan="4" class="px-2 py-3 text-center border-l border-indigo-100 bg-indigo-50/20 text-xs font-bold text-slate-500">
+                        معدل شاخص‌های عمومی: <span id="parent-avgGen-${parent.id}" class="font-mono dir-ltr ${parentScores.avgGen !== null ? 'text-indigo-700' : ''}">${parentScores.avgGen !== null ? parentScores.avgGen + '%' : '--'}</span>
                     </td>
                     
                     <td colspan="3" class="px-2 py-3 text-center border-l border-emerald-100 bg-emerald-50/20 text-xs font-bold text-slate-500">
-                        معدل شاخص‌های تخصصی: <span class="font-mono dir-ltr ${parentScores.avgSpec !== null ? 'text-emerald-700' : ''}">${parentScores.avgSpec !== null ? parentScores.avgSpec + '%' : '--'}</span>
+                        معدل شاخص‌های تخصصی: <span id="parent-avgSpec-${parent.id}" class="font-mono dir-ltr ${parentScores.avgSpec !== null ? 'text-emerald-700' : ''}">${parentScores.avgSpec !== null ? parentScores.avgSpec + '%' : '--'}</span>
                     </td>
                     
-                    <td class="px-2 py-3 text-center ${sCls.lightBg}">
+                    <td id="parent-totalContainer-${parent.id}" class="px-2 py-3 text-center ${sCls.lightBg}">
                         <div class="flex justify-center">
-                            <span class="inline-block px-3 py-1 rounded text-sm font-black font-mono dir-ltr ${sCls.bg} ${sCls.text} shadow-sm border ${sCls.border}">
+                            <span id="parent-totalScore-${parent.id}" class="inline-block px-3 py-1 rounded text-sm font-black font-mono dir-ltr ${sCls.bg} ${sCls.text} shadow-sm border ${sCls.border}">
                                 ${parentScores.totalScore !== null ? parentScores.totalScore + '%' : '-'}
                             </span>
                         </div>
@@ -391,8 +391,11 @@
                         <td class="px-1 py-2 text-center bg-indigo-50/10">
                             <input type="number" max="100" class="${inputCls}" value="${child.gen2 !== null ? child.gen2 : ''}" oninput="updateData('${parent.id}', '${child.id}', 'gen2', this.value)" placeholder="%" onclick="event.stopPropagation()">
                         </td>
-                        <td class="px-1 py-2 text-center border-l border-indigo-100 bg-indigo-50/10">
+                        <td class="px-1 py-2 text-center bg-indigo-50/10">
                             <input type="number" max="100" class="${inputCls}" value="${child.gen3 !== null ? child.gen3 : ''}" oninput="updateData('${parent.id}', '${child.id}', 'gen3', this.value)" placeholder="%" onclick="event.stopPropagation()">
+                        </td>
+                        <td class="px-1 py-2 text-center border-l border-indigo-100 bg-indigo-50/10">
+                            <input type="number" max="100" class="${inputCls}" value="${child.gen4 !== null ? child.gen4 : ''}" oninput="updateData('${parent.id}', '${child.id}', 'gen4', this.value)" placeholder="%" onclick="event.stopPropagation()">
                         </td>
                         
                         <!-- Specialized Inputs -->
@@ -410,7 +413,7 @@
                         </td>
                         
                         <td class="px-2 py-2 text-center bg-slate-50/50">
-                            <span class="font-mono font-bold dir-ltr ${cScores.totalScore !== null ? 'text-slate-700' : 'text-slate-300'}">${cScores.totalScore !== null ? Math.round(cScores.totalScore) + '%' : '-'}</span>
+                            <span id="child-score-${child.id}" class="font-mono font-bold dir-ltr ${cScores.totalScore !== null ? 'text-slate-700' : 'text-slate-300'}">${cScores.totalScore !== null ? Math.round(cScores.totalScore) + '%' : '-'}</span>
                         </td>
                     `;
                     tbody.appendChild(childTr);
@@ -420,7 +423,6 @@
             renderCards(); // Update dashboard automatically
         }
 
-        // STREAMING_CHUNK:Rendering Dashboard Cards...
         function renderCards() {
             const container = document.getElementById('kpi-cards-container');
             container.innerHTML = '';
@@ -514,10 +516,46 @@
                 const cIndex = state[pIndex].children.findIndex(c => c.id === childId);
                 if (cIndex > -1) {
                     state[pIndex].children[cIndex][field] = value === "" ? null : parseFloat(value);
-                    // Live updates to the row scores and dashboard are handled by the input event calling this function
-                    // We re-render the whole table to update the parent summary immediately
-                    renderTable();
+                    
+                    // Live DOM Updates without rebuilding the table (preserves focus)
+                    updateLiveScores(parentId, childId);
+                    renderCards(); // Cards can be safely rebuilt
                 }
+            }
+        }
+
+        function updateLiveScores(parentId, childId) {
+            const parent = state.find(p => p.id === parentId);
+            const child = parent.children.find(c => c.id === childId);
+            
+            // 1. Update child total score
+            const cScores = getChildScores(child);
+            const childScoreEl = document.getElementById(`child-score-${childId}`);
+            if (childScoreEl) {
+                childScoreEl.textContent = cScores.totalScore !== null ? Math.round(cScores.totalScore) + '%' : '-';
+                childScoreEl.className = `font-mono font-bold dir-ltr ${cScores.totalScore !== null ? 'text-slate-700' : 'text-slate-300'}`;
+            }
+
+            // 2. Update parent scores (Gen, Spec, Total)
+            const pScores = getParentScores(parent);
+            const pAvgGenEl = document.getElementById(`parent-avgGen-${parentId}`);
+            const pAvgSpecEl = document.getElementById(`parent-avgSpec-${parentId}`);
+            const pTotalEl = document.getElementById(`parent-totalScore-${parentId}`);
+            const pTotalContainer = document.getElementById(`parent-totalContainer-${parentId}`);
+            
+            if(pAvgGenEl) {
+                pAvgGenEl.textContent = pScores.avgGen !== null ? pScores.avgGen + '%' : '--';
+                pAvgGenEl.className = `font-mono dir-ltr ${pScores.avgGen !== null ? 'text-indigo-700' : ''}`;
+            }
+            if(pAvgSpecEl) {
+                pAvgSpecEl.textContent = pScores.avgSpec !== null ? pScores.avgSpec + '%' : '--';
+                pAvgSpecEl.className = `font-mono dir-ltr ${pScores.avgSpec !== null ? 'text-emerald-700' : ''}`;
+            }
+            if(pTotalEl) {
+                pTotalEl.textContent = pScores.totalScore !== null ? pScores.totalScore + '%' : '-';
+                const sCls = getStatusClasses(pScores.status, pScores.totalScore !== null);
+                pTotalEl.className = `inline-block px-3 py-1 rounded text-sm font-black font-mono dir-ltr ${sCls.bg} ${sCls.text} shadow-sm border ${sCls.border}`;
+                if(pTotalContainer) pTotalContainer.className = `px-2 py-3 text-center ${sCls.lightBg}`;
             }
         }
 
