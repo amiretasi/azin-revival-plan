@@ -78,6 +78,9 @@
             <button onclick="switchTab('tab-financial')" id="btn-tab-financial" class="tab-btn px-4 sm:px-6 py-3 text-gray-500 hover:text-indigo-600 font-semibold border-b-4 border-transparent outline-none transition-colors whitespace-nowrap">
                 <i class="fas fa-money-bill-trend-up ml-2"></i> ۴. تحلیل مالی و خرید
             </button>
+            <button onclick="switchTab('tab-risk-finance')" id="btn-tab-risk-finance" class="tab-btn px-4 sm:px-6 py-3 text-gray-500 hover:text-indigo-600 font-semibold border-b-4 border-transparent outline-none transition-colors whitespace-nowrap">
+                <i class="fas fa-exclamation-triangle text-rose-500 ml-2"></i> ۵. تحلیل مالی بحران
+            </button>
         </div>
 
         <div id="tab-plan" class="tab-content bg-white shadow-sm rounded-b-xl rounded-tl-xl p-4 sm:p-6 mb-6">
@@ -135,7 +138,7 @@
                 <span id="report-summary-text">لطفاً ابتدا برنامه تولید را وارد کرده و دکمه محاسبه را بزنید. سپس برای محاسبه کسری، فایل اکسل موجودی را آپلود کنید.</span>
             </div>
             
-            <div class="table-container overflow-y-auto border border-gray-300 rounded-lg">
+            <div id="report-table-wrapper" class="table-container overflow-y-auto border border-gray-300 rounded-lg p-0">
                 <table id="result-table" class="min-w-full border-collapse text-right text-sm">
                     <thead class="bg-gray-100 border-b-2 border-gray-300 sticky top-0 z-10 shadow-sm">
                         <tr>
@@ -144,14 +147,12 @@
                             <th class="border border-gray-300 py-3 px-3 font-bold text-gray-700 w-24">اداره</th>
                             <th class="border border-gray-300 py-3 px-4 font-bold text-gray-700">شرح کالا</th>
                             <th class="border border-gray-300 py-3 px-3 font-bold text-gray-700 w-24 text-center">واحد</th>
-                            <th class="border border-gray-300 py-3 px-4 font-bold text-blue-900 bg-blue-50 w-28 text-center">نیاز تولید</th>
-                            <th class="border border-gray-300 py-3 px-4 font-bold text-amber-900 bg-amber-50 w-28 text-center">موجودی انبار</th>
-                            <th class="border border-gray-300 py-3 px-4 font-bold text-red-900 bg-red-50 w-28 text-center">کسری</th>
+                            <th class="border border-gray-300 py-3 px-4 font-bold text-blue-900 bg-blue-50 w-28 text-center">نیاز تولید (روز)</th>
                         </tr>
                     </thead>
                     <tbody id="report-tbody" class="bg-white divide-y divide-gray-200">
                         <tr>
-                            <td colspan="8" class="py-12 text-center text-gray-400">لطفا ابتدا برنامه تولید را محاسبه کنید.</td>
+                            <td colspan="6" class="py-12 text-center text-gray-400">لطفا ابتدا برنامه تولید را محاسبه کنید.</td>
                         </tr>
                     </tbody>
                 </table>
@@ -299,6 +300,22 @@
                     </div>
                 </div>
             </details>
+        </div>
+
+        <!-- NEW TAB 5: Risk Finance -->
+        <div id="tab-risk-finance" class="tab-content hidden bg-white shadow-sm rounded-b-xl rounded-tl-xl p-4 sm:p-6 mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b pb-4 gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">تحلیل مالی اقلام بحرانی و برنامه‌ریزی نقدینگی خرید</h2>
+                    <p class="text-sm text-gray-500 mt-1">این بخش بر اساس کسریِ هفتگی (۵ روزه) اقلام در تب ۲ و قیمت‌های تب ۴ محاسبه و به تفکیک ساختار دسته‌بندی شده است.</p>
+                </div>
+            </div>
+            <div id="tab-risk-finance-content">
+                <div class="text-center py-12 text-gray-500">
+                    <i class="fas fa-info-circle text-4xl mb-4 block text-blue-300"></i>
+                    برای مشاهده این بخش، لطفاً ابتدا فایل موجودی (تب ۲) و فایل قیمت‌ها (تب ۴) را بارگذاری نمایید.
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1022,6 +1039,47 @@
                 activeBtn.classList.add('text-indigo-700', 'border-indigo-600');
             }
         }
+        
+        // Export & Print Helpers
+        function exportBoxToExcel(tableId, title) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            const wb = XLSX.utils.table_to_book(table, {sheet: "Sheet1"});
+            XLSX.writeFile(wb, title + ".xlsx");
+        }
+
+        function printBox(tableId, title) {
+            let iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            let win = iframe.contentWindow;
+            win.document.open();
+            win.document.write(`
+                <html dir="rtl">
+                <head>
+                    <title>${title}</title>
+                    <style>
+                        body { font-family: Tahoma, sans-serif; padding: 20px; }
+                        h2 { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;}
+                        table { width: 100%; border-collapse: collapse; text-align: right; font-size: 11px; }
+                        th, td { border: 1px solid #555; padding: 6px; }
+                        th { background-color: #ddd !important; -webkit-print-color-adjust: exact; font-weight: bold;}
+                    </style>
+                </head>
+                <body>
+                    <h2>${title}</h2>
+                    ${document.getElementById(tableId).outerHTML}
+                </body>
+                </html>
+            `);
+            win.document.close();
+            
+            iframe.onload = function() {
+                win.focus();
+                win.print();
+                setTimeout(() => { document.body.removeChild(iframe); }, 1000);
+            };
+        }
 
         function renderDailyPlanTable() {
             const tbody = document.getElementById('daily-plan-tbody');
@@ -1120,64 +1178,161 @@
         }
 
         function renderReportTable() {
-            const tbody = document.getElementById('report-tbody');
-            tbody.innerHTML = '';
+            const container = document.getElementById('report-table-wrapper');
+            const hasInventoryFile = Object.keys(inventoryMap).length > 0;
             
             if (reportData.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="py-12 text-center text-gray-400">
-                            <i class="fas fa-clipboard text-4xl mb-3"></i>
-                            <p>هنوز محاسبه‌ای انجام نشده است.</p>
-                        </td>
-                    </tr>
+                container.innerHTML = `
+                    <table class="min-w-full border-collapse text-right text-sm">
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="py-12 text-center text-gray-400">
+                                    <i class="fas fa-clipboard text-4xl mb-3"></i>
+                                    <p>هنوز محاسبه‌ای انجام نشده است.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 `;
                 return;
             }
 
-            let rowCounter = 1;
-            
-            reportData.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-gray-50 transition-colors";
+            if (!hasInventoryFile) {
+                // نمایش ساده فقط نیاز تولید (قبل از آپلود موجودی)
+                container.classList.add('table-container', 'overflow-y-auto', 'border', 'border-gray-300', 'rounded-lg', 'p-0');
+                container.classList.remove('border-none');
                 
-                const required = item.required;
-                const formattedRequired = required % 1 !== 0 ? required.toFixed(3) : required;
-                
-                // Get inventory if uploaded, default to checking if map has it or 'نامشخص'
-                let inventoryQty = inventoryMap[item.code] !== undefined ? inventoryMap[item.code] : 0;
-                const hasInventoryFile = Object.keys(inventoryMap).length > 0;
-                
-                let shortage = 0;
-                let shortageText = '-';
-                let shortageClass = 'text-gray-500';
-                
-                if (hasInventoryFile) {
-                    shortage = Math.max(0, required - inventoryQty);
-                    
-                    if (shortage > 0) {
-                        shortageText = shortage % 1 !== 0 ? shortage.toFixed(3) : shortage;
-                        shortageClass = 'text-red-600 font-bold bg-red-50';
-                    } else {
-                        shortageText = 'تامین'; // Sufficient
-                        shortageClass = 'text-green-600 font-bold bg-green-50';
-                    }
-                }
-                
-                const inventoryText = hasInventoryFile ? (inventoryQty % 1 !== 0 ? inventoryQty.toFixed(3) : inventoryQty) : 'نامشخص';
-
-                tr.innerHTML = `
-                    <td class="border border-gray-300 py-2 px-3 text-center text-gray-500">${rowCounter++}</td>
-                    <td class="border border-gray-300 py-2 px-3 text-gray-700 font-mono text-sm" dir="ltr">${item.code}</td>
-                    <td class="border border-gray-300 py-2 px-3 text-gray-600 text-xs">${item.dept}</td>
-                    <td class="border border-gray-300 py-2 px-4 text-gray-900 font-medium text-xs sm:text-sm">${item.name}</td>
-                    <td class="border border-gray-300 py-2 px-3 text-gray-600 text-center">${item.unit}</td>
-                    <td class="border border-gray-300 py-2 px-4 text-blue-700 font-bold bg-blue-50 text-center text-base" dir="ltr">${formattedRequired}</td>
-                    <td class="border border-gray-300 py-2 px-4 text-amber-700 font-semibold bg-amber-50 text-center text-base" dir="ltr">${inventoryText}</td>
-                    <td class="border border-gray-300 py-2 px-4 text-center text-base ${shortageClass}" dir="ltr">${shortageText}</td>
+                let html = `
+                    <table id="result-table" class="min-w-full border-collapse text-right text-sm">
+                        <thead class="bg-gray-100 border-b-2 border-gray-300 sticky top-0 z-10 shadow-sm">
+                            <tr>
+                                <th class="border border-gray-300 py-3 px-3 font-bold text-gray-700 w-12 text-center">ردیف</th>
+                                <th class="border border-gray-300 py-3 px-3 font-bold text-gray-700 w-32">کد کالا</th>
+                                <th class="border border-gray-300 py-3 px-3 font-bold text-gray-700 w-24">اداره</th>
+                                <th class="border border-gray-300 py-3 px-4 font-bold text-gray-700">شرح کالا</th>
+                                <th class="border border-gray-300 py-3 px-3 font-bold text-gray-700 w-24 text-center">واحد</th>
+                                <th class="border border-gray-300 py-3 px-4 font-bold text-blue-900 bg-blue-50 w-28 text-center">نیاز تولید (روز)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
                 `;
-                tbody.appendChild(tr);
-            });
+                
+                let rowCounter = 1;
+                reportData.forEach(item => {
+                    const required = item.required;
+                    const formattedRequired = required % 1 !== 0 ? required.toFixed(3) : required;
+                    html += `
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="border border-gray-300 py-2 px-3 text-center text-gray-500">${rowCounter++}</td>
+                            <td class="border border-gray-300 py-2 px-3 text-gray-700 font-mono text-sm" dir="ltr">${item.code}</td>
+                            <td class="border border-gray-300 py-2 px-3 text-gray-600 text-xs">${item.dept}</td>
+                            <td class="border border-gray-300 py-2 px-4 text-gray-900 font-medium text-xs sm:text-sm">${item.name}</td>
+                            <td class="border border-gray-300 py-2 px-3 text-gray-600 text-center">${item.unit}</td>
+                            <td class="border border-gray-300 py-2 px-4 text-blue-700 font-bold bg-blue-50 text-center text-base" dir="ltr">${formattedRequired}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+                
+            } else {
+                // نمایش داشبورد تحلیل ریسک موجودی (بعد از آپلود فایل)
+                container.classList.remove('table-container', 'overflow-y-auto', 'border', 'border-gray-300', 'rounded-lg', 'p-0');
+                container.classList.add('border-none');
+                
+                const superCritical = [];
+                const critical = [];
+                const warning = [];
+                const safe = [];
+
+                reportData.forEach(item => {
+                    let reqD = item.required;
+                    let inv = inventoryMap[item.code] !== undefined ? inventoryMap[item.code] : 0;
+                    item.invAmount = inv;
+                    let days = reqD > 0 ? (inv / reqD) : 999;
+                    item.days = days;
+                    
+                    if (inv < reqD) {
+                        item.statusCol = days < 0.5 ? 'کمتر از ۱ شیفت' : 'تامین ۱ شیفت';
+                        superCritical.push(item);
+                    } else if (inv >= reqD && inv < (reqD * 5)) {
+                        item.statusCol = days.toFixed(1) + ' روز';
+                        critical.push(item);
+                    } else if (inv >= (reqD * 5) && inv < (reqD * 30)) {
+                        let orderIn = days - 7;
+                        item.statusCol = orderIn <= 0 ? 'اقدام فوری' : 'تا ' + orderIn.toFixed(0) + ' روز دیگر';
+                        warning.push(item);
+                    } else {
+                        item.statusCol = days.toFixed(1) + ' روز';
+                        safe.push(item);
+                    }
+                });
+
+                const buildTableHTML = (items, title, colorClass, icon, headerColor, extraColHeader, tableId) => {
+                    if (items.length === 0) return '';
+                    let html = `
+                    <div class="mb-6 rounded-xl border-2 ${colorClass} overflow-hidden shadow-sm bg-white break-inside-avoid">
+                        <h3 class="text-lg font-bold p-4 ${headerColor} flex items-center justify-between gap-2 flex-wrap">
+                            <div class="flex items-center gap-2">
+                                <span>${icon}</span> ${title} <span class="text-sm font-normal bg-white/50 px-2 py-0.5 rounded-full mx-2">${items.length} قلم</span>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="exportBoxToExcel('${tableId}', '${title.split(' ')[1]}')" class="text-xs bg-white text-gray-700 px-3 py-1.5 rounded shadow hover:bg-gray-50 flex items-center gap-1 transition"><i class="fas fa-file-excel text-green-600"></i> خروجی اکسل</button>
+                                <button onclick="printBox('${tableId}', '${title}')" class="text-xs bg-white text-gray-700 px-3 py-1.5 rounded shadow hover:bg-gray-50 flex items-center gap-1 transition"><i class="fas fa-print text-gray-600"></i> چاپ PDF</button>
+                            </div>
+                        </h3>
+                        <div class="overflow-auto max-h-96">
+                            <table id="${tableId}" class="min-w-full border-collapse text-right text-sm">
+                                <thead class="bg-gray-50 border-y ${colorClass} sticky top-0 z-10 shadow-sm">
+                                    <tr>
+                                        <th class="py-2 px-3 font-bold text-gray-700 w-12 text-center bg-gray-50">ردیف</th>
+                                        <th class="py-2 px-3 font-bold text-gray-700 w-28 bg-gray-50">کد کالا</th>
+                                        <th class="py-2 px-4 font-bold text-gray-700 bg-gray-50">شرح کالا</th>
+                                        <th class="py-2 px-3 font-bold text-gray-700 w-20 text-center bg-gray-50">نیاز 1 روز</th>
+                                        <th class="py-2 px-3 font-bold text-gray-700 w-24 text-center bg-gray-50">موجودی</th>
+                                        <th class="py-2 px-3 font-bold text-gray-700 w-24 text-center bg-gray-50">کسری روز</th>
+                                        <th class="py-2 px-3 font-bold text-indigo-900 bg-indigo-50/80 w-32 text-center">${extraColHeader}</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                    `;
+                    
+                    items.forEach((item, index) => {
+                        const required = item.required;
+                        const formattedRequired = required % 1 !== 0 ? required.toFixed(3) : required;
+                        const inventory = item.invAmount % 1 !== 0 ? item.invAmount.toFixed(3) : item.invAmount;
+                        const shortage = Math.max(0, required - item.invAmount);
+                        const formattedShortage = shortage % 1 !== 0 ? shortage.toFixed(3) : shortage;
+                        const shortageClass = shortage > 0 ? 'text-red-600 font-bold bg-red-50' : 'text-gray-500';
+
+                        html += `
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="py-2 px-3 text-center text-gray-500 border-x border-gray-100">${index + 1}</td>
+                                <td class="py-2 px-3 text-gray-700 font-mono text-xs border-l border-gray-100" dir="ltr">${item.code}</td>
+                                <td class="py-2 px-4 text-gray-900 font-medium text-xs sm:text-sm border-l border-gray-100">${item.name}</td>
+                                <td class="py-2 px-3 text-blue-700 font-bold bg-blue-50/30 text-center border-l border-gray-100" dir="ltr">${formattedRequired}</td>
+                                <td class="py-2 px-3 text-amber-700 font-semibold bg-amber-50/30 text-center border-l border-gray-100" dir="ltr">${inventory}</td>
+                                <td class="py-2 px-3 text-center ${shortageClass} border-l border-gray-100" dir="ltr">${shortage > 0 ? formattedShortage : 'تامین'}</td>
+                                <td class="py-2 px-3 text-center font-bold text-indigo-800 bg-indigo-50/30" dir="ltr">${item.statusCol}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `</tbody></table></div></div>`;
+                    return html;
+                };
+
+                let dashboardHTML = `
+                    <div class="space-y-4"> 
+                        ${buildTableHTML(superCritical, 'اقلام فوق بحرانی (توقف آنی خط)', 'border-red-200', '🔴', 'bg-red-100 text-red-900', 'وضعیت شیفت', 'table-super-critical')}
+                        ${buildTableHTML(critical, 'اقلام بحرانی (ریسک توقف خط این هفته)', 'border-orange-200', '🟠', 'bg-orange-100 text-orange-900', 'موجودی (روز)', 'table-critical')}
+                        ${buildTableHTML(warning, 'نقطه سفارش / هشدار (تامین ۳۰ روز آینده)', 'border-yellow-200', '🟡', 'bg-yellow-100 text-yellow-900', 'مهلت ثبت سفارش', 'table-warning')}
+                        ${buildTableHTML(safe, 'حاشیه امن (موجودی بیش از یک ماه)', 'border-green-200', '🟢', 'bg-green-100 text-green-900', 'موجودی (روز)', 'table-safe')}
+                    </div>
+                `;
+                container.innerHTML = dashboardHTML;
+            }
         }
 
         function handleInventoryUpload(event) {
@@ -1405,6 +1560,146 @@
 
             renderFinancialTables();
             renderCategorizedFinancials();
+            renderRiskFinancials(); // Call Tab 5 update
+        }
+
+        function renderRiskFinancials() {
+            const container = document.getElementById('tab-risk-finance-content');
+            if (financialData.length === 0 || Object.keys(priceMap).length === 0 || Object.keys(inventoryMap).length === 0) {
+                container.innerHTML = '<div class="text-center py-12 text-gray-500"><i class="fas fa-info-circle text-4xl mb-4 block text-blue-300"></i>برای مشاهده این بخش، لطفاً ابتدا فایل موجودی (تب ۲) و فایل قیمت‌ها (تب ۴) را بارگذاری نمایید.</div>';
+                return;
+            }
+
+            // We filter items that have ANY shortage during the week (super critical + critical)
+            const riskItems = financialData.filter(item => item.shortW > 0);
+
+            const metalItems = [];
+            const nonMetalItems = [];
+            
+            // KPI Variables
+            let vitalCount = 0;
+            let vitalCost = 0;
+
+            riskItems.forEach(item => {
+                const dep = item.dept ? item.dept.toLowerCase() : '';
+                // Classify based on the second column "اداره" or keywords
+                if (dep.includes('غیرفلزی') || dep.includes('غیر فلزی') || dep.includes('فوم') || dep.includes('رنگ') || dep.includes('دوخت')) {
+                    nonMetalItems.push(item);
+                } else {
+                    metalItems.push(item);
+                }
+                
+                // Identify Vital/Immediate needs (Super Critical: Inv < Daily Req)
+                if (item.invAmount < item.reqD) {
+                    vitalCount++;
+                    vitalCost += (item.shortW * item.price);
+                }
+            });
+
+            // Sort by absolute cost to fix the 5-day shortage (highest first)
+            const sortFn = (a, b) => (b.shortW * b.price) - (a.shortW * a.price);
+            metalItems.sort(sortFn);
+            nonMetalItems.sort(sortFn);
+            
+            // Calculate Totals for KPIs
+            const metalCost = metalItems.reduce((sum, item) => sum + (item.shortW * item.price), 0);
+            const nonMetalCost = nonMetalItems.reduce((sum, item) => sum + (item.shortW * item.price), 0);
+            const grandTotal = metalCost + nonMetalCost;
+            
+            // Build KPI Cards HTML
+            const kpiHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white border-2 border-rose-200 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-1 h-full bg-rose-500"></div>
+                        <h3 class="text-sm font-bold text-gray-500 mb-1">کل بودجه خرید بحران (۵ روز)</h3>
+                        <div class="text-xl font-black text-rose-700">${formatCurrency(grandTotal)} <span class="text-xs font-normal text-gray-400">ریال</span></div>
+                    </div>
+                    <div class="bg-white border-2 border-gray-300 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-1 h-full bg-gray-500"></div>
+                        <h3 class="text-sm font-bold text-gray-500 mb-1">سهم قطعات فلزی</h3>
+                        <div class="text-xl font-black text-gray-800">${formatCurrency(metalCost)} <span class="text-xs font-normal text-gray-400">ریال</span></div>
+                    </div>
+                    <div class="bg-white border-2 border-indigo-200 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-1 h-full bg-indigo-500"></div>
+                        <h3 class="text-sm font-bold text-gray-500 mb-1">سهم اقلام غیرفلزی</h3>
+                        <div class="text-xl font-black text-indigo-700">${formatCurrency(nonMetalCost)} <span class="text-xs font-normal text-gray-400">ریال</span></div>
+                    </div>
+                    <div class="bg-red-50 border-2 border-red-200 rounded-xl p-4 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-1 h-full bg-red-600"></div>
+                        <h3 class="text-sm font-bold text-red-900 mb-1"><i class="fas fa-exclamation-triangle animate-pulse mr-1"></i> اولویت حیاتی (توقف خط)</h3>
+                        <div class="flex justify-between items-end">
+                            <span class="text-xl font-black text-red-700">${vitalCount} <span class="text-sm font-bold">قلم کالا</span></span>
+                            <span class="text-xs text-red-600 font-bold bg-white px-2 py-0.5 rounded shadow-sm" title="بودجه مورد نیاز اقلام حیاتی">${formatCurrency(vitalCost)} ریال</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const buildRiskTable = (items, title, icon, colorTheme) => {
+                if(items.length === 0) return '';
+                let totalShortageCost = items.reduce((sum, item) => sum + (item.shortW * item.price), 0);
+                
+                let html = `
+                <div class="mb-8 border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                    <div class="bg-${colorTheme}-50 px-4 py-3 border-b border-${colorTheme}-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <h3 class="text-lg font-bold text-${colorTheme}-900 flex items-center gap-2">
+                            <i class="fas ${icon}"></i> ${title} <span class="text-xs bg-white px-2 py-0.5 rounded-full mx-2 shadow-sm">${items.length} کالا</span>
+                        </h3>
+                        <div class="text-left bg-white px-4 py-1.5 rounded-lg border border-${colorTheme}-200 shadow-sm flex items-center gap-3">
+                            <span class="text-xs text-gray-500 font-bold block">ارزش ریالی خرید (۵ روز):</span>
+                            <span class="font-black text-rose-600 text-lg">${formatCurrency(totalShortageCost)} <span class="text-xs font-normal">ریال</span></span>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto max-h-[500px]">
+                        <table class="min-w-full border-collapse text-right text-sm">
+                            <thead class="bg-gray-100 sticky top-0 z-10">
+                                <tr>
+                                    <th class="py-2 px-2 border-b border-gray-200 font-bold text-gray-700 w-12 text-center">ردیف</th>
+                                    <th class="py-2 px-2 border-b border-gray-200 font-bold text-gray-700 w-24">کد کالا</th>
+                                    <th class="py-2 px-3 border-b border-gray-200 font-bold text-gray-700">شرح کالا</th>
+                                    <th class="py-2 px-2 border-b border-gray-200 font-bold text-blue-900 bg-blue-50 text-center w-20">نیاز ۵ روز</th>
+                                    <th class="py-2 px-2 border-b border-gray-200 font-bold text-amber-900 bg-amber-50 text-center w-24">موجودی فعلی</th>
+                                    <th class="py-2 px-2 border-b border-gray-200 font-bold text-red-900 bg-red-50 text-center w-24">کسری ۵ روزه</th>
+                                    <th class="py-2 px-2 border-b border-gray-200 font-bold text-gray-700 text-center w-28">فی (ریال)</th>
+                                    <th class="py-2 px-3 border-b border-gray-200 font-bold text-rose-900 bg-rose-50 text-center w-36">نقدینگی خرید</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-100">
+                `;
+                
+                items.forEach((item, index) => {
+                    let costToFix = item.shortW * item.price;
+                    let formatQty = q => q % 1 !== 0 ? q.toFixed(3) : q;
+                    let hasPrice = item.price > 0;
+                    
+                    // Check if vital (stops line today)
+                    let isVital = item.invAmount < item.reqD;
+                    let rowClass = isVital ? 'bg-red-50 hover:bg-red-100' : `hover:bg-${colorTheme}-50/30`;
+                    let vitalBadge = isVital ? '<span class="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded mr-2 animate-pulse inline-block shadow-sm">اقدام فوری</span>' : '';
+                    let borderClass = isVital ? 'border-r-4 border-r-red-500' : 'border-x border-gray-50';
+                    
+                    html += `
+                        <tr class="${rowClass} transition-colors">
+                            <td class="py-2 px-2 text-center ${isVital ? 'text-red-700 font-bold' : 'text-gray-400'} ${borderClass}">${index + 1}</td>
+                            <td class="py-2 px-2 text-gray-700 font-mono text-xs border-l border-gray-50" dir="ltr">${item.code}</td>
+                            <td class="py-2 px-3 text-gray-900 font-medium text-xs sm:text-sm border-l border-gray-50">${vitalBadge}${item.name}</td>
+                            <td class="py-2 px-2 text-center text-blue-700 font-bold bg-blue-50/30 border-l border-gray-50" dir="ltr">${formatQty(item.reqW)}</td>
+                            <td class="py-2 px-2 text-center text-amber-700 font-bold bg-amber-50/30 border-l border-gray-50" dir="ltr">${formatQty(item.invAmount)}</td>
+                            <td class="py-2 px-2 text-center text-red-600 font-bold bg-red-50/50 border-l border-gray-50" dir="ltr">${formatQty(item.shortW)}</td>
+                            <td class="py-2 px-2 text-center ${hasPrice ? 'text-gray-600' : 'text-red-500 font-bold'} border-l border-gray-50" dir="ltr">${hasPrice ? formatCurrency(item.price) : 'ندارد'}</td>
+                            <td class="py-2 px-3 text-center font-bold text-rose-600 bg-rose-50/30" dir="ltr">${formatCurrency(costToFix)}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += `</tbody></table></div></div>`;
+                return html;
+            };
+
+            container.innerHTML = 
+                kpiHTML + 
+                buildRiskTable(metalItems, 'بحران و کسری اقلام فلزی (سورت شده بر اساس بیشترین بودجه)', 'fa-cogs', 'gray') +
+                buildRiskTable(nonMetalItems, 'بحران و کسری اقلام غیرفلزی (سورت شده بر اساس بیشترین بودجه)', 'fa-fill-drip', 'indigo');
         }
 
         function renderCategorizedFinancials() {
