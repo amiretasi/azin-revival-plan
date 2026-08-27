@@ -3,564 +3,414 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>محاسبه‌گر هوشمند مواد مصرفی - BOM</title>
+    <title>سیستم جامع برنامه‌ریزی تامین و MRP سایپا</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS for Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700;900&display=swap');
-        body {
-            font-family: 'Vazirmatn', Tahoma, sans-serif;
-            background-color: #f0f2f5;
-        }
-        /* Scrollbar styles */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #e2e8f0; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #94a3b8; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #64748b; 
-        }
-        .table-container {
-            max-height: calc(100vh - 250px);
-        }
-        details > summary {
-            list-style: none;
-        }
-        details > summary::-webkit-details-marker {
-            display: none;
-        }
-        @media print {
-            body { background: white; }
-            .no-print { display: none !important; }
-            .table-container { max-height: none; overflow: visible; }
-            table { font-size: 10pt; }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap');
+        body { font-family: 'Vazirmatn', sans-serif; background-color: #f3f4f6; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tab-btn.active { border-bottom: 3px solid #3b82f6; color: #1d4ed8; font-weight: bold; background-color: #eff6ff; }
+        .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .blink { animation: blinker 1.5s linear infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
+        
+        .box-container { max-height: 500px; overflow-y: auto; }
     </style>
 </head>
 <body class="text-gray-800">
-
-    <div class="container mx-auto p-2 sm:p-4 max-w-7xl">
-        <header class="bg-white shadow-sm rounded-xl p-4 sm:p-6 mb-4 flex flex-col sm:flex-row justify-between items-center border-t-4 border-indigo-600 no-print">
-            <div class="flex items-center gap-4 mb-4 sm:mb-0">
-                <div class="bg-indigo-100 p-3 rounded-full text-indigo-600">
-                    <i class="fas fa-industry text-2xl"></i>
+    <div class="max-w-7xl mx-auto p-4 sm:p-6">
+        
+        <!-- Header -->
+        <div class="bg-gradient-to-l from-blue-900 to-blue-700 rounded-2xl p-6 mb-6 text-white shadow-xl flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center gap-4 mb-4 md:mb-0">
+                <div class="bg-white p-3 rounded-xl shadow-inner">
+                    <i class="fas fa-industry text-3xl text-blue-800"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl sm:text-2xl font-bold text-gray-800">سیستم محاسبه BOM تولید روزانه</h1>
-                    <p class="text-xs sm:text-sm text-gray-500 mt-1">متصل به پایگاه داده ۶۲۳ ردیفی مواد بری خودروها</p>
+                    <h1 class="text-2xl font-black mb-1">سیستم جامع برنامه‌ریزی تامین (MRP)</h1>
+                    <p class="text-blue-200 text-sm">داشبورد هوشمند محاسبه مواد، تحلیل بحران و بودجه‌بندی</p>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <button onclick="resetPlan()" class="bg-red-50 text-red-600 hover:bg-red-500 hover:text-white border border-red-200 px-4 py-2 rounded-lg transition text-sm font-medium flex items-center gap-2">
-                    <i class="fas fa-trash-alt"></i> صفر کردن برنامه
-                </button>
+            <div class="text-right">
+                <div class="text-sm text-blue-200 mb-1">تاریخ سیستم</div>
+                <div class="font-mono bg-blue-800/50 px-4 py-2 rounded-lg border border-blue-600 shadow-inner" id="current-date"></div>
             </div>
-        </header>
-
-        <div class="flex gap-1 border-b border-gray-300 mb-4 bg-white shadow-sm rounded-t-xl px-2 pt-2 no-print overflow-x-auto">
-            <button onclick="switchTab('tab-plan')" id="btn-tab-plan" class="tab-btn px-4 sm:px-6 py-3 text-indigo-700 font-bold border-b-4 border-indigo-600 outline-none transition-colors whitespace-nowrap">
-                <i class="fas fa-clipboard-list ml-2"></i> ۱. ورود برنامه تولید
-            </button>
-            <button onclick="switchTab('tab-report')" id="btn-tab-report" class="tab-btn px-4 sm:px-6 py-3 text-gray-500 hover:text-indigo-600 font-semibold border-b-4 border-transparent outline-none transition-colors whitespace-nowrap">
-                <i class="fas fa-chart-pie ml-2"></i> ۲. لیست مواد مورد نیاز (خروجی)
-            </button>
-            <button onclick="switchTab('tab-database')" id="btn-tab-database" class="tab-btn px-4 sm:px-6 py-3 text-gray-500 hover:text-indigo-600 font-semibold border-b-4 border-transparent outline-none transition-colors whitespace-nowrap">
-                <i class="fas fa-database ml-2"></i> ۳. مشاهده دیتابیس BOM
-            </button>
-            <button onclick="switchTab('tab-financial')" id="btn-tab-financial" class="tab-btn px-4 sm:px-6 py-3 text-gray-500 hover:text-indigo-600 font-semibold border-b-4 border-transparent outline-none transition-colors whitespace-nowrap">
-                <i class="fas fa-money-bill-trend-up ml-2"></i> ۴. تحلیل مالی و خرید
-            </button>
-            <button onclick="switchTab('tab-risk-finance')" id="btn-tab-risk-finance" class="tab-btn px-4 sm:px-6 py-3 text-gray-500 hover:text-indigo-600 font-semibold border-b-4 border-transparent outline-none transition-colors whitespace-nowrap">
-                <i class="fas fa-exclamation-triangle text-rose-500 ml-2"></i> ۵. تحلیل مالی بحران
-            </button>
         </div>
 
-        <div id="tab-plan" class="tab-content bg-white shadow-sm rounded-b-xl rounded-tl-xl p-4 sm:p-6 mb-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 border-b pb-4">
-                <div>
-                    <h2 class="text-lg font-bold text-gray-800">فرم ورود برنامه روزانه</h2>
-                    <p class="text-sm text-gray-500">تعداد تولید هر محصول را وارد کرده و دکمه محاسبه را بزنید.</p>
-                </div>
-                <button onclick="calculateBOM()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-lg shadow-md font-bold text-lg transition flex items-center gap-2 w-full sm:w-auto justify-center">
-                    <i class="fas fa-calculator"></i> محاسبه کل مواد
+        <!-- Navigation Tabs -->
+        <div class="flex flex-wrap gap-1 border-b border-gray-200 bg-white rounded-t-xl px-2 pt-2 shadow-sm overflow-x-auto">
+            <button onclick="switchTab('tab-plan')" id="btn-tab-plan" class="tab-btn active px-4 py-3 rounded-t-lg transition-colors flex items-center gap-2 text-sm whitespace-nowrap"><i class="fas fa-clipboard-list"></i> ۱. برنامه روزانه</button>
+            <button onclick="switchTab('tab-risk')" id="btn-tab-risk" class="tab-btn px-4 py-3 rounded-t-lg transition-colors flex items-center gap-2 text-sm whitespace-nowrap"><i class="fas fa-exclamation-triangle"></i> ۲. داشبورد ریسک تامین</button>
+            <button onclick="switchTab('tab-budget')" id="btn-tab-budget" class="tab-btn px-4 py-3 rounded-t-lg transition-colors flex items-center gap-2 text-sm whitespace-nowrap"><i class="fas fa-money-check-alt"></i> ۳. بودجه و خریدهای تجمیعی</button>
+            <button onclick="switchTab('tab-crisis')" id="btn-tab-crisis" class="tab-btn px-4 py-3 rounded-t-lg transition-colors flex items-center gap-2 text-sm whitespace-nowrap"><i class="fas fa-chart-line"></i> ۴. تحلیل مالی بحران</button>
+        </div>
+
+        <!-- TAB 1: PRODUCTION PLAN -->
+        <div id="tab-plan" class="tab-content active bg-white shadow-sm rounded-b-xl rounded-tl-xl p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-gray-800 border-r-4 border-blue-500 pr-3">ورود برنامه تولید روزانه (تفکیک شیفت)</h2>
+                <button onclick="calculateMaterials()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg shadow-md transition font-bold flex items-center gap-2">
+                    <i class="fas fa-calculator"></i> محاسبه کل مواد مورد نیاز
                 </button>
             </div>
             
-            <div class="max-w-2xl mx-auto border-2 border-gray-300 rounded-lg shadow-sm overflow-hidden">
-                <table class="min-w-full border-collapse text-center">
+            <div class="overflow-x-auto border border-gray-200 rounded-xl">
+                <table class="min-w-full">
                     <thead class="bg-gray-100 border-b-2 border-gray-300">
                         <tr>
-                            <th class="border border-gray-300 py-3 font-bold text-gray-700 w-16 text-sm">ردیف</th>
-                            <th class="border border-gray-300 py-3 font-bold text-gray-700 text-sm">محصول</th>
-                            <th class="border border-gray-300 py-3 font-bold text-gray-700 w-48 text-sm">برنامه روزانه (دستگاه)</th>
+                            <th class="py-3 px-4 text-center font-bold text-gray-700 w-16 border-l border-gray-200">ردیف</th>
+                            <th class="py-3 px-4 text-right font-bold text-gray-700 border-l border-gray-200">محصول</th>
+                            <th class="py-3 px-4 text-center font-bold text-blue-700 border-l border-gray-200 w-32 bg-blue-50">شیفت ۱</th>
+                            <th class="py-3 px-4 text-center font-bold text-indigo-700 border-l border-gray-200 w-32 bg-indigo-50">شیفت ۲</th>
+                            <th class="py-3 px-4 text-center font-bold text-gray-900 w-32 bg-gray-200">جمع روزانه</th>
                         </tr>
                     </thead>
-                    <tbody id="daily-plan-tbody" class="bg-white">
-                        <!-- Populated by JS -->
+                    <tbody id="production-table-body">
+                        <!-- JS Will Populate This -->
                     </tbody>
-                    <tfoot class="bg-indigo-50 border-t-2 border-indigo-200 font-bold text-lg">
+                    <tfoot class="bg-gray-800 text-white">
                         <tr>
-                            <td colspan="2" class="border border-gray-300 py-4 px-6 text-left text-indigo-900">جمع کل تولید:</td>
-                            <td id="total-cars-input" class="border border-gray-300 py-4 text-center text-indigo-900">0</td>
+                            <td colspan="2" class="py-3 px-4 text-left font-bold text-lg">جمع کل صندلی:</td>
+                            <td id="total-shift1" class="py-3 px-4 text-center font-bold text-lg text-blue-300">0</td>
+                            <td id="total-shift2" class="py-3 px-4 text-center font-bold text-lg text-indigo-300">0</td>
+                            <td id="total-daily" class="py-3 px-4 text-center font-black text-xl text-green-400">0</td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
         </div>
 
-        <div id="tab-report" class="tab-content hidden bg-white shadow-sm rounded-b-xl rounded-tl-xl p-4 sm:p-6 mb-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 border-b pb-4 no-print gap-4">
-                <h2 class="text-xl font-bold text-gray-800">لیست قطعات و بررسی کسری موجودی</h2>
-                <div class="flex gap-2 w-full sm:w-auto flex-wrap">
-                    <input type="file" id="inventory-file" accept=".xlsx, .xls" class="hidden" onchange="handleInventoryUpload(event)">
-                    <button onclick="document.getElementById('inventory-file').click()" class="bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 px-4 py-2 rounded transition text-sm font-medium flex items-center gap-2 flex-1 sm:flex-none justify-center">
-                        <i class="fas fa-file-excel"></i> ۱. آپلود اکسل موجودی
-                    </button>
-                    <button onclick="copyTableToClipboard()" class="bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 px-4 py-2 rounded transition text-sm font-medium flex items-center gap-2 flex-1 sm:flex-none justify-center">
-                        <i class="fas fa-copy"></i> ۲. کپی جدول
-                    </button>
-                    <button onclick="window.print()" class="bg-gray-800 hover:bg-gray-900 text-white px-5 py-2 rounded shadow transition text-sm flex items-center gap-2 flex-1 sm:flex-none justify-center">
-                        <i class="fas fa-print"></i> ۳. چاپ / PDF
+        <!-- TAB 2: RISK DASHBOARD -->
+        <div id="tab-risk" class="tab-content bg-white shadow-sm rounded-b-xl rounded-tl-xl p-6 mb-6">
+            <div class="flex flex-col lg:flex-row gap-4 mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl items-center justify-between">
+                
+                <div class="flex flex-wrap gap-4">
+                    <div class="relative group">
+                        <input type="file" id="inventory-file" accept=".xlsx, .xls" class="hidden" onchange="handleInventoryUpload(event)">
+                        <button onclick="document.getElementById('inventory-file').click()" class="bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-lg shadow transition font-bold flex items-center gap-2">
+                            <i class="fas fa-warehouse"></i> ۱. آپلود موجودی انبار
+                        </button>
+                    </div>
+                    
+                    <div class="relative group">
+                        <input type="file" id="line-inv-file" accept=".xlsx, .xls" class="hidden" onchange="handleLineInventoryUpload(event)">
+                        <button onclick="document.getElementById('line-inv-file').click()" class="bg-cyan-600 hover:bg-cyan-700 text-white px-5 py-2.5 rounded-lg shadow transition font-bold flex items-center gap-2">
+                            <i class="fas fa-conveyor-belt"></i> ۲. آپلود موجودی پای خط
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 bg-white px-4 py-2 rounded-lg border border-gray-300 shadow-sm">
+                    <label class="font-bold text-gray-700 text-sm">افق بحران (روز):</label>
+                    <input type="number" id="crisis-days" value="5" step="0.5" class="w-20 border border-gray-300 rounded px-2 py-1 text-center font-bold text-red-600 focus:ring-2 focus:ring-red-400">
+                    <button onclick="recalculateRisk()" class="bg-gray-800 hover:bg-black text-white px-4 py-1.5 rounded transition text-sm flex items-center gap-1">
+                        <i class="fas fa-sync-alt"></i> ۳. محاسبه مجدد
                     </button>
                 </div>
             </div>
 
-            <div class="mb-4 text-sm text-gray-600 bg-blue-50 p-3 rounded border border-blue-100 flex items-center gap-2">
-                <i class="fas fa-info-circle text-blue-500"></i>
-                <span id="report-summary-text">لطفاً ابتدا برنامه تولید را وارد کرده و دکمه محاسبه را بزنید. سپس برای محاسبه کسری، فایل اکسل موجودی را آپلود کنید.</span>
-            </div>
-            
-            <div id="report-table-wrapper" class="table-container overflow-y-auto border border-gray-300 rounded-lg p-0">
-                <table id="result-table" class="min-w-full border-collapse text-right text-sm">
-                    <thead class="bg-gray-100 border-b-2 border-gray-300 sticky top-0 z-10 shadow-sm">
-                        <tr>
-                            <th class="border border-gray-300 py-3 px-3 font-bold text-gray-700 w-12 text-center">ردیف</th>
-                            <th class="border border-gray-300 py-3 px-3 font-bold text-gray-700 w-32">کد کالا</th>
-                            <th class="border border-gray-300 py-3 px-3 font-bold text-gray-700 w-24">اداره</th>
-                            <th class="border border-gray-300 py-3 px-4 font-bold text-gray-700">شرح کالا</th>
-                            <th class="border border-gray-300 py-3 px-3 font-bold text-gray-700 w-24 text-center">واحد</th>
-                            <th class="border border-gray-300 py-3 px-4 font-bold text-blue-900 bg-blue-50 w-28 text-center">نیاز تولید (روز)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="report-tbody" class="bg-white divide-y divide-gray-200">
-                        <tr>
-                            <td colspan="6" class="py-12 text-center text-gray-400">لطفا ابتدا برنامه تولید را محاسبه کنید.</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div id="risk-status-msg" class="text-sm font-bold text-teal-600 mb-4 hidden"></div>
+
+            <div id="materials-risk-container" class="space-y-6">
+                <!-- Data populated by JS -->
+                <div class="text-center py-12 text-gray-400">
+                    <i class="fas fa-calculator text-5xl mb-3"></i>
+                    <p>برای مشاهده داشبورد ریسک، ابتدا در تب اول محاسبه را انجام دهید.</p>
+                </div>
             </div>
         </div>
 
-        <div id="tab-database" class="tab-content hidden bg-white shadow-sm rounded-b-xl rounded-tl-xl p-4 sm:p-6 mb-6">
-            <h2 class="text-lg font-bold text-gray-800 mb-2">پایگاه داده اصلی (BOM)</h2>
-            <p class="text-sm text-gray-500 mb-4 pb-4 border-b">این جدول ۶۲۳ ردیفی صرفاً جهت نمایش اطلاعات پایه‌ای است که سیستم از آن برای محاسبات استفاده می‌کند.</p>
-            
-            <div class="table-container overflow-auto border border-gray-300 rounded-lg text-xs">
-                <table class="min-w-full border-collapse text-right whitespace-nowrap">
-                    <thead class="bg-gray-100 border-b-2 border-gray-300 sticky top-0 z-10">
-                        <tr>
-                            <th class="border py-2 px-2">ردیف</th>
-                            <th class="border py-2 px-2">کد کالا</th>
-                            <th class="border py-2 px-4">شرح کالا</th>
-                            <th class="border py-2 px-2 bg-gray-200">معمولی</th>
-                            <th class="border py-2 px-2 bg-gray-200">پلاس</th>
-                            <th class="border py-2 px-2 bg-gray-200">CVT</th>
-                            <th class="border py-2 px-2 bg-blue-100">آریا</th>
-                            <th class="border py-2 px-2 bg-blue-100">اکستند</th>
-                            <th class="border py-2 px-2 bg-blue-100">151</th>
-                            <th class="border py-2 px-2 bg-green-100">x131</th>
-                            <th class="border py-2 px-2 bg-green-100">کوئیک</th>
-                            <th class="border py-2 px-2 bg-green-100">ساینا</th>
-                            <th class="border py-2 px-2 bg-yellow-100">اطلس</th>
-                            <th class="border py-2 px-2 bg-yellow-100">سهند</th>
-                            <th class="border py-2 px-2 bg-yellow-100">J4</th>
-                            <th class="border py-2 px-2 bg-yellow-100">x3</th>
-                        </tr>
-                    </thead>
-                    <tbody id="database-tbody" class="bg-white divide-y divide-gray-200">
-                        <!-- Populated by JS -->
-                    </tbody>
-                </table>
+        <!-- TAB 3: GENERAL BUDGET & FAMILIES (Combined) -->
+        <div id="tab-budget" class="tab-content bg-white shadow-sm rounded-b-xl rounded-tl-xl p-6 mb-6">
+            <div class="flex flex-col items-center justify-center py-8 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 mb-6">
+                <i class="fas fa-file-invoice-dollar text-5xl text-emerald-500 mb-3"></i>
+                <h2 class="text-xl font-bold text-gray-800 mb-2">بارگذاری فایل قیمت‌گذاری</h2>
+                <input type="file" id="price-file" accept=".xlsx, .xls" class="hidden" onchange="handlePriceUpload(event)">
+                <button onclick="document.getElementById('price-file').click()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-lg shadow transition font-bold flex items-center gap-2">
+                    <i class="fas fa-upload"></i> انتخاب فایل اکسل قیمت
+                </button>
+                <div id="price-status-msg" class="mt-2 text-sm font-bold text-emerald-600"></div>
+            </div>
+
+            <div id="general-budget-container" class="hidden">
+                <!-- KPIs -->
+                <div id="gen-fin-kpis" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"></div>
+                
+                <!-- AGGREGATED FAMILIES -->
+                <h3 class="text-xl font-bold mb-4 border-r-4 border-indigo-500 pr-3 text-gray-800">خریدهای تجمیعی بر اساس خانواده محصول</h3>
+                <div id="family-container" class="space-y-4 mb-8">
+                    <!-- JS Populated Families -->
+                </div>
+
+                <!-- TOP 20 & Others -->
+                <div id="gen-fin-tables"></div>
             </div>
         </div>
 
-        <div id="tab-financial" class="tab-content hidden bg-white shadow-sm rounded-b-xl rounded-tl-xl p-4 sm:p-6 mb-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b pb-4 gap-4">
-                <div>
-                    <h2 class="text-xl font-bold text-gray-800">تحلیل مالی و خرید (MRP)</h2>
-                    <p class="text-sm text-gray-500 mt-1">تخمین مقداری و ریالی هزینه‌های تولید و خرید متریال (با در نظر گرفتن موجودی انبار)</p>
-                </div>
-                <div class="flex gap-2 w-full sm:w-auto">
-                    <input type="file" id="price-file" accept=".xlsx, .xls" class="hidden" onchange="handlePriceUpload(event)">
-                    <button onclick="document.getElementById('price-file').click()" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 px-5 py-2.5 rounded-lg transition text-sm font-bold flex items-center gap-2 w-full justify-center shadow-sm">
-                        <i class="fas fa-file-invoice-dollar text-lg"></i> آپلود فایل قیمت‌ها
-                    </button>
-                </div>
+        <!-- TAB 4: FINANCIAL CRISIS (Old Tab 5) -->
+        <div id="tab-crisis" class="tab-content bg-white shadow-sm rounded-b-xl rounded-tl-xl p-6 mb-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-800 border-r-4 border-red-500 pr-3">تحلیل مالی اقلام بحرانی (نیاز به نقدینگی)</h2>
             </div>
-
-            <div class="mb-6 text-sm text-gray-600 bg-emerald-50 p-3 rounded-lg border border-emerald-100 flex items-center gap-2">
-                <i class="fas fa-info-circle text-emerald-500"></i>
-                <span id="finance-summary-text">برای محاسبه هزینه‌ها، لطفاً پس از اعمال برنامه تولید، فایل اکسل <strong>قیمت اقلام</strong> را آپلود کنید. (توجه: برای محاسبه دقیق هزینه خرید، فایل موجودی در تب دوم نیز باید آپلود شده باشد).</span>
-            </div>
-
-            <!-- KPI Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <!-- Daily -->
-                <div class="bg-white border-2 border-blue-100 rounded-xl p-4 shadow-sm relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-1 h-full bg-blue-500"></div>
-                    <h3 class="text-lg font-bold text-blue-900 mb-3 flex items-center gap-2"><i class="fas fa-calendar-day"></i> برنامه روزانه (۱ روز)</h3>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between items-center"><span class="text-gray-500">حجم قطعات مصرفی:</span> <span class="font-bold text-gray-800" id="kpi-daily-qty">0</span></div>
-                        <div class="flex justify-between items-center pt-2 border-t border-gray-100"><span class="text-gray-500">ارزش کل مصرف:</span> <span class="font-bold text-emerald-600" id="kpi-daily-cost">0</span> <span class="text-xs text-gray-400">ریال</span></div>
-                        <div class="flex justify-between items-center pt-2 border-t border-gray-100"><span class="text-gray-500 font-medium">بودجه خرید (برای کسری):</span> <span class="font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded" id="kpi-daily-shortage">0</span> <span class="text-xs text-gray-400">ریال</span></div>
-                    </div>
-                </div>
-                <!-- Weekly -->
-                <div class="bg-white border-2 border-amber-100 rounded-xl p-4 shadow-sm relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-1 h-full bg-amber-500"></div>
-                    <h3 class="text-lg font-bold text-amber-900 mb-3 flex items-center gap-2"><i class="fas fa-calendar-week"></i> برنامه هفتگی (۵ روز کاری)</h3>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between items-center"><span class="text-gray-500">حجم قطعات مصرفی:</span> <span class="font-bold text-gray-800" id="kpi-weekly-qty">0</span></div>
-                        <div class="flex justify-between items-center pt-2 border-t border-gray-100"><span class="text-gray-500">ارزش کل مصرف:</span> <span class="font-bold text-emerald-600" id="kpi-weekly-cost">0</span> <span class="text-xs text-gray-400">ریال</span></div>
-                        <div class="flex justify-between items-center pt-2 border-t border-gray-100"><span class="text-gray-500 font-medium">بودجه خرید (برای کسری):</span> <span class="font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded" id="kpi-weekly-shortage">0</span> <span class="text-xs text-gray-400">ریال</span></div>
-                    </div>
-                </div>
-                <!-- Monthly -->
-                <div class="bg-white border-2 border-purple-100 rounded-xl p-4 shadow-sm relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-1 h-full bg-purple-500"></div>
-                    <h3 class="text-lg font-bold text-purple-900 mb-3 flex items-center gap-2"><i class="fas fa-calendar-alt"></i> برنامه ماهانه (۲۰ روز کاری)</h3>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between items-center"><span class="text-gray-500">حجم قطعات مصرفی:</span> <span class="font-bold text-gray-800" id="kpi-monthly-qty">0</span></div>
-                        <div class="flex justify-between items-center pt-2 border-t border-gray-100"><span class="text-gray-500">ارزش کل مصرف:</span> <span class="font-bold text-emerald-600" id="kpi-monthly-cost">0</span> <span class="text-xs text-gray-400">ریال</span></div>
-                        <div class="flex justify-between items-center pt-2 border-t border-gray-100"><span class="text-gray-500 font-medium">بودجه خرید (برای کسری):</span> <span class="font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded" id="kpi-monthly-shortage">0</span> <span class="text-xs text-gray-400">ریال</span></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Categorized Purchasing Section -->
-            <div id="categorized-financials" class="space-y-4 mb-8">
+            
+            <div id="crisis-kpis" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <!-- Populated by JS -->
             </div>
 
-            <!-- Table section -->
-            <h3 class="text-lg font-bold text-gray-800 mb-3"><i class="fas fa-trophy text-amber-500 ml-1"></i> ۲۰ ردیف از پرهزینه‌ترین اقلام <span class="text-sm font-normal text-gray-500">(رتبه‌بندی بر اساس بیشترین بودجه مصرفی)</span></h3>
-            
-            <div class="table-container overflow-y-auto border border-gray-300 rounded-lg mb-4 shadow-sm">
-                <table class="min-w-full border-collapse text-right text-sm">
-                    <thead class="bg-gray-100 border-b-2 border-gray-300 sticky top-0 z-10">
-                        <tr>
-                            <th class="border border-gray-200 py-3 px-2 font-bold text-gray-700 w-12 text-center">ردیف</th>
-                            <th class="border border-gray-200 py-3 px-2 font-bold text-gray-700 w-28">کد کالا</th>
-                            <th class="border border-gray-200 py-3 px-3 font-bold text-gray-700">شرح کالا</th>
-                            <th class="border border-gray-200 py-3 px-2 font-bold text-blue-900 bg-blue-50 w-20 text-center">نیاز روز</th>
-                            <th class="border border-gray-200 py-3 px-2 font-bold text-red-900 bg-red-50 w-20 text-center">کسری روز</th>
-                            <th class="border border-gray-200 py-3 px-3 font-bold text-gray-700 w-28 text-center">فی (ریال)</th>
-                            <th class="border border-gray-200 py-3 px-3 font-bold text-emerald-900 bg-emerald-50 w-32 text-center">ارزش کل مصرف روزانه</th>
-                            <th class="border border-gray-200 py-3 px-3 font-bold text-rose-900 bg-rose-50 w-32 text-center">بودجه روزانه جهت خرید</th>
-                        </tr>
-                    </thead>
-                    <tbody id="finance-top-tbody" class="bg-white divide-y divide-gray-100">
-                        <tr><td colspan="8" class="py-8 text-center text-gray-400">لطفا ابتدا برنامه تولید را محاسبه کرده و سپس فایل قیمت را بارگذاری کنید.</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <details class="group bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
-                <summary class="flex justify-between items-center font-medium cursor-pointer list-none p-4 hover:bg-gray-100 transition-colors">
-                    <span class="text-indigo-700 font-bold"><i class="fas fa-list-ul ml-2"></i> نمایش سایر اقلام سیستم (<span id="others-count">0</span> مورد)</span>
-                    <span class="transition group-open:rotate-180"><i class="fas fa-chevron-down text-gray-400"></i></span>
-                </summary>
-                <div class="border-t border-gray-200">
-                    <div class="max-h-96 overflow-y-auto">
-                        <table class="min-w-full border-collapse text-right text-xs">
-                            <thead class="bg-gray-200 sticky top-0 z-10">
-                                <tr>
-                                    <th class="border border-gray-300 py-2 px-2 text-center w-12">ردیف</th>
-                                    <th class="border border-gray-300 py-2 px-2 w-28">کد کالا</th>
-                                    <th class="border border-gray-300 py-2 px-3">شرح کالا</th>
-                                    <th class="border border-gray-300 py-2 px-2 text-center w-16">نیاز</th>
-                                    <th class="border border-gray-300 py-2 px-2 text-center w-16">کسری</th>
-                                    <th class="border border-gray-300 py-2 px-2 text-center w-24">فی</th>
-                                    <th class="border border-gray-300 py-2 px-2 text-center w-28">ارزش مصرفی</th>
-                                    <th class="border border-gray-300 py-2 px-2 text-center w-28">بودجه خرید</th>
-                                </tr>
-                            </thead>
-                            <tbody id="finance-other-tbody" class="bg-white divide-y divide-gray-100">
-                                <!-- Populated by JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </details>
-        </div>
-
-        <!-- NEW TAB 5: Risk Finance -->
-        <div id="tab-risk-finance" class="tab-content hidden bg-white shadow-sm rounded-b-xl rounded-tl-xl p-4 sm:p-6 mb-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 border-b pb-4 gap-4">
-                <div>
-                    <h2 class="text-xl font-bold text-gray-800">تحلیل مالی اقلام بحرانی و برنامه‌ریزی نقدینگی خرید</h2>
-                    <p class="text-sm text-gray-500 mt-1">این بخش بر اساس کسریِ هفتگی (۵ روزه) اقلام در تب ۲ و قیمت‌های تب ۴ محاسبه و به تفکیک ساختار دسته‌بندی شده است.</p>
-                </div>
-            </div>
-            <div id="tab-risk-finance-content">
-                <div class="text-center py-12 text-gray-500">
-                    <i class="fas fa-info-circle text-4xl mb-4 block text-blue-300"></i>
-                    برای مشاهده این بخش، لطفاً ابتدا فایل موجودی (تب ۲) و فایل قیمت‌ها (تب ۴) را بارگذاری نمایید.
-                </div>
+            <div id="crisis-tables-container">
+                <div class="text-center py-8 text-gray-400">لطفا فایل‌های موجودی و قیمت را بارگذاری کنید.</div>
             </div>
         </div>
+
     </div>
 
     <script>
-        // The 17 specific car models from user's Daily Plan UI image
-        const DAILY_PLAN_MODELS = [
-            "131 صادرات", "151 بنرو", "212 سایپا", "212 پارس خودرو", "212 قرمز پارس خودرو",
-            "232 کاشان", "شاهین معمولی", "شاهین سی وی تی", "شاهین پلاس", "آریا",
-            "اطلس-اطلسs", "اطلس مارون", "سهند چرم", "سهند پارچه", "پادراپلاس",
-            "اکستند", "استراکچرx3"
+        // --- 1. DATA MODELS & STATE ---
+        const CAR_MODELS = [
+            { id: 'x131', name: '131 صادرات' },
+            { id: 'p151', name: '151 بنرو' },
+            { id: 'quick_s', name: '212 سایپا', mapTo: 'quick' },
+            { id: 'quick_p', name: '212 پارس خودرو', mapTo: 'quick' },
+            { id: 'quick_r', name: '212 قرمز پارس خودرو', mapTo: 'quick' },
+            { id: 'saina_k', name: '232 کاشان', mapTo: 'saina' },
+            { id: 'shahin_m', name: 'شاهین معمولی' },
+            { id: 'shahin_cvt', name: 'شاهین سی وی تی' },
+            { id: 'shahin_p', name: 'شاهین پلاس' },
+            { id: 'aria', name: 'آریا' },
+            { id: 'atlas_s', name: 'اطلس-اطلسs', mapTo: 'atlas' },
+            { id: 'atlas_m', name: 'اطلس مارون', mapTo: 'atlas' },
+            { id: 'sahand_l', name: 'سهند چرم', mapTo: 'sahand' },
+            { id: 'sahand_f', name: 'سهند پارچه', mapTo: 'sahand' },
+            { id: 'padra', name: 'پادراپلاس', mapTo: 'p151' }, // Fallback mapping based on BOM overlap
+            { id: 'extend', name: 'اکستند' },
+            { id: 'x3', name: 'استراکچر x3', mapTo: 'x3' }
         ];
 
-        // Mapping user UI inputs to the 13 BOM columns.
-        // Array index 0-12 maps to the 13 car columns in the provided TSV.
-        // Columns mapping based on typical Saipa platforms:
-        // [0]: شاهین معمولی, [1]: شاهین پلاس, [2]: شاهین CVT, [3]: آریا, [4]: اکستند, 
-        // [5]: 151, [6]: x131, [7]: کوئیک, [8]: ساینا, [9]: اطلس, [10]: سهند, [11]: J4, [12]: x3
-        const MODEL_TO_BOM_MAP = {
-            "131 صادرات": 6,          // x131
-            "151 بنرو": 5,            // 151
-            "212 سایپا": 7,           // کوئیک (212 platform)
-            "212 پارس خودرو": 7,      // کوئیک
-            "212 قرمز پارس خودرو": 7, // کوئیک
-            "232 کاشان": 8,           // ساینا (232 platform)
-            "شاهین معمولی": 0,        // شاهین معمولی
-            "شاهین سی وی تی": 2,      // شاهین CVT
-            "شاهین پلاس": 1,          // شاهین پلاس
-            "آریا": 3,                // آریا
-            "اطلس-اطلسs": 9,          // اطلس
-            "اطلس مارون": 9,          // اطلس
-            "سهند چرم": 10,           // سهند
-            "سهند پارچه": 10,         // سهند
-            "پادراپلاس": 4,           // اکستند (Zamyad related)
-            "اکستند": 4,              // اکستند
-            "استراکچرx3": 12          // x3
+        let state = {
+            productionPlan: {}, // { carId: { s1: 0, s2: 0 } }
+            totalMaterials: [], // array of objects with calculated daily need
+            warehouseInv: {},   // { itemCode: qty }
+            lineInv: {},        // { itemCode: qty }
+            prices: {},         // { itemCode: price }
+            crisisDays: 5
         };
 
-        // State variables
-        let dailyPlan = {};
-        let parsedBOM = [];
-        let reportData = []; // Array of calculated needs
-        let inventoryMap = {}; // Map of code -> qty
-        let priceMap = {}; // Map of code -> price
-        let financialData = []; // Array for financial sorting
+        // Date Display
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' });
 
-        // The exact data provided by user in the prompt text
-        const RAW_TSV_DATA = `1	#N/A	مونتاژ نهایی	35921169984	مجموعه روکش کامل صندلي X131	دستگاه	0	0	0	0	0	0	1	0	0	0	0	0	0
-2	#N/A	مونتاژ نهایی	35919709052	مجموعه کامل روکش هاي صندلي X232	دستگاه	0	0	0	0	0	0	0	0	1	0	0	0	0
-3	#N/A	مونتاژ نهایی	35919740304	مجموعه کامل روکش پارچه کوئیک بهینه	دستگاه	0	0	0	0	0	0	0	1	0	0	0	0	0
-4	تامین فلزی/غیرفلزی	مونتاژ نهایی	56400000	مجموعه کامل روکش صندلي SP100  سدان	دستگاه	1	1	0	0	0	0	0	0	0	0	0	0	0
-5	غیرفلزی	مونتاژ نهایی	35917740109	مجموعه کامل روکش صندلی پادرا پلاس	دستگاه	0	0	0	0	1	1	0	0	0	0	0	0	0
-6	غیرفلزی	مونتاژ نهایی	56402021	مجموعه کامل روکش صندلي شاهين CVT	دستگاه	0	0	1	0	0	0	0	0	0	0	0	0	0
-7	غیرفلزی	مونتاژ نهایی	56400950	مجموعه روکش چرمی کامل صندلی های آریا (صندلی های جلو و عقب)	دستگاه	0	0	0	1	0	0	0	0	0	0	0	0	0
-8	غیرفلزی	مونتاژ نهایی	33919740173	مجموعه روکش کامل ترکيبي چرم و پارچه بژ اطلس	دستگاه	0	0	0	0	0	0	0	0	0	1	0	0	0
-9	غیرفلزی	مونتاژ نهایی	33919740357	مجموعه کامل روکش پارچه مشکی سهند	دستگاه	0	0	0	0	0	0	0	0	0	0	1	0	0
-10	غیرفلزی	مونتاژ نهایی	37213110155	مجموعه سيني کفي صندلي جلو X100 و X200	عدد	0	0	0	0	2	2	2	2	2	2	2	2	0
-11	غیرفلزی	مونتاژ نهایی	28721110053	مجموعه کامل قفل کمربند ايمني راست  X200 و X100	عدد	0	0	0	0	0	0	1	0	0	0	0	0	0
-12	غیرفلزی	مونتاژ نهایی	18733110059	مجموعه کامل قفل کمربند ايمني سیم دار صندلي راست ساینا	عدد	0	0	0	0	0	0	0	0	1	0	0	0	0
-13	غیرفلزی	مونتاژ نهایی	28721130108	مجموعه کامل قفل کمربند ايمني چپ  X200 و X100-ساینا	عدد	0	0	0	0	0	0	1	0	1	0	0	0	0
-14	فلزی	مونتاژ نهایی	13926124104	قاب پلاستيکي مکانيزم چپ x200 و x100	عدد	0	0	0	0	0	0	1	0	1	0	0	0	0
-15	فلزی	مونتاژ نهایی	13926124151	قاب پلاستيکي مکانيزم راست x200 و x100	عدد	0	0	0	0	0	0	1	0	1	0	0	0	0
-16	فلزی	مونتاژ نهایی	13926124209	قاب قفل کمربند جلو چپ x200 و x100	عدد	0	0	0	0	0	0	1	0	1	0	0	0	0
-17	فلزی	مونتاژ نهایی	13926124256	قاب قفل کمربند جلو راست x200 و x100	عدد	0	0	0	0	0	0	1	0	1	0	0	0	0
-18	غیرفلزی	مونتاژ نهایی	13926081851	دستگيره پلاستيکي اهرم مکانيزم راست x200 و x100	عدد	0	0	0	0	0	0	1	0	1	0	0	0	0
-19	غیرفلزی	مونتاژ نهایی	13926081804	دستگيره پلاستيکي اهرم مکانيزم چپ x200 و x100	عدد	0	0	0	0	0	0	1	0	1	0	0	0	0
-20	غیرفلزی	مونتاژ نهایی	13926081909	دستگيره پلاستيکي تنظيم کننده ارتفاع x200 و x100	عدد	0	0	0	0	0	0	0	0	2	0	0	0	0
-21	غیرفلزی	مونتاژ نهایی	17318022817	پيچ شش گوش واشرفنري دار m10*20*1.25	عدد	0	0	0	0	8	8	8	8	8	8	8	0	0
-22	غیرفلزی	مونتاژ نهایی	17318022753	پيچ چهارسو واشردار 12*5 طلائي	عدد	0	0	0	0	0	0	0	2	2	2	2	0	0
-23	غیرفلزی	مونتاژ نهایی	17318022708	پيچ شش گوش واشردار 16*8	عدد	0	0	0	0	8	8	8	12	8	12	8	0	0
-24	غیرفلزی	مونتاژ نهایی	37221110258	مجموعه‌ سايد و پايه ‌لولا‌‌ و ريل‌ چپ‌ کفي‌ جلو راست x100	عدد	0	0	0	0	1	1	1	1	1	0	0	0	0
-25	فلزی	مونتاژ نهایی	37221110309	مجموعه سايد و مکانيزم و ريل راست کفي جلو راست X100	عدد	0	0	0	0	0	0	1	0	0	0	0	0	0
-26	فلزی	مونتاژ نهایی	37221130608	مجموعه سايد و مکانيزم و ريل چپ کفي جلو چپ X100 (بدون تنظيم کننده ارتفاع)	عدد	0	0	0	0	0	0	1	0	0	0	0	0	0
-27	فلزی	مونتاژ نهایی	37221130655	مجموعه سايد و پايه لولا و ريل راست کفي جلو چپ X100 (بدون تنظيم کننده ارتفاع)	عدد	0	0	0	0	0	0	1	0	0	0	0	0	0
-28	فلزی	مونتاژ نهایی	37203110058	مجموعه ریل و مکانیزم بیرونی صندلی چپ طرح جدید 151	عدد	0	0	0	0	0	1	0	0	0	0	0	0	0
-29	فلزی	مونتاژ نهایی	37203110109	مجموعه ریل و مکانیزم داخلی صندلی چپ طرح جدید 151	عدد	0	0	0	0	0	1	0	0	0	0	0	0	0
-30	فلزی	مونتاژ نهایی	37203110154	مجموعه ریل و مکانیزم بیرونی صندلی راست طرح جدید 151	عدد	0	0	0	0	0	1	0	0	0	0	0	0	0
-31	فلزی	مونتاژ نهایی	37203110209	مجموعه ریل و مکانیزم داخلی صندلی راست طرح جدید 151	عدد	0	0	0	0	0	1	0	0	0	0	0	0	0
-32	فلزی	مونتاژ نهایی	13920081505	روکش نايلون 75*160 X100	کيلو	0.15	0.15	0.15	3	0.15	0.26	0.2	0.26	0.26	0.15	0.15	0	0
-33	فلزی	مونتاژ نهایی	13920090261	روکش نايلوني دولايه   th=0.04 mm , 400*350 mm	کيلو	0.05	0.05	0.05	0.05	0.05	0.05	0.05	0.05	0.05	0.05	0.05	0	0
-34	فلزی	مونتاژ نهایی	33903175106	روکش ‌نايلوني0/6*1000*1600پشتي عقب X131 و X132	کيلو	0.12	0.12	0.12	0	0	0	0.12	0	0.12	0	0.12	0	0
-35	فلزی	مونتاژ نهایی	33902186953	روکش ‌نايلوني0/6*650*900 پشتي‌ عقب X111 و X141	کيلو	0	0	0	0.1	0.07	0.1	0	0.1	0	0	0	0	0
-36	غیرفلزی	مونتاژ نهایی	17318024005	پيچ خودکار چهارسوسر عدسي واشر سر خود14*5	عدد	6	6	6	6	8	8	8	8	8	8	8	0	0
-37	غیرفلزی	مونتاژ نهایی	23913120109	صفحه کارتن پلاست پشتي صندلي جلو X100 و X200	عدد	0	0	0	0	0	0	2	2	2	2	2	0	0
-38	غیرفلزی	مونتاژ نهایی	17317020206	بست‌ اگراف ‌بادي ‌	عدد	126	126	126	126	40	40	126	126	126	80	126	0	0
-39	غیرفلزی	مونتاژ نهایی	17318060104	اشپيل28*2	عدد	0	0	0	0	0	0	0	1	1	1	1	0	0
-40	فلزی	ریل ومکانیزم-مونتاژ نهایی	27219130507	مجموعه اهرم جلوئي تنظيم کننده ارتفاع x200(ريل توليد داخل)	عدد	0	0	0	0	0	0	0	0	0	1	1	1	0
-41	غیرفلزی	ریل ومکانیزم-مونتاژ نهایی	27219130458	مجموعه اهرم عقبي تنظيم کننده ارتفاع x200(ريل توليد داخل)	عدد	0	0	0	0	0	0	0	0	0	1	1	1	0
-42	فلزی	مونتاژ نهایی	27213130659	مجموعه اهرم عقبي تنظيم کننده ارتفاع X100  و X200	عدد	0	0	0	0	1	0	0	1	1	1	1	1	0
-43	غیرفلزی	مونتاژ نهایی	27213130708	مفتول برگشت تنظيم کننده ارتفاع X100  و X200	عدد	0	0	0	0	1	0	0	1	1	1	1	1	0
-44	فلزی	مونتاژ نهایی	27213130755	مجموعه اهرم جلويي تنظيم کننده ارتفاع X100  و X200	عدد	0	0	0	0	1	0	0	1	1	1	1	1	0
-45	فلزی	مونتاژ نهایی	27313130055	فنرلول بزرگ اسفنج دار X100  و X200	عدد	0	0	0	0	1	0	0	1	1	1	1	1	0
-46	فلزی	مونتاژ نهایی	37221130409	مجموعه سايد و پايه لولا و ريل راست کفي جلو چپ x100(باتنظيم کننده ارتفاع)	عدد	0	0	0	0	0	0	0	1	1	0	0	0	0
-47	فلزی	مونتاژ نهایی	37219110309	مجموعه‌سايدو مکانيزم ‌‌وريل ‌راست ‌کفي‌جلو راست‌ x200	عدد	0	0	0	0	0	0	0	1	1	0	0	0	0
-48	فلزی	مونتاژ نهایی	37219130505	مجموعه سايد و مکانيزم و ريل چپ کفي جلو چپ X200	عدد	0	0	0	0	0	0	0	1	1	0	0	0	0
-49	فلزی	مونتاژ نهایی	13920081823	روکش نايلوني 1000*800 ميليمتر با برش عرضي	کيلو	0	0	0	0.13	0	0	0	0.13	0	0.13	0	0	0
-50	فلزی	مونتاژ نهایی	13926161009	مجموعه مقر پلاستيکي قفل دار هدرست عقب- X211	عدد	0	0	0	0	0	0	0	0	3	0	0	0	0
-51	فلزی	مونتاژ نهایی	13926161056	 مقر پلاستيکي ساده هدرست عقب- X211	عدد	0	0	0	0	0	0	0	0	3	0	0	0	0
-52	فلزی	مونتاژ نهایی	13926040206	مقر هدرست جلو X211	عدد	0	0	0	0	0	0	0	0	2	0	0	0	0
-53	غیرفلزی	مونتاژ نهایی	13926161069	مجموعه مقر هدرست  جلو X211	عدد	0	0	0	0	0	0	0	0	2	0	0	0	0
-54	غیرفلزی	مونتاژ نهایی	13926125352	قاب پلاستيکي قلاب بالايي پشتي عقب - X211	عدد	0	0	0	0	0	0	0	2	0	2	0	0	0
-55	غیرفلزی	مونتاژ نهایی	17318024452	پيچ سرعدسي ستاره اي  M5*14  - ST-X211	عدد	0	0	0	0	0	0	0	2	0	2	0	0	0
-56	غیرفلزی	مونتاژ نهایی	13926125553	بوش پلاستيکي لبه دار  Ø10.5*11.5	عدد	0	0	0	0	0	0	0	4	0	4	0	0	0
-57	غیرفلزی	مونتاژ نهایی	17318040278	مهره شش گوش فلنجي M10*8	عدد	0	0	0	0	0	0	0	1	0	1	0	0	0
-58	غیرفلزی	مونتاژ نهایی	33901158457	نایلون صداگیر کفی جلو 700*700 میلیمتر یک لا	کيلو	0	0	0	0	0.02	0.02	0.02	0.02	0.02	0.02	0.02	0	0
-59	فلزی	مونتاژ نهایی	13926161026	مجموعه مقر هدرست پلاستيکي بلند عقب X212 (مشکي رنگ)	عدد	0	0	0	0	0	0	0	3	0	3	3	0	0
-60	غیرفلزی	مونتاژ نهایی	13926040302	مقرهدرست ساده پلاستيکي عقب X212 - مشکي رنگ	عدد	0	0	0	0	0	0	0	3	0	3	3	0	0
-61	فلزی	مونتاژ نهایی	13926125628	قاب پلاستيکي پايه لولاي مياني - X212	عدد	0	0	0	0	0	0	0	1	0	1	0	0	0
-62	غیرفلزی	مونتاژ نهایی	18708211582	مجموعه کامل کمر بند ايمني پشتي عقب 2/3 - X212	عدد	0	0	0	0	0	0	0	1	0	1	0	0	0
-63	غیرفلزی	مونتاژ نهایی	13926040253	مقر هدرست جلو X212 (مشکي رنگ)	عدد	0	0	0	0	2	2	0	2	0	0	0	0	0
-64	غیرفلزی	مونتاژ نهایی	13926161084	مجموعه مقر پلاستيکي هدرست جلو X212 (مشکي رنگ)	عدد	0	0	0	0	2	2	0	2	0	0	0	0	0
-65	غیرفلزی	مونتاژ نهایی	13926082753	دستگيره پلاستيکي تنظيم کننده ارتفاع X212	عدد	0	0	0	0	0	0	0	2	0	2	2	0	0
-66	فلزی	مونتاژ نهایی	13926082779	دستگيره پلاستيکي اهرم مکانيزم راست X212	عدد	0	0	0	0	1	1	0	1	0	0	0	0	0
-67	غیرفلزی	مونتاژ نهایی	13926082796	دستگيره پلاستيکي اهرم مکانيزم چپ X212	عدد	0	0	0	0	1	1	0	1	0	0	0	0	0
-68	غیرفلزی	مونتاژ نهایی	13926125863	قاب پلاستيکي مکانيزم صندلي جلو راست  X212	عدد	0	0	0	0	1	1	0	1	0	0	0	0	0
-69	غیرفلزی	مونتاژ نهایی	13926145916	قاب پلاستيکي مکانيزم صندلي جلو چپ  X212	عدد	0	0	0	0	1	1	0	1	0	0	0	0	0
-70	غیرفلزی	مونتاژ نهایی	13926125859	قاب قفل کمربند جلو راست  X212	عدد	0	0	0	0	1	0	0	1	0	0	0	0	0
-71	غیرفلزی	مونتاژ نهایی	13926145854	قاب قفل کمربند جلو چپ X212	عدد	0	0	0	0	1	0	0	1	0	0	0	0	0
-72	غیرفلزی	مونتاژ نهایی	18708211541	مجموعه کامل قفل کمربند ايمني چپ X212	عدد	0	0	0	0	0	0	0	1	0	1	1	0	0
-73	غیرفلزی	مونتاژ نهایی	18708191102	مجموعه کامل کمربند ايمني صندلي جلو راست سيم دار اطلس	عدد	0	0	0	0	0	0	0	1	0	1	1	0	0
-74	غیرفلزی	مونتاژ نهایی	27219700067	مجموعه فريم مفتولي کفي 2/3 عقب 211 طرح جديد	عدد	0	0	0	0	0	0	0	1	0	1	0	0	0
+        // --- 2. BOM DATA PARSER ---
+        const BOM_TSV_DATA = `1	#N/A	مونتاژ نهایی	35921169984	مجموعه روکش کامل صندلي X131	دستگاه	0	0	0	0	0	0	1	0	0	0	0	0	
+2	#N/A	مونتاژ نهایی	35919709052	مجموعه کامل روکش هاي صندلي X232	دستگاه	0	0	0	0	0	0	0	0	1	0	0	0	
+3	#N/A	مونتاژ نهایی	35919740304	مجموعه کامل روکش پارچه کوئیک بهینه	دستگاه	0	0	0	0	0	0	0	1	0	0	0	0	
+4	تامین فلزی/غیرفلزی	مونتاژ نهایی	56400000	مجموعه کامل روکش صندلي SP100  سدان	دستگاه	1	1	0	0	0	0	0	0	0	0	0	0	
+5	غیرفلزی	مونتاژ نهایی	35917740109	مجموعه کامل روکش صندلی پادرا پلاس	دستگاه	0	0	0	0	1	1	0	0	0	0	0	0	
+6	غیرفلزی	مونتاژ نهایی	56402021	مجموعه کامل روکش صندلي شاهين CVT	دستگاه	0	0	1	0	0	0	0	0	0	0	0	0	
+7	غیرفلزی	مونتاژ نهایی	56400950	مجموعه روکش چرمی کامل صندلی های آریا (صندلی های جلو و عقب)	دستگاه	0	0	0	1	0	0	0	0	0	0	0	0	
+8	غیرفلزی	مونتاژ نهایی	33919740173	مجموعه روکش کامل ترکيبي چرم و پارچه بژ اطلس	دستگاه	0	0	0	0	0	0	0	0	0	1	0	0	
+9	غیرفلزی	مونتاژ نهایی	33919740357	مجموعه کامل روکش پارچه مشکی سهند	دستگاه	0	0	0	0	0	0	0	0	0	0	1	0	
+10	غیرفلزی	مونتاژ نهایی	37213110155	مجموعه سيني کفي صندلي جلو X100 و X200	عدد	0	0	0	0	2	2	2	2	2	2	2	2	
+11	غیرفلزی	مونتاژ نهایی	28721110053	مجموعه کامل قفل کمربند ايمني راست  X200 و X100	عدد	0	0	0	0	0	0	1	0	0	0	0	0	
+12	غیرفلزی	مونتاژ نهایی	18733110059	مجموعه کامل قفل کمربند ايمني سیم دار صندلي راست ساینا	عدد	0	0	0	0	0	0	0	0	1	0	0	0	
+13	غیرفلزی	مونتاژ نهایی	28721130108	مجموعه کامل قفل کمربند ايمني چپ  X200 و X100-ساینا	عدد	0	0	0	0	0	0	1	0	1	0	0	0	
+14	فلزی	مونتاژ نهایی	13926124104	قاب پلاستيکي مکانيزم چپ x200 و x100	عدد	0	0	0	0	0	0	1	0	1	0	0	0	
+15	فلزی	مونتاژ نهایی	13926124151	قاب پلاستيکي مکانيزم راست x200 و x100	عدد	0	0	0	0	0	0	1	0	1	0	0	0	
+16	فلزی	مونتاژ نهایی	13926124209	قاب قفل کمربند جلو چپ x200 و x100	عدد	0	0	0	0	0	0	1	0	1	0	0	0	
+17	فلزی	مونتاژ نهایی	13926124256	قاب قفل کمربند جلو راست x200 و x100	عدد	0	0	0	0	0	0	1	0	1	0	0	0	
+18	غیرفلزی	مونتاژ نهایی	13926081851	دستگيره پلاستيکي اهرم مکانيزم راست x200 و x100	عدد	0	0	0	0	0	0	1	0	1	0	0	0	
+19	غیرفلزی	مونتاژ نهایی	13926081804	دستگيره پلاستيکي اهرم مکانيزم چپ x200 و x100	عدد	0	0	0	0	0	0	1	0	1	0	0	0	
+20	غیرفلزی	مونتاژ نهایی	13926081909	دستگيره پلاستيکي تنظيم کننده ارتفاع x200 و x100	عدد	0	0	0	0	0	0	0	0	2	0	0	0	
+21	غیرفلزی	مونتاژ نهایی	17318022817	پيچ شش گوش واشرفنري دار m10*20*1.25	عدد	0	0	0	0	8	8	8	8	8	8	8	0	
+22	غیرفلزی	مونتاژ نهایی	17318022753	پيچ چهارسو واشردار 12*5 طلائي	عدد	0	0	0	0	0	0	0	2	2	2	2	0	
+23	غیرفلزی	مونتاژ نهایی	17318022708	پيچ شش گوش واشردار 16*8	عدد	0	0	0	0	8	8	8	12	8	12	8	0	
+24	غیرفلزی	مونتاژ نهایی	37221110258	مجموعه‌ سايد و پايه ‌لولا‌‌ و ريل‌ چپ‌ کفي‌ جلو راست x100	عدد	0	0	0	0	1	1	1	1	1	0	0	0	
+25	فلزی	مونتاژ نهایی	37221110309	مجموعه سايد و مکانيزم و ريل راست کفي جلو راست X100	عدد	0	0	0	0	0	0	1	0	0	0	0	0	
+26	فلزی	مونتاژ نهایی	37221130608	مجموعه سايد و مکانيزم و ريل چپ کفي جلو چپ X100 (بدون تنظيم کننده ارتفاع)	عدد	0	0	0	0	0	0	1	0	0	0	0	0	
+27	فلزی	مونتاژ نهایی	37221130655	مجموعه سايد و پايه لولا و ريل راست کفي جلو چپ X100 (بدون تنظيم کننده ارتفاع)	عدد	0	0	0	0	0	0	1	0	0	0	0	0	
+28	فلزی	مونتاژ نهایی	37203110058	مجموعه ریل و مکانیزم بیرونی صندلی چپ طرح جدید 151	عدد	0	0	0	0	0	1	0	0	0	0	0	0	
+29	فلزی	مونتاژ نهایی	37203110109	مجموعه ریل و مکانیزم داخلی صندلی چپ طرح جدید 151	عدد	0	0	0	0	0	1	0	0	0	0	0	0	
+30	فلزی	مونتاژ نهایی	37203110154	مجموعه ریل و مکانیزم بیرونی صندلی راست طرح جدید 151	عدد	0	0	0	0	0	1	0	0	0	0	0	0	
+31	فلزی	مونتاژ نهایی	37203110209	مجموعه ریل و مکانیزم داخلی صندلی راست طرح جدید 151	عدد	0	0	0	0	0	1	0	0	0	0	0	0	
+32	فلزی	مونتاژ نهایی	13920081505	روکش نايلون 75*160 X100	کيلو	0.15	0.15	0.15	3	0.15	0.26	0.2	0.26	0.26	0.15	0.15	0	
+33	فلزی	مونتاژ نهایی	13920090261	روکش نايلوني دولايه  th=0.04 mm , 400*350 mm	کيلو	0.05	0.05	0.05	0.05	0.05	0.05	0.05	0.05	0.05	0.05	0.05	0	
+34	فلزی	مونتاژ نهایی	33903175106	روکش ‌نايلوني0/6*1000*1600پشتي عقب X131 و X132	کيلو	0.12	0.12	0.12	0	0	0	0.12	0	0.12	0	0.12	0	
+35	فلزی	مونتاژ نهایی	33902186953	روکش ‌نايلوني0/6*650*900 پشتي‌ عقب X111 و X141	کيلو	0	0	0	0.1	0.07	0.1	0	0.1	0	0	0	0	
+36	غیرفلزی	مونتاژ نهایی	17318024005	پيچ خودکار چهارسوسر عدسي واشر سر خود14*5	عدد	6	6	6	6	8	8	8	8	8	8	8	0	
+37	غیرفلزی	مونتاژ نهایی	23913120109	صفحه کارتن پلاست پشتي صندلي جلو X100 و X200	عدد	0	0	0	0	0	0	2	2	2	2	2	0	
+38	غیرفلزی	مونتاژ نهایی	17317020206	بست‌ اگراف ‌بادي ‌	عدد	126	126	126	126	40	40	126	126	126	80	126	0	
+39	غیرفلزی	مونتاژ نهایی	17318060104	اشپيل28*2	عدد	0	0	0	0	0	0	0	1	1	1	1	0	
+40	فلزی	ریل ومکانیزم-مونتاژ نهایی	27219130507	مجموعه اهرم جلوئي تنظيم کننده ارتفاع x200(ريل توليد داخل)	عدد	0	0	0	0	0	0	0	0	0	1	1	1	
+41	غیرفلزی	ریل ومکانیزم-مونتاژ نهایی	27219130458	مجموعه اهرم عقبي تنظيم کننده ارتفاع x200(ريل توليد داخل)	عدد	0	0	0	0	0	0	0	0	0	1	1	1	
+42	فلزی	مونتاژ نهایی	27213130659	مجموعه اهرم عقبي تنظيم کننده ارتفاع X100  و X200	عدد	0	0	0	0	1	0	0	1	1	1	1	1	
+43	غیرفلزی	مونتاژ نهایی	27213130708	مفتول برگشت تنظيم کننده ارتفاع X100  و X200	عدد	0	0	0	0	1	0	0	1	1	1	1	1	
+44	فلزی	مونتاژ نهایی	27213130755	مجموعه اهرم جلويي تنظيم کننده ارتفاع X100  و X200	عدد	0	0	0	0	1	0	0	1	1	1	1	1	
+45	فلزی	مونتاژ نهایی	27313130055	فنرلول بزرگ اسفنج دار X100  و X200	عدد	0	0	0	0	1	0	0	1	1	1	1	1	
+46	فلزی	مونتاژ نهایی	37221130409	مجموعه سايد و پايه لولا و ريل راست کفي جلو چپ x100(باتنظيم کننده ارتفاع)	عدد	0	0	0	0	0	0	0	1	1	0	0	0	
+47	فلزی	مونتاژ نهایی	37219110309	مجموعه‌سايدو مکانيزم ‌‌وريل ‌راست ‌کفي‌جلو راست‌ x200	عدد	0	0	0	0	0	0	0	1	1	0	0	0	
+48	فلزی	مونتاژ نهایی	37219130505	مجموعه سايد و مکانيزم و ريل چپ کفي جلو چپ X200	عدد	0	0	0	0	0	0	0	1	1	0	0	0	
+49	فلزی	مونتاژ نهایی	13920081823	روکش نايلوني 1000*800 ميليمتر با برش عرضي	کيلو	0	0	0	0.13	0	0	0	0.13	0	0.13	0	0	
+50	فلزی	مونتاژ نهایی	13926161009	مجموعه مقر پلاستيکي قفل دار هدرست عقب- X211	عدد	0	0	0	0	0	0	0	0	3	0	0	0	
+51	فلزی	مونتاژ نهایی	13926161056	 مقر پلاستيکي ساده هدرست عقب- X211	عدد	0	0	0	0	0	0	0	0	3	0	0	0	
+52	فلزی	مونتاژ نهایی	13926040206	مقر هدرست جلو X211	عدد	0	0	0	0	0	0	0	0	2	0	0	0	
+53	غیرفلزی	مونتاژ نهایی	13926161069	مجموعه مقر هدرست  جلو X211	عدد	0	0	0	0	0	0	0	0	2	0	0	0	
+54	غیرفلزی	مونتاژ نهایی	13926125352	قاب پلاستيکي قلاب بالايي پشتي عقب - X211	عدد	0	0	0	0	0	0	0	2	0	2	0	0	
+55	غیرفلزی	مونتاژ نهایی	17318024452	پيچ سرعدسي ستاره اي  M5*14  - ST-X211	عدد	0	0	0	0	0	0	0	2	0	2	0	0	
+56	غیرفلزی	مونتاژ نهایی	13926125553	بوش پلاستيکي لبه دار  Ø10.5*11.5	عدد	0	0	0	0	0	0	0	4	0	4	0	0	
+57	غیرفلزی	مونتاژ نهایی	17318040278	مهره شش گوش فلنجي M10*8	عدد	0	0	0	0	0	0	0	1	0	1	0	0	
+58	غیرفلزی	مونتاژ نهایی	33901158457	نایلون صداگیر کفی جلو 700*700 میلیمتر یک لا	کيلو	0	0	0	0	0.02	0.02	0.02	0.02	0.02	0.02	0.02	0	
+59	فلزی	مونتاژ نهایی	13926161026	مجموعه مقر هدرست پلاستيکي بلند عقب X212 (مشکي رنگ)	عدد	0	0	0	0	0	0	0	3	0	3	3	0	
+60	غیرفلزی	مونتاژ نهایی	13926040302	مقرهدرست ساده پلاستيکي عقب X212 - مشکي رنگ	عدد	0	0	0	0	0	0	0	3	0	3	3	0	
+61	فلزی	مونتاژ نهایی	13926125628	قاب پلاستيکي پايه لولاي مياني - X212	عدد	0	0	0	0	0	0	0	1	0	1	0	0	
+62	غیرفلزی	مونتاژ نهایی	18708211582	مجموعه کامل کمر بند ايمني پشتي عقب 2/3 - X212	عدد	0	0	0	0	0	0	0	1	0	1	0	0	
+63	غیرفلزی	مونتاژ نهایی	13926040253	مقر هدرست جلو X212 (مشکي رنگ)	عدد	0	0	0	0	2	2	0	2	0	0	0	0	
+64	غیرفلزی	مونتاژ نهایی	13926161084	مجموعه مقر پلاستيکي هدرست جلو X212 (مشکي رنگ)	عدد	0	0	0	0	2	2	0	2	0	0	0	0	
+65	غیرفلزی	مونتاژ نهایی	13926082753	دستگيره پلاستيکي تنظيم کننده ارتفاع X212	عدد	0	0	0	0	0	0	0	2	0	2	2	0	
+66	فلزی	مونتاژ نهایی	13926082779	دستگيره پلاستيکي اهرم مکانيزم راست X212	عدد	0	0	0	0	1	1	0	1	0	0	0	0	
+67	غیرفلزی	مونتاژ نهایی	13926082796	دستگيره پلاستيکي اهرم مکانيزم چپ X212	عدد	0	0	0	0	1	1	0	1	0	0	0	0	
+68	غیرفلزی	مونتاژ نهایی	13926125863	قاب پلاستيکي مکانيزم صندلي جلو راست  X212	عدد	0	0	0	0	1	1	0	1	0	0	0	0	
+69	غیرفلزی	مونتاژ نهایی	13926145916	قاب پلاستيکي مکانيزم صندلي جلو چپ  X212	عدد	0	0	0	0	1	1	0	1	0	0	0	0	
+70	غیرفلزی	مونتاژ نهایی	13926125859	قاب قفل کمربند جلو راست  X212	عدد	0	0	0	0	1	0	0	1	0	0	0	0	
+71	غیرفلزی	مونتاژ نهایی	13926145854	قاب قفل کمربند جلو چپ X212	عدد	0	0	0	0	1	0	0	1	0	0	0	0	
+72	غیرفلزی	مونتاژ نهایی	18708211541	مجموعه کامل قفل کمربند ايمني چپ X212	عدد	0	0	0	0	0	0	0	1	0	1	1	0	
+73	غیرفلزی	مونتاژ نهایی	18708191102	مجموعه کامل کمربند ايمني صندلي جلو راست سيم دار اطلس	عدد	0	0	0	0	0	0	0	1	0	1	1	0	
+74	غیرفلزی	مونتاژ نهایی	27219700067	مجموعه فريم مفتولي کفي 2/3 عقب 211 طرح جديد	عدد	0	0	0	0	0	0	0	1	0	1	0	0	
 75	غیرفلزی	مونتاژ نهایی	27219720062	مجموعه فريم مفتولي کفي 1/3 عقب 211 طرح جديد	عدد	0	0	0	0	0	0	0	1	0	1	0	0	0
-76	فلزی	مونتاژ نهایی	27219720045	مجموعه فریم کفی 1/3 صندلی عقب کوییک/اطلس طرح جدید	عدد	0	0	0	0	0	0	0	1	0	1	0	0	0
-77	فلزی	مونتاژ نهایی	27219731135	مجموعه قفل جانبی پشتی عقب راست 211/212 بهینه	عدد	0	0	0	0	0	0	0	1	0	1	0	0	0
-78	فلزی	مونتاژ نهایی	27219731118	مجموعه قفل جانبی پشتی عقب چپ 211/212 بهینه	عدد	0	0	0	0	0	0	0	1	0	1	0	0	0
-79	فلزی	مونتاژ نهایی	13926081817	مجموعه آزاد کن پلاستيکي قفل پشتي صندلي عقب 211 بهينه	عدد	0	0	0	0	0	0	0	2	0	2	0	0	0
-80	فلزی	مونتاژ نهایی	37230122014	مجموعه فريم پشتي جلو راست برليانس H300	عدد	0	0	0	0	0	0	0	0	0	1	1	0	0
-81	فلزی	مونتاژ نهایی	37230142033	مجموعه فریم پشتی جلو چپ برلیانس H300 (بدون گودی کمر)	عدد	0	0	0	0	0	0	0	0	0	1	1	0	0
-82	فلزی	مونتاژ نهایی	13926161443	مقرپلاستيکي ساده هدرست برليانس (مشکي رنگ)	عدد	0	0	0	0	0	0	0	0	0	2	2	0	0
-83	غیرفلزی	مونتاژ نهایی	13926161469	مجموعه مقر پلاستيکي قفل دار هدرست  (مشکي رنگ)	عدد	0	0	0	0	0	0	0	0	0	2	2	0	0
-84	فلزی	مونتاژ نهایی	13926125985	قاب پلاستيکي مکانيزم راست برليانس H300 (مشکي رنگ)	عدد	0	0	0	0	0	0	0	0	0	1	1	0	0
-85	فلزی	مونتاژ نهایی	13926145895	قاب پلاستيکي مکانيزم چپ برليانس H300 (مشکي رنگ)	عدد	0	0	0	0	0	0	0	0	0	1	1	0	0
-86	غیرفلزی	مونتاژ نهایی	13926145762	قاب قفل کمربند جلو راست اطلس و سهند	عدد	0	0	0	0	0	0	0	0	0	1	1	0	0
-87	غیرفلزی	مونتاژ نهایی	13926145775	قاب قفل کمربند جلو چپ اطلس و سهند	عدد	0	0	0	0	0	0	0	0	0	1	1	0	0
-88	غیرفلزی	مونتاژ نهایی	13934120057	دستگيره پلاستيکي اهرم مکانيزم راست اطلس با لمینه پشت چسب دار	عدد	0	0	0	0	0	0	0	0	0	1	1	0	0
-89	غیرفلزی	مونتاژ نهایی	13934140057	دستگيره پلاستيکي اهرم مکانيزم چپ اطلس با لمینه پشت چسب دار	عدد	0	0	0	0	0	0	0	0	0	1	1	0	0
-90	غیرفلزی	فوم-مونتاژ نهایی	27299990555	مفتولL=430mm#	عدد	4	4	4	4	4	4	4	4	4	4	4	0	0
-91	غیرفلزی	مونتاژ نهایی	27219173554	مجموعه فريم پشتي عقب ساينا job2	عدد	0	0	0	0	0	0	0	0	1	0	1	0	0
-92	غیرفلزی	ریل ومکانیزم-مونتاژ نهایی	27213110603	سيم رابط آزاد کننده ريل X100 و X200	عدد	0	0	0	0	2	2	2	2	2	2	2	2	0
-93	غیرفلزی	ریل ومکانیزم-مونتاژ نهایی	27219130657	سيم رابط روکش دار آزاد کننده ريل 	عدد	0	0	0	0	2	2	2	2	2	2	2	2	0
-94	فلزی	ریل ومکانیزم-مونتاژ نهایی	17318121652	واشر مخروطي   0.5*8*18	عدد	0	0	0	0	0	0	0	1	1	1	1	1	0
-95	فلزی	فوم-مونتاژ نهایی	17217040609	مفتول فنري L=180mm , D=2mm	عدد	0	0	0	0	0	0	0	1	0	1	0	0	0
-96	فلزی	فوم-مونتاژ نهایی	27299990957	مفتولL=370mm . D=2mm	عدد	6	6	6	0	0	0	0	0	0	0	0	0	0
-97	فلزی	مونتاژ نهایی	56401064	روکش نايلوني دو لايه 400*450	کیلوگرم	0.2	0.02	0.02	0.02	0	0	0	0	0	0.02	0.02	0	0
-98	غیرفلزی	مونتاژ نهایی	56301140	 مجموعه مقر پلاستيکي قفل دار هدرست جلو و عقب صندلي SP100	عدد	5	5	5	5	0	0	0	0	0	0	0	0	0
-99	فلزی	مونتاژ نهایی	56301139	 مقر پلاستيکي ساده هدرست جلو و عقب صندلي SP100	عدد	5	5	5	5	0	0	0	0	0	0	0	0	0
-100	فلزی	مونتاژ نهایی	56301161	 قاب پلاستيکي بزرگ صندلي جلو  چپ   SP100	عدد	1	0	1	0	0	0	0	0	0	0	0	0	0
-101	غیرفلزی	مونتاژ نهایی	56301162	 قاب پلاستيکي بزرگ صندلي جلو راست SP100	عدد	1	1	1	0	0	0	0	0	0	0	0	0	0
-102	غیرفلزی	مونتاژ نهایی	56301173	 قاب پلاستيکي کوچک صندلي جلو  چپ  SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-103	غیرفلزی	مونتاژ نهایی	56301174	 قاب پلاستيکي کوچک صندلي جلو راست   SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-104	غیرفلزی	مونتاژ نهایی	56400611	دستگیره بالابر چینی صندلی جلوچپSP100-کدجدید	عدد	1	1	1	0	0	0	0	0	0	0	0	0	0
-105	غیرفلزی	مونتاژ نهایی	56301188	 درپوش پلاستيکي بالابر صندلي جلو  چپ  SP100	عدد	1	1	1	0	0	0	0	0	0	0	0	0	0
-106	غیرفلزی	مونتاژ نهایی	56301201	 درپوش پلاستيکي اهرم مکانيزم صندلي جلو   SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-107	غیرفلزی	مونتاژ نهایی	56301250	براکت فلزي نگهدارنده مجموعه دسته سيم هاي صندلي جلو SP100	عدد	1	2	1	2	0	0	0	0	0	0	0	0	0
-108	غیرفلزی	مونتاژ نهایی	56301252	ميخ پرچ سر تخت ?5.0 X 1.2t	عدد	4	2	4	2	0	0	0	0	0	0	0	0	0
-109	غیرفلزی	مونتاژ نهایی	56301241	مجموعه قفل کمربند صندلي جلو چپ SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-110	غیرفلزی	مونتاژ نهایی	56301274	مجموعه فنر موجي پاييني پشتي صندلي جلو SP100	عدد	4	4	4	4	0	0	0	0	0	0	0	0	0
-111	فلزی	مونتاژ نهایی	56301302	پیچ سر ستاره ای M12 اتصال فریم کفی به فریم پشتی صندلی جلو SP100	عدد	8	8	8	8	0	0	0	0	0	0	0	0	0
-112	غیرفلزی	مونتاژ نهایی	56301246	مجموعه فنر سينوسي کفي صندلي جلو SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-113	فلزی	مونتاژ نهایی	56301160	پيچ خودکار چهارسو اتصال قاب پلاستيکي صندلي جلو SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-114	فلزی	مونتاژ نهایی	56401011	پيچ (10*7/16) سر پريز کمربند صندلي جلو  Sp100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-115	فلزی	فوم-مونتاژ نهایی	56500295	مفتول فنري U شکل روکش  SP100	عدد	4	4	4	2	0	0	0	0	0	0	0	0	0
-116	غیرفلزی	مونتاژ نهایی	56301528	مجموعه کليپس پلاستيکي نصب کفي صندلي عقب SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-117	فلزی	مونتاژ نهایی	56301116	مجموعه فريم و مکانيزم هدرست صندلي جلو SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-118	فلزی	مونتاژ نهایی	56400365	دستگيره رکلاينر جلو چپ SP100 (رکلاينر داخلي)	عدد	1	0	1	0	0	0	0	0	0	0	0	0	0
-119	فلزی	مونتاژ نهایی	56400366	دستگيره رکلاينر جلو راست SP100 (رکلاينر داخلي)	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-120	غیرفلزی	مونتاژ نهایی	56400373	پيچ خودکار دستگيره رکلاينر ST4.8*20  SP100	عدد	6	3	6	3	0	0	0	0	0	4	4	0	0
-121	فلزی	مونتاژ نهایی	56400627	پیچ سر مته 1/2*8 اتصال روکش کفی به پشتی	عدد	4	4	4	4	0	0	0	0	0	0	0	0	0
-122	غیرفلزی	مونتاژ نهایی	13926100059	ضربگيرسرفنر صندلي‌ پرايد	كيلو گرم	0.03	0.03	0.03	0	0	0	0	0	0	0	0	0	0
-123	غیرفلزی	مونتاژ نهایی	37299131106	مجموعه ساید و ریل راست کفی جلو چپ اطلس و سهند	عدد	0	0	0	0	0	0	0	0	0	1	1	0	0
-124	فلزی	مونتاژ نهایی	37299131153	مجموعه ساید و ریل چپ کفی جلو چپ اطلس و سهند	عدد	0	0	0	0	0	0	0	0	0	1	1	0	0
-125	غیرفلزی	مونتاژ نهایی	37299111102	مجموعه ساید و ریل راست کفی جلو راست اطلس و سهند	عدد	0	0	0	0	0	0	0	0	0	1	1	0	0
-126	غیرفلزی	مونتاژ نهایی	37299111154	مجموعه ساید و ریل چپ کفی جلو راست اطلس و سهند	عدد	0	0	0	0	0	0	0	0	0	1	1	0	0
-127	فلزی	مونتاژ نهایی	37217110306	مجموعه سايد و مکانيزم و ريل راست کفي جلو راست پادرا پلاس	عدد	0	0	0	0	1	0	0	0	0	0	0	0	0
-128	فلزی	مونتاژ نهایی	37217110353	مجموعه سايد و پايه لولا و ريل چپ کفي جلو راست پادرا پلاس	عدد	0	0	0	0	1	0	0	0	0	0	0	0	0
-129	فلزی	مونتاژ نهایی	37217130301	مجموعه سايد و مکانيزم و ريل چپ کفي جلو چپ پادرا پلاس	عدد	0	0	0	0	1	0	0	0	0	0	0	0	0
-130	فلزی	مونتاژ نهایی	37217130357	مجموعه سايد و پايه لولا و ريل راست کفي جلو چپ پادرا پلاس	عدد	0	0	0	0	1	0	0	0	0	0	0	0	0
-131	فلزی	مونتاژ نهایی	56401989	مجموعه ریل و پایه های چپ صندلی جلو چپ برقی	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-132	فلزی	مونتاژ نهایی	56401990	مجموعه ریل و پایه های راست صندلی جلو چپ برقی	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-133	فلزی	مونتاژ نهایی	56400644	دسته سیم موتور های اتصال به کفی صندلی برقی جلو چپ	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-134	فلزی	مونتاژ نهایی	56400882	پک CKD چینی هولدر موتور ریل برقی sp100	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-135	فلزی	مونتاژ نهایی	56400641	 قاب پلاستیکی بزرگ صندلی برقی جلو  چپ   SP100	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-136	فلزی	مونتاژ نهایی	56400643	کلید 6 حرکته صندلی برقی جلو چپ	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-137	فلزی	مونتاژ نهایی	56400642	موتور رکلاینر	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-138	فلزی	مونتاژ نهایی	56400953	دسته سیم موتور های اتصال به پشتی صندلی برقی جلو چپ	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-139	غیرفلزی	مونتاژ نهایی	56400639	لینک رابط رکلاینر صندلی برقی SP100	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-140	فلزی	مونتاژ نهایی	56400920	بوش 14.5*7 به طول 18 برای پشت پیچ موتور رکلاینر	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-141	فلزی	مونتاژ نهایی	56400897	پیج M6*1 به طول 55  (حداقل سر رزوه 15 میلی متر)	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-142	فلزی	مونتاژ نهایی	56400648	مجموعه موتور بالابر صندلی برقی جلو چپ SP100	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-143	فلزی	مونتاژ نهایی	56402034	پک کامل گرمکن صندلي شاهين	عدد	0	0	0	2	0	0	0	0	0	0	0	0	0
-144	فلزی	مونتاژ نهایی	13931110151	بست کمربندی خاردار	عدد	0	15	0	15	0	0	0	0	0	0	0	0	0
-145	غیرفلزی	مونتاژ نهایی	13931110106	خار سوکت بیضی	عدد	0	2	0	2	0	0	0	0	0	0	0	0	0
-146	فلزی	مونتاژ نهایی	56401983	پیچ آلنی پله دار هولدر ریل برقی صندلی جلو چپ SP100 	عدد	0	4	0	4	0	0	0	0	0	0	0	0	0
-147	فلزی	مونتاژ نهایی	56401984	پیچ خودکار اتصال کلید 6 حرکته صندلی برقی	عدد	0	2	0	2	0	0	0	0	0	0	0	0	0
-148	غیرفلزی	مونتاژ نهایی	17318121803	واشر قفل دندانه دار	عدد	0	4	0	4	0	0	0	0	0	0	0	0	0
-149	غیرفلزی	مونتاژ نهایی	56400922	 قاب پلاستیکی بزرگ صندلی جلو راست -SP100-CVT	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-150	فلزی	مونتاژ نهایی	56301222	سنسور وزن  تشخیص سرنشین صندلی جلو راست شاهین-کوئیک-ساینا-151-اکستند (SBR)	عدد	1	1	1	1	1	1	0	1	1	0	0	0	0
-151	غیرفلزی	مونتاژ نهایی	18534110052	سنسور وزن تشخیص سرنشین صندلی جلو راست (SBR) اطلس و سهند	عدد	0	0	0	0	0	0	0	0	0	1	1	0	0
-152	غیرفلزی	مونتاژ نهایی	56303101	مجموعه قفل جانبی صندلی آریا 60%	عدد	0	0	0	1	0	0	0	0	0	0	0	0	0
-153	غیرفلزی	مونتاژ نهایی	56303001	مجموعه قفل جانبی صندلی آریا 40%	عدد	0	0	0	1	0	0	0	0	0	0	0	0	0
-154	غیرفلزی	مونتاژ نهایی	56402139	مجموعه قفل جانبی صندلی آریا 60% ساخت داخل 	عدد	0	0	0	1	0	0	0	0	0	0	0	0	0
-155	غیرفلزی	مونتاژ نهایی	56402138	مجموعه قفل جانبی صندلی آریا 40%ساخت داخل 	عدد	0	0	0	1	0	0	0	0	0	0	0	0	0
-156	فلزی	مونتاژ نهایی	53051223	بوش لولای مرکزی	عدد	0	0	0	1	0	0	0	0	0	0	0	0	0
-157	فلزی	مونتاژ نهایی	56301952	بوش لولای پشتی 40%	عدد	0	0	0	1	0	0	0	0	0	0	0	0	0
-158	فلزی	مونتاژ نهایی	56301969	مجموعه آزاد کن پلاستیکی قفل پشتی 60% صندلی عقب SP100 کراس	عدد	0	0	0	1	0	0	0	0	0	0	0	0	0
-159	فلزی	مونتاژ نهایی	56301962	مجموعه آزاد کن پلاستیکی قفل پشتی 40% صندلی عقب SP100 کراس	عدد	0	0	0	1	0	0	0	0	0	0	0	0	0
-160	غیرفلزی	مونتاژ نهایی	56301961	کاور پلاستیکی نصب قلاب کمربند صندلی کودک SP100 کراس	عدد	0	0	0	2	0	0	0	0	0	0	0	0	0
-161	غیرفلزی	مونتاژ نهایی	56301957	کمربند عقب وسط  پشتی 60%  صندلی SP100کراس	عدد	0	0	0	1	0	0	0	0	0	0	0	0	0
-162	غیرفلزی	مونتاژ نهایی	13926126213	قاب پلاستیکی میانی کمربند صندلی عقب برلیانس H320	عدد	0	0	0	1	0	0	0	0	0	0	0	0	0
+76	فلزی	مونتاژ نهایی	27219720045	مجموعه فریم کفی 1/3 صندلی عقب کوییک/اطلس طرح جدید	عدد	0	0	0	0	0	0	0	1	0	1	0	0	
+77	فلزی	مونتاژ نهایی	27219731135	مجموعه قفل جانبی پشتی عقب راست 211/212 بهینه	عدد	0	0	0	0	0	0	0	1	0	1	0	0	
+78	فلزی	مونتاژ نهایی	27219731118	مجموعه قفل جانبی پشتی عقب چپ 211/212 بهینه	عدد	0	0	0	0	0	0	0	1	0	1	0	0	
+79	فلزی	مونتاژ نهایی	13926081817	مجموعه آزاد کن پلاستيکي قفل پشتي صندلي عقب 211 بهينه	عدد	0	0	0	0	0	0	0	2	0	2	0	0	
+80	فلزی	مونتاژ نهایی	37230122014	مجموعه فريم پشتي جلو راست برليانس H300	عدد	0	0	0	0	0	0	0	0	0	1	1	0	
+81	فلزی	مونتاژ نهایی	37230142033	مجموعه فریم پشتی جلو چپ برلیانس H300 (بدون گودی کمر)	عدد	0	0	0	0	0	0	0	0	0	1	1	0	
+82	فلزی	مونتاژ نهایی	13926161443	مقرپلاستيکي ساده هدرست برليانس (مشکي رنگ)	عدد	0	0	0	0	0	0	0	0	0	2	2	0	
+83	غیرفلزی	مونتاژ نهایی	13926161469	مجموعه مقر پلاستيکي قفل دار هدرست  (مشکي رنگ)	عدد	0	0	0	0	0	0	0	0	0	2	2	0	
+84	فلزی	مونتاژ نهایی	13926125985	قاب پلاستيکي مکانيزم راست برليانس H300 (مشکي رنگ)	عدد	0	0	0	0	0	0	0	0	0	1	1	0	
+85	فلزی	مونتاژ نهایی	13926145895	قاب پلاستيکي مکانيزم چپ برليانس H300 (مشکي رنگ)	عدد	0	0	0	0	0	0	0	0	0	1	1	0	
+86	غیرفلزی	مونتاژ نهایی	13926145762	قاب قفل کمربند جلو راست اطلس و سهند	عدد	0	0	0	0	0	0	0	0	0	1	1	0	
+87	غیرفلزی	مونتاژ نهایی	13926145775	قاب قفل کمربند جلو چپ اطلس و سهند	عدد	0	0	0	0	0	0	0	0	0	1	1	0	
+88	غیرفلزی	مونتاژ نهایی	13934120057	دستگيره پلاستيکي اهرم مکانيزم راست اطلس با لمینه پشت چسب دار	عدد	0	0	0	0	0	0	0	0	0	1	1	0	
+89	غیرفلزی	مونتاژ نهایی	13934140057	دستگيره پلاستيکي اهرم مکانيزم چپ اطلس با لمینه پشت چسب دار	عدد	0	0	0	0	0	0	0	0	0	1	1	0	
+90	غیرفلزی	فوم-مونتاژ نهایی	27299990555	مفتولL=430mm#	عدد	4	4	4	4	4	4	4	4	4	4	4	0	
+91	غیرفلزی	مونتاژ نهایی	27219173554	مجموعه فريم پشتي عقب ساينا job2	عدد	0	0	0	0	0	0	0	0	1	0	1	0	
+92	غیرفلزی	ریل ومکانیزم-مونتاژ نهایی	27213110603	سيم رابط آزاد کننده ريل X100 و X200	عدد	0	0	0	0	2	2	2	2	2	2	2	2	
+93	غیرفلزی	ریل ومکانیزم-مونتاژ نهایی	27219130657	سيم رابط روکش دار آزاد کننده ريل 	عدد	0	0	0	0	2	2	2	2	2	2	2	2	
+94	فلزی	ریل ومکانیزم-مونتاژ نهایی	17318121652	واشر مخروطي   0.5*8*18	عدد	0	0	0	0	0	0	0	1	1	1	1	1	
+95	فلزی	فوم-مونتاژ نهایی	17217040609	مفتول فنري L=180mm , D=2mm	عدد	0	0	0	0	0	0	0	1	0	1	0	0	
+96	فلزی	فوم-مونتاژ نهایی	27299990957	مفتولL=370mm . D=2mm	عدد	6	6	6	0	0	0	0	0	0	0	0	0	
+97	فلزی	مونتاژ نهایی	56401064	روکش نايلوني دو لايه 400*450	کیلوگرم	0.2	0.02	0.02	0.02	0	0	0	0	0	0.02	0.02	0	
+98	غیرفلزی	مونتاژ نهایی	56301140	 مجموعه مقر پلاستيکي قفل دار هدرست جلو و عقب صندلي SP100	عدد	5	5	5	5	0	0	0	0	0	0	0	0	
+99	فلزی	مونتاژ نهایی	56301139	 مقر پلاستيکي ساده هدرست جلو و عقب صندلي SP100	عدد	5	5	5	5	0	0	0	0	0	0	0	0	
+100	فلزی	مونتاژ نهایی	56301161	 قاب پلاستيکي بزرگ صندلي جلو  چپ   SP100	عدد	1	0	1	0	0	0	0	0	0	0	0	0	
+101	غیرفلزی	مونتاژ نهایی	56301162	 قاب پلاستيکي بزرگ صندلي جلو راست SP100	عدد	1	1	1	0	0	0	0	0	0	0	0	0	
+102	غیرفلزی	مونتاژ نهایی	56301173	 قاب پلاستيکي کوچک صندلي جلو  چپ   SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+103	غیرفلزی	مونتاژ نهایی	56301174	 قاب پلاستيکي کوچک صندلي جلو راست   SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+104	غیرفلزی	مونتاژ نهایی	56400611	دستگیره بالابر چینی صندلی جلوچپSP100-کدجدید	عدد	1	1	1	0	0	0	0	0	0	0	0	0	
+105	غیرفلزی	مونتاژ نهایی	56301188	 درپوش پلاستيکي بالابر صندلي جلو  چپ   SP100	عدد	1	1	1	0	0	0	0	0	0	0	0	0	
+106	غیرفلزی	مونتاژ نهایی	56301201	 درپوش پلاستيکي اهرم مکانيزم صندلي جلو   SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+107	غیرفلزی	مونتاژ نهایی	56301250	براکت فلزي نگهدارنده مجموعه دسته سيم هاي صندلي جلو SP100	عدد	1	2	1	2	0	0	0	0	0	0	0	0	
+108	غیرفلزی	مونتاژ نهایی	56301252	ميخ پرچ سر تخت ?5.0 X 1.2t	عدد	4	2	4	2	0	0	0	0	0	0	0	0	
+109	غیرفلزی	مونتاژ نهایی	56301241	مجموعه قفل کمربند صندلي جلو چپ SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+110	غیرفلزی	مونتاژ نهایی	56301274	مجموعه فنر موجي پاييني پشتي صندلي جلو SP100	عدد	4	4	4	4	0	0	0	0	0	0	0	0	
+111	فلزی	مونتاژ نهایی	56301302	پیچ سر ستاره ای M12 اتصال فریم کفی به فریم پشتی صندلی جلو SP100	عدد	8	8	8	8	0	0	0	0	0	0	0	0	
+112	غیرفلزی	مونتاژ نهایی	56301246	مجموعه فنر سينوسي کفي صندلي جلو SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+113	فلزی	مونتاژ نهایی	56301160	پيچ خودکار چهارسو اتصال قاب پلاستيکي صندلي جلو SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+114	فلزی	مونتاژ نهایی	56401011	پيچ (10*7/16) سر پريز کمربند صندلي جلو  Sp100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+115	فلزی	فوم-مونتاژ نهایی	56500295	مفتول فنري U شکل روکش  SP100	عدد	4	4	4	2	0	0	0	0	0	0	0	0	
+116	غیرفلزی	مونتاژ نهایی	56301528	مجموعه کليپس پلاستيکي نصب کفي صندلي عقب SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+117	فلزی	مونتاژ نهایی	56301116	مجموعه فريم و مکانيزم هدرست صندلي جلو SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+118	فلزی	مونتاژ نهایی	56400365	دستگيره رکلاينر جلو چپ SP100 (رکلاينر داخلي)	عدد	1	0	1	0	0	0	0	0	0	0	0	0	
+119	فلزی	مونتاژ نهایی	56400366	دستگيره رکلاينر جلو راست SP100 (رکلاينر داخلي)	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+120	غیرفلزی	مونتاژ نهایی	56400373	پيچ خودکار دستگيره رکلاينر ST4.8*20  SP100	عدد	6	3	6	3	0	0	0	0	0	4	4	0	
+121	فلزی	مونتاژ نهایی	56400627	پیچ سر مته 1/2*8 اتصال روکش کفی به پشتی	عدد	4	4	4	4	0	0	0	0	0	0	0	0	
+122	غیرفلزی	مونتاژ نهایی	13926100059	ضربگيرسرفنر صندلي‌ پرايد	كيلو گرم	0.03	0.03	0.03	0	0	0	0	0	0	0	0	0	
+123	غیرفلزی	مونتاژ نهایی	37299131106	مجموعه ساید و ریل راست کفی جلو چپ اطلس و سهند	عدد	0	0	0	0	0	0	0	0	0	1	1	0	
+124	فلزی	مونتاژ نهایی	37299131153	مجموعه ساید و ریل چپ کفی جلو چپ اطلس و سهند	عدد	0	0	0	0	0	0	0	0	0	1	1	0	
+125	غیرفلزی	مونتاژ نهایی	37299111102	مجموعه ساید و ریل راست کفی جلو راست اطلس و سهند	عدد	0	0	0	0	0	0	0	0	0	1	1	0	
+126	غیرفلزی	مونتاژ نهایی	37299111154	مجموعه ساید و ریل چپ کفی جلو راست اطلس و سهند	عدد	0	0	0	0	0	0	0	0	0	1	1	0	
+127	فلزی	مونتاژ نهایی	37217110306	مجموعه سايد و مکانيزم و ريل راست کفي جلو راست پادرا پلاس	عدد	0	0	0	0	1	0	0	0	0	0	0	0	
+128	فلزی	مونتاژ نهایی	37217110353	مجموعه سايد و پايه لولا و ريل چپ کفي جلو راست پادرا پلاس	عدد	0	0	0	0	1	0	0	0	0	0	0	0	
+129	فلزی	مونتاژ نهایی	37217130301	مجموعه سايد و مکانيزم و ريل چپ کفي جلو چپ پادرا پلاس	عدد	0	0	0	0	1	0	0	0	0	0	0	0	
+130	فلزی	مونتاژ نهایی	37217130357	مجموعه سايد و پايه لولا و ريل راست کفي جلو چپ پادرا پلاس	عدد	0	0	0	0	1	0	0	0	0	0	0	0	
+131	فلزی	مونتاژ نهایی	56401989	مجموعه ریل و پایه های چپ صندلی جلو چپ برقی	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+132	فلزی	مونتاژ نهایی	56401990	مجموعه ریل و پایه های راست صندلی جلو چپ برقی	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+133	فلزی	مونتاژ نهایی	56400644	دسته سیم موتور های اتصال به کفی صندلی برقی جلو چپ	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+134	فلزی	مونتاژ نهایی	56400882	پک CKD چینی هولدر موتور ریل برقی sp100	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+135	فلزی	مونتاژ نهایی	56400641	 قاب پلاستیکی بزرگ صندلی برقی جلو  چپ   SP100	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+136	فلزی	مونتاژ نهایی	56400643	کلید 6 حرکته صندلی برقی جلو چپ	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+137	فلزی	مونتاژ نهایی	56400642	موتور رکلاینر	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+138	فلزی	مونتاژ نهایی	56400953	دسته سیم موتور های اتصال به پشتی صندلی برقی جلو چپ	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+139	غیرفلزی	مونتاژ نهایی	56400639	لینک رابط رکلاینر صندلی برقی SP100	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+140	فلزی	مونتاژ نهایی	56400920	بوش 14.5*7 به طول 18 برای پشت پیچ موتور رکلاینر	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+141	فلزی	مونتاژ نهایی	56400897	پیج M6*1 به طول 55  (حداقل سر رزوه 15 میلی متر)	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+142	فلزی	مونتاژ نهایی	56400648	مجموعه موتور بالابر صندلی برقی جلو چپ SP100	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+143	فلزی	مونتاژ نهایی	56402034	پک کامل گرمکن صندلي شاهين	عدد	0	0	0	2	0	0	0	0	0	0	0	0	
+144	فلزی	مونتاژ نهایی	13931110151	بست کمربندی خاردار	عدد	0	15	0	15	0	0	0	0	0	0	0	0	
+145	غیرفلزی	مونتاژ نهایی	13931110106	خار سوکت بیضی	عدد	0	2	0	2	0	0	0	0	0	0	0	0	
+146	فلزی	مونتاژ نهایی	56401983	پیچ آلنی پله دار هولدر ریل برقی صندلی جلو چپ SP100 	عدد	0	4	0	4	0	0	0	0	0	0	0	0	
+147	فلزی	مونتاژ نهایی	56401984	پیچ خودکار اتصال کلید 6 حرکته صندلی برقی	عدد	0	2	0	2	0	0	0	0	0	0	0	0	
+148	غیرفلزی	مونتاژ نهایی	17318121803	واشر قفل دندانه دار	عدد	0	4	0	4	0	0	0	0	0	0	0	0	
+149	غیرفلزی	مونتاژ نهایی	56400922	 قاب پلاستیکی بزرگ صندلی جلو راست -SP100-CVT	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+150	فلزی	مونتاژ نهایی	56301222	سنسور وزن  تشخیص سرنشین صندلی جلو راست شاهین-کوئیک-ساینا-151-اکستند (SBR)	عدد	1	1	1	1	1	1	0	1	1	0	0	0	
+151	غیرفلزی	مونتاژ نهایی	18534110052	سنسور وزن تشخیص سرنشین صندلی جلو راست (SBR) اطلس و سهند	عدد	0	0	0	0	0	0	0	0	0	1	1	0	
+152	غیرفلزی	مونتاژ نهایی	56303101	مجموعه قفل جانبی صندلی آریا 60%	عدد	0	0	0	1	0	0	0	0	0	0	0	0	
+153	غیرفلزی	مونتاژ نهایی	56303001	مجموعه قفل جانبی صندلی آریا 40%	عدد	0	0	0	1	0	0	0	0	0	0	0	0	
+154	غیرفلزی	مونتاژ نهایی	56402139	مجموعه قفل جانبی صندلی آریا 60% ساخت داخل 	عدد	0	0	0	1	0	0	0	0	0	0	0	0	
+155	غیرفلزی	مونتاژ نهایی	56402138	مجموعه قفل جانبی صندلی آریا 40%ساخت داخل 	عدد	0	0	0	1	0	0	0	0	0	0	0	0	
+156	فلزی	مونتاژ نهایی	53051223	بوش لولای مرکزی	عدد	0	0	0	1	0	0	0	0	0	0	0	0	
+157	فلزی	مونتاژ نهایی	56301952	بوش لولای پشتی 40%	عدد	0	0	0	1	0	0	0	0	0	0	0	0	
+158	فلزی	مونتاژ نهایی	56301969	مجموعه آزاد کن پلاستیکی قفل پشتی 60% صندلی عقب SP100 کراس	عدد	0	0	0	1	0	0	0	0	0	0	0	0	
+159	فلزی	مونتاژ نهایی	56301962	مجموعه آزاد کن پلاستیکی قفل پشتی 40% صندلی عقب SP100 کراس	عدد	0	0	0	1	0	0	0	0	0	0	0	0	
+160	غیرفلزی	مونتاژ نهایی	56301961	کاور پلاستیکی نصب قلاب کمربند صندلی کودک SP100 کراس	عدد	0	0	0	2	0	0	0	0	0	0	0	0	
+161	غیرفلزی	مونتاژ نهایی	56301957	کمربند عقب وسط  پشتی 60%  صندلی SP100کراس	عدد	0	0	0	1	0	0	0	0	0	0	0	0	
+162	غیرفلزی	مونتاژ نهایی	13926126213	قاب پلاستیکی میانی کمربند صندلی عقب برلیانس H320	عدد	0	0	0	1	0	0	0	0	0	0	0	0	
 163	غیرفلزی	مونتاژ نهایی	37299140258	مجموعه فریم پشتی جلو چپ  جک	عدد	0	0	0	0	0	0	0	0	0	0	0	1	1
 164	غیرفلزی	مونتاژ نهایی	37299120305	مجموعه فریم پشتی جلو راست جک 	عدد	0	0	0	0	0	0	0	0	0	0	0	1	1
-165	غیرفلزی	فوم	27221170054	مجموعه فريم پشتي عقب X131&X132	عدد	0	0	0	0	0	0	1	0	0	0	0	0	0
-166	غیرفلزی	فوم	27221161507	مجموعه فريم کفي عقب X131&X132 و(EURO IV)	عدد	0	0	0	0	0	0	1	0	0	0	0	0	0
-167	فلزی	فوم	27299991403	مفتول L=320mm , D2mm	عدد	15	15	15	15	14	14	26	20	27	10	19	0	0
-168	فلزی	فوم	27219710909	مفتول فنري عرضي پشتي عقب - X211	عدد	0	0	0	0	0	0	0	5	0	5	0	0	0
-169	فلزی	فوم	27219710851	مفتول فنري بالايي فوم پشتي عقب 2/3 - X211	عدد	0	0	0	0	0	0	0	1	0	1	0	0	0
-170	فلزی	فوم	27219150357	مجموعه فريم هدرست صندلي جلوX211و131  (طرح جديد)	عدد	0	0	0	0	0	0	2	0	0	0	0	0	0
-171	فلزی	فوم	27219550103	فريم هدرست عقب ساينا job2	عدد	0	0	0	0	0	0	0	0	3	0	3	0	0
-172	فلزی	فوم	27219150122	مجموعه فريم فلزي هدرست تيلت دار صندلي جلو X232	عدد	0	0	0	0	2	2	0	2	2	0	0	0	0
-173	فلزی	فوم	13403010867	واکس PUR 713	كيلوگرم	0.058	0.058	0.058	0.058	0.058	0.058	0.058	0.068	0.067	0.068	0.067	0	0
-174	فلزی	فوم	12903010103	حلال پايه هيدروکربن آليفاتيک سبک	كيلوگرم	0.381	0.381	0.381	0.381	0.2	0.2	0.38	0.422	0.404	0.422	0.404	0	0
-175	غیرفلزی	فوم	12929010076	ايزوسيانات DHR-B9000	كيلوگرم	4.725	4.725	4.725	4.725	1.886	1.886	4.069	3.962	4.312	3.962	4.312	0	0
-176	غیرفلزی	فوم	12905010072	پلي ال DHR-A3745	کیلوگرم	6.843	6.843	6.843	6.843	2.704	2.704	4.95	5.628	6.056	5.628	6.056	0	0
-177	غیرفلزی	فوم	27219163554	مجموعه فريم کفي عقب ساينا job2	عدد	0	0	0	0	0	0	0	0	1	0	1	0	0
-178	غیرفلزی	فوم	27299990702	مفتولL=250mm . D=2mm ريو#	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-179	فلزی	فوم-مونتاژ نهایی	27299996744	مفتول فنری قطر 2داخل فوم دوخم کفی عقب کوییک بهینه	عدد	0	0	0	0	0	0	0	4	0	4	0	0	0
-180	فلزی	فوم-مونتاژ نهایی	17217446055	مفتول خمدار کفی عقب کوئیک بهینه	عدد	0	0	0	0	0	0	0	4	0	4	0	0	0
-181	فلزی	فوم	56301908	فريم هدرست مياني صندلي عقب SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-182	فلزی	فوم	56301928	فريم هدرست کناري صندلي عقب SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-183	فلزی	فوم	56301024	مفتول فنري ?2.0 X  458L فوم کفي صندلي جلوSP100	عدد	4	4	4	4	0	0	0	0	0	0	0	0	0
-184	فلزی	فوم	56301043	مفتول فنري ?2.0 X 262.0L فوم پشتي صندلي جلوSP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-185	فلزی	فوم	56301531	مفتول فنري  ?2.0 X 438L	عدد	4	4	4	1	0	0	0	0	0	0	0	0	0
-186	فلزی	فوم	56301514	مجموعه فریم کفی صندلی عقب sp100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-187	فلزی	فوم	56500297	مفتول خمکاري شده فوم پشتي جلو sp100	عدد	4	4	4	4	0	0	0	0	0	0	0	0	0
-188	فلزی	فوم	27219550067	فریم هدرست عقب 211-212 طرح جدید 	عدد	0	0	0	0	0	0	0	3	0	3	0	0	0
-189	فلزی	فوم	27219150361	مجموعه فريم فلزي هدرست تيلت دار صندلي جلو اطلس	عدد	0	0	0	0	0	0	0	0	0	2	2	0	0
-190	فلزی	ریل ومکانیزم	27299110106	پايه جلويي ريل راست کفي راست J4 	عدد	0	0	0	0	0	0	0	0	0	0	0	1	0
-191	فلزی	ریل ومکانیزم	27299130101	پايه جلويي ريل چپ کفي چپ J4	عدد	0	0	0	0	0	0	0	0	0	0	0	1	0
-192	فلزی	ریل ومکانیزم	27299110153	پایه عقبی ریل چپ کفي راست J4	عدد	0	0	0	0	0	0	0	0	0	0	0	1	0
-193	فلزی	ریل ومکانیزم	27299130157	پایه عقبی ریل راست کفي چپ J4	عدد	0	0	0	0	0	0	0	0	0	0	0	1	0
-194	فلزی	ریل ومکانیزم	27299110202	پایه عقبي ريل راست کفي راست J4	عدد	0	0	0	0	0	0	0	0	0	0	0	1	0
-195	فلزی	ریل ومکانیزم	27299130206	پایه عقبي ريل چپ کفي چپ J4	عدد	0	0	0	0	0	0	0	0	0	0	0	1	0
-196	فلزی	ریل ومکانیزم	27299110057	پایه جلویی ریل چپ کفي راست  J4	عدد	0	0	0	0	0	0	0	0	0	0	0	1	0
-197	فلزی	ریل ومکانیزم	27299130057	پایه جلویی ریل راست کفي چپ  J4	عدد	0	0	0	0	0	0	0	0	0	0	0	1	0
+165	غیرفلزی	فوم	27221170054	مجموعه فريم پشتي عقب X131&X132	عدد	0	0	0	0	0	0	1	0	0	0	0	0	
+166	غیرفلزی	فوم	27221161507	مجموعه فريم کفي عقب X131&X132 و(EURO IV)	عدد	0	0	0	0	0	0	1	0	0	0	0	0	
+167	فلزی	فوم	27299991403	مفتول L=320mm , D2mm	عدد	15	15	15	15	14	14	26	20	27	10	19	0	
+168	فلزی	فوم	27219710909	مفتول فنري عرضي پشتي عقب - X211	عدد	0	0	0	0	0	0	0	5	0	5	0	0	
+169	فلزی	فوم	27219710851	مفتول فنري بالايي فوم پشتي عقب 2/3 - X211	عدد	0	0	0	0	0	0	0	1	0	1	0	0	
+170	فلزی	فوم	27219150357	مجموعه فريم هدرست صندلي جلوX211و131  (طرح جديد)	عدد	0	0	0	0	0	0	2	0	0	0	0	0	
+171	فلزی	فوم	27219550103	فريم هدرست عقب ساينا job2	عدد	0	0	0	0	0	0	0	0	3	0	3	0	
+172	فلزی	فوم	27219150122	مجموعه فريم فلزي هدرست تيلت دار صندلي جلو X232	عدد	0	0	0	0	2	2	0	2	2	0	0	0	
+173	فلزی	فوم	13403010867	واکس PUR 713	كيلوگرم	0.058	0.058	0.058	0.058	0.058	0.058	0.058	0.068	0.067	0.068	0.067	0	
+174	فلزی	فوم	12903010103	حلال پايه هيدروکربن آليفاتيک سبک	كيلوگرم	0.381	0.381	0.381	0.381	0.2	0.2	0.38	0.422	0.404	0.422	0.404	0	
+175	غیرفلزی	فوم	12929010076	ايزوسيانات DHR-B9000	كيلوگرم	4.725	4.725	4.725	4.725	1.886	1.886	4.069	3.962	4.312	3.962	4.312	0	
+176	غیرفلزی	فوم	12905010072	پلي ال DHR-A3745	کیلوگرم	6.843	6.843	6.843	6.843	2.704	2.704	4.95	5.628	6.056	5.628	6.056	0	
+177	غیرفلزی	فوم	27219163554	مجموعه فريم کفي عقب ساينا job2	عدد	0	0	0	0	0	0	0	0	1	0	1	0	
+178	غیرفلزی	فوم	27299990702	مفتولL=250mm . D=2mm ريو#	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+179	فلزی	فوم-مونتاژ نهایی	27299996744	مفتول فنری قطر 2داخل فوم دوخم کفی عقب کوییک بهینه	عدد	0	0	0	0	0	0	0	4	0	4	0	0	
+180	فلزی	فوم-مونتاژ نهایی	17217446055	مفتول خمدار کفی عقب کوئیک بهینه	عدد	0	0	0	0	0	0	0	4	0	4	0	0	
+181	فلزی	فوم	56301908	فريم هدرست مياني صندلي عقب SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+182	فلزی	فوم	56301928	فريم هدرست کناري صندلي عقب SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+183	فلزی	فوم	56301024	مفتول فنري ?2.0 X  458L فوم کفي صندلي جلوSP100	عدد	4	4	4	4	0	0	0	0	0	0	0	0	
+184	فلزی	فوم	56301043	مفتول فنري ?2.0 X 262.0L فوم پشتي صندلي جلوSP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+185	فلزی	فوم	56301531	مفتول فنري  ?2.0 X 438L	عدد	4	4	4	1	0	0	0	0	0	0	0	0	
+186	فلزی	فوم	56301514	مجموعه فریم کفی صندلی عقب sp100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+187	فلزی	فوم	56500297	مفتول خمکاري شده فوم پشتي جلو sp100	عدد	4	4	4	4	0	0	0	0	0	0	0	0	
+188	فلزی	فوم	27219550067	فریم هدرست عقب 211-212 طرح جدید 	عدد	0	0	0	0	0	0	0	3	0	3	0	0	
+189	فلزی	فوم	27219150361	مجموعه فريم فلزي هدرست تيلت دار صندلي جلو اطلس	عدد	0	0	0	0	0	0	0	0	0	2	2	0	
+190	فلزی	ریل ومکانیزم	27299110106	پايه جلويي ريل راست کفي راست J4 	عدد	0	0	0	0	0	0	0	0	0	0	0	1	
+191	فلزی	ریل ومکانیزم	27299130101	پايه جلويي ريل چپ کفي چپ J4	عدد	0	0	0	0	0	0	0	0	0	0	0	1	
+192	فلزی	ریل ومکانیزم	27299110153	پایه عقبی ریل چپ کفي راست J4	عدد	0	0	0	0	0	0	0	0	0	0	0	1	
+193	فلزی	ریل ومکانیزم	27299130157	پایه عقبی ریل راست کفي چپ J4	عدد	0	0	0	0	0	0	0	0	0	0	0	1	
+194	فلزی	ریل ومکانیزم	27299110202	پایه عقبي ريل راست کفي راست J4	عدد	0	0	0	0	0	0	0	0	0	0	0	1	
+195	فلزی	ریل ومکانیزم	27299130206	پایه عقبي ريل چپ کفي چپ J4	عدد	0	0	0	0	0	0	0	0	0	0	0	1	
+196	فلزی	ریل ومکانیزم	27299110057	پایه جلویی ریل چپ کفي راست  J4	عدد	0	0	0	0	0	0	0	0	0	0	0	1	
+197	فلزی	ریل ومکانیزم	27299130057	پایه جلویی ریل راست کفي چپ  J4	عدد	0	0	0	0	0	0	0	0	0	0	0	1	
 198	فلزی	ریل ومکانیزم	27299130207	پین راهنمای پایه جلو  J4	عدد	0	0	0	0	0	0	0	0	0	0	0	4	4
-199	فلزی	ریل ومکانیزم	27299130253	براکت  پین راهنمای  پایه جلو  J4	عدد	0	0	0	0	0	0	0	0	0	0	0	4	0
+199	فلزی	ریل ومکانیزم	27299130253	براکت  پین راهنمای  پایه جلو  J4	عدد	0	0	0	0	0	0	0	0	0	0	0	4	
 200	فلزی	ریل ومکانیزم	27299110258	پايه جلويي ريل راست کفي راست X3	عدد	0	0	0	0	0	0	0	0	0	0	0	0	1
 201	فلزی	ریل ومکانیزم	27299110307	پايه عقبي ريل چپ کفي راست X3	عدد	0	0	0	0	0	0	0	0	0	0	0	0	1
 202	فلزی	ریل ومکانیزم	27299110354	پايه عقبي ريل راست کفي راست X3	عدد	0	0	0	0	0	0	0	0	0	0	0	0	1
@@ -573,55 +423,55 @@
 209	فلزی	ریل ومکانیزم	27299130608	براکت داخلي پين راهنماي پايه جلو صندلي چپ X3	عدد	0	0	0	0	0	0	0	0	0	0	0	0	1
 210	فلزی	ریل ومکانیزم	27299110508	براکت داخلي پين راهنماي پايه جلو صندلي راست X3	عدد	0	0	0	0	0	0	0	0	0	0	0	0	2
 211	فلزی	ریل ومکانیزم	17318120408	واشر تخت 2.5*14*28	عدد	0	0	0	0	0	0	0	0	0	0	0	0	4
-212	فلزی	رنگ-ریل و مکانیزم	56400926	براکت عقبی خارجی اتصال ریل به کفی صندلی چپ SP100 برقی	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-213	فلزی	رنگ-ریل و مکانیزم	56400925	براکت عقبی داخلی اتصال ریل به کفی صندلی چپ SP100 برقی	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-214	فلزی	رنگ-ریل و مکانیزم	56400927	براکت جلویی سمت راست اتصال ریل به کفی صندلی SP100 برقی	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-215	فلزی	رنگ-ریل و مکانیزم	56400928	براکت جلویی سمت چپ اتصال ریل به کفی صندلی SP100 برقی	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-216	فلزی	جوشکاری-شاهین پلاس	56400893	مجموعه رکلاينر برقي و بازويي بيروني صندلي جلو چپ SP100	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-217	فلزی	جوشکاری-شاهین پلاس	56400895	مجموعه رکلاينر و بازويي دروني پشتي صندلي جلو چپ SP100	عدد	0	1	0	1	0	0	0	0	0	0	0	0	0
-218	فلزی	جوشکاری-شاهین پلاس	56300048	براکت محدودکننده کورس پشتی شاهین پلاس برقی	عدد	0	2	0	2	0	0	0	0	0	0	0	0	0
-219	فلزی	جوشکاری-ریل ومکانیزم	56400894	مجموعه ریکلاینر برقی صندلی برقی چپ اکتیو -ckd	عدد	0	2	0	2	0	0	0	0	0	0	0	0	0
-220	فلزی	ریل ومکانیزم	56300038	براکت تقويتي فريم کفي صندلي جلو چپ SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-221	فلزی	ریل ومکانیزم	56300066	بوش پلاستيکي  فريم کفي صندلي جلو چپ SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-222	فلزی	ریل ومکانیزم	56300035	مفتول برگشت لوله عقبي فريم کفي  صندلي جلو چپ SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-223	فلزی	ریل ومکانیزم	56300003	سيني فريم کفي صندلي جلو SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-224	فلزی	ریل ومکانیزم	56300007	سايد چپ فريم کفي صندلي جلو SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-225	غیرفلزی	ریل ومکانیزم	56300008	سايد راست فريم کفي صندلي جلو  SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-226	فلزی	ریل ومکانیزم	56300027	براکت نصب قاب پلاستيکي صندلي جلو SP100	عدد	4	4	4	4	0	0	0	0	0	0	0	0	0
-227	فلزی	ریل ومکانیزم	56300025	لوله عقبی فریم کفی صندلی جلو چپ sp100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-228	فلزی	ریل ومکانیزم	56200031	براکت چپ اتصال ريل به سايد کفي  صندلي جلو چپ SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-229	فلزی	ریل ومکانیزم	56200033	 براکت راست اتصال ريل به سايد کفي  صندلي جلو چپ SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-230	فلزی	ریل ومکانیزم	56200037	براکت اتصال لوله عقبي فريم کفي به مجموعه ريل  صندلي جلو چپSP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-231	فلزی	ریل ومکانیزم	56300061	تاج خروسي بالابر صندلي جلو چپSP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-232	فلزی	ریل ومکانیزم	56401020	واشر Φ44 x 3t لوله عقبی فریم کفی صندلی جلو SP100	عدد	3	3	3	3	0	0	0	0	0	0	0	0	0
-233	فلزی	ریل ومکانیزم	56300063	بوش مسي پوشش تفلوني لوله عقبي  فريم کفي صندلي جلو چپ SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-234	فلزی	ریل ومکانیزم	56300021	براکت چپ اتصال ريل به سايد کفي  صندلي جلو راست SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-235	فلزی	ریل ومکانیزم	56300022	براکت راست اتصال ريل به سايد کفي  صندلي جلو راست SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-236	فلزی	ریل ومکانیزم	56300024	براکت اتصال لوله جلويي فريم کفي به مجموعه ريل  صندلي جلو  راستSP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-237	فلزی	ریل ومکانیزم	56400500	براکت جلو اتصال ريل يه يدنه	عدد	4	2	4	2	0	0	0	0	0	0	0	0	0
-238	فلزی	ریل ومکانیزم	56400526	پرچ کوچک عقب ريل بيروني چيني SP100	عدد	6	6	6	6	0	0	0	0	0	0	0	0	0
-239	فلزی	ریل ومکانیزم	56400573	پرچ بلند نشيمن بدنه روي بدنه ريل SP100	عدد	4	4	4	4	0	0	0	0	0	0	0	0	0
-240	فلزی	ریل ومکانیزم	56400011	پين راهنماي ريل داخلی SP100	عدد	2	1	2	1	0	0	0	0	0	0	0	0	0
-241	فلزی	ریل ومکانیزم	56400607	فنر قرینه دستگیره ریل چینی SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-242	فلزی	ریل ومکانیزم	56400507	براکت اتصال به بدنه خودرو عقب چپ	عدد	1	0	1	0	0	0	0	0	0	0	0	0	0
-243	فلزی	ریل ومکانیزم	56400058	پين راهنماي ریل خارجی SP100	عدد	2	1	2	1	0	0	0	0	0	0	0	0	0
-244	فلزی	ریل ومکانیزم	56400059	پرچ عقبي ريل بيروني چيني SP100	عدد	2	1	2	1	0	0	0	0	0	0	0	0	0
-245	فلزی	ریل ومکانیزم	56300032	پيچ آلني پله بلند اتصال ريل به سايد کفي  صندلي جلو چپ SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-246	فلزی	ریل ومکانیزم	56300062	پيچ آلني پله کوتاه اتصال ريل به سايد کفي  صندلي جلو چپ SP100	عدد	3	3	3	3	0	0	0	0	0	0	0	0	0
-247	فلزی	ریل ومکانیزم	56300029	پیچ اتصال بالابر به ساید ریل کفی صندلی جلو چپ sp100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-248	فلزی	ریل ومکانیزم	56300072	مهره فلنجي M6  فريم کفي صندلي جلو چپ SP100	عدد	3	4	3	4	0	0	0	0	0	0	0	0	0
-249	فلزی	ریل ومکانیزم	56300067	مهره جوش سايد  فريم کفي صندلي جلو SP100	عدد	8	8	8	8	0	0	0	0	0	0	0	0	0
-250	فلزی	ریل ومکانیزم	56300068	پرچ اتصال ريل به سايد کفي  صندلي جلو چپ SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-251	فلزی	ریل ومکانیزم	56300069	پيچ اتصال ريل به سايد کفي  صندلي جلو راست SP100	عدد	4	4	4	4	0	0	0	0	0	0	0	0	0
-252	فلزی	ریل ومکانیزم	56400504	براکت عقب داخلي چپ اتصال به ريل کفي	عدد	1	0	1	0	0	0	0	0	0	0	0	0	0
-253	فلزی	ریل ومکانیزم	56400508	براکت اتصال به بدنه خودرو عقب راست	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-254	فلزی	ریل ومکانیزم	56400519	فنر لوله بالايي دستگيره تنظيم ريلsp100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	0
-255	فلزی	ریل ومکانیزم	56200040	بوش مسي پوشش تفلوني فريم کفي صندلي جلو چپ SP100	عدد	6	6	6	6	0	0	0	0	0	0	0	0	0
-256	فلزی	ریل ومکانیزم	56400503	براکت عقب خارجي چپ اتصال ريل به کفي	عدد	1	0	1	0	0	0	0	0	0	0	0	0	0
-257	فلزی	ریل ومکانیزم	56400505	براکت عقب داخلي راست اتصال به ريل کفي	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-258	فلزی	ریل ومکانیزم	56400506	براکت عقب خارجي راست اتصال به ريل کفي	عدد	1	1	1	1	0	0	0	0	0	0	0	0	0
-259	فلزی	ریل داخل شاهین	56401981	براکت جلویی سمت راست اتصال ریل به کفی صندلی SP100 (ریل ساخت داخل)	عدد	2	1	2	1	0	0	0	0	0	0	0	0	0
-260	فلزی	ریل داخل شاهین	56401982	براکت جلویی سمت چپ اتصال ریل به کفی صندلی SP100 (ریل ساخت داخل)	عدد	2	1	2	1	0	0	0	0	0	0	0	0	0
+212	فلزی	رنگ-ریل و مکانیزم	56400926	براکت عقبی خارجی اتصال ریل به کفی صندلی چپ SP100 برقی	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+213	فلزی	رنگ-ریل و مکانیزم	56400925	براکت عقبی داخلی اتصال ریل به کفی صندلی چپ SP100 برقی	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+214	فلزی	رنگ-ریل و مکانیزم	56400927	براکت جلویی سمت راست اتصال ریل به کفی صندلی SP100 برقی	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+215	فلزی	رنگ-ریل و مکانیزم	56400928	براکت جلویی سمت چپ اتصال ریل به کفی صندلی SP100 برقی	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+216	فلزی	جوشکاری-شاهین پلاس	56400893	مجموعه رکلاينر برقي و بازويي بيروني صندلي جلو چپ SP100	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+217	فلزی	جوشکاری-شاهین پلاس	56400895	مجموعه رکلاينر و بازويي دروني پشتي صندلي جلو چپ SP100	عدد	0	1	0	1	0	0	0	0	0	0	0	0	
+218	فلزی	جوشکاری-شاهین پلاس	56300048	براکت محدودکننده کورس پشتی شاهین پلاس برقی	عدد	0	2	0	2	0	0	0	0	0	0	0	0	
+219	فلزی	جوشکاری-ریل ومکانیزم	56400894	مجموعه ریکلاینر برقی صندلی برقی چپ اکتیو -ckd	عدد	0	2	0	2	0	0	0	0	0	0	0	0	
+220	فلزی	ریل ومکانیزم	56300038	براکت تقويتي فريم کفي صندلي جلو چپ SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+221	فلزی	ریل ومکانیزم	56300066	بوش پلاستيکي  فريم کفي صندلي جلو چپ SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+222	فلزی	ریل ومکانیزم	56300035	مفتول برگشت لوله عقبي فريم کفي  صندلي جلو چپ SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+223	فلزی	ریل ومکانیزم	56300003	سيني فريم کفي صندلي جلو SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+224	فلزی	ریل ومکانیزم	56300007	سايد چپ فريم کفي صندلي جلو SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+225	غیرفلزی	ریل ومکانیزم	56300008	سايد راست فريم کفي صندلي جلو  SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+226	فلزی	ریل ومکانیزم	56300027	براکت نصب قاب پلاستيکي صندلي جلو SP100	عدد	4	4	4	4	0	0	0	0	0	0	0	0	
+227	فلزی	ریل ومکانیزم	56300025	لوله عقبی فریم کفی صندلی جلو چپ sp100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+228	فلزی	ریل ومکانیزم	56200031	براکت چپ اتصال ريل به سايد کفي  صندلي جلو چپ SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+229	فلزی	ریل ومکانیزم	56200033	 براکت راست اتصال ريل به سايد کفي  صندلي جلو چپ SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+230	فلزی	ریل ومکانیزم	56200037	براکت اتصال لوله عقبي فريم کفي به مجموعه ريل  صندلي جلو چپSP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+231	فلزی	ریل ومکانیزم	56300061	تاج خروسي بالابر صندلي جلو چپSP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+232	فلزی	ریل ومکانیزم	56401020	واشر Φ44 x 3t لوله عقبی فریم کفی صندلی جلو SP100	عدد	3	3	3	3	0	0	0	0	0	0	0	0	
+233	فلزی	ریل ومکانیزم	56300063	بوش مسي پوشش تفلوني لوله عقبي  فريم کفي صندلي جلو چپ SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+234	فلزی	ریل ومکانیزم	56300021	براکت چپ اتصال ريل به سايد کفي  صندلي جلو راست SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+235	فلزی	ریل ومکانیزم	56300022	براکت راست اتصال ريل به سايد کفي  صندلي جلو راست SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+236	فلزی	ریل ومکانیزم	56300024	براکت اتصال لوله جلويي فريم کفي به مجموعه ريل  صندلي جلو  راستSP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+237	فلزی	ریل ومکانیزم	56400500	براکت جلو اتصال ريل يه يدنه	عدد	4	2	4	2	0	0	0	0	0	0	0	0	
+238	فلزی	ریل ومکانیزم	56400526	پرچ کوچک عقب ريل بيروني چيني SP100	عدد	6	6	6	6	0	0	0	0	0	0	0	0	
+239	فلزی	ریل ومکانیزم	56400573	پرچ بلند نشيمن بدنه روي بدنه ريل SP100	عدد	4	4	4	4	0	0	0	0	0	0	0	0	
+240	فلزی	ریل ومکانیزم	56400011	پين راهنماي ريل داخلی SP100	عدد	2	1	2	1	0	0	0	0	0	0	0	0	
+241	فلزی	ریل ومکانیزم	56400607	فنر قرینه دستگیره ریل چینی SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+242	فلزی	ریل ومکانیزم	56400507	براکت اتصال به بدنه خودرو عقب چپ	عدد	1	0	1	0	0	0	0	0	0	0	0	0	
+243	فلزی	ریل ومکانیزم	56400058	پين راهنماي ریل خارجی SP100	عدد	2	1	2	1	0	0	0	0	0	0	0	0	
+244	فلزی	ریل ومکانیزم	56400059	پرچ عقبي ريل بيروني چيني SP100	عدد	2	1	2	1	0	0	0	0	0	0	0	0	
+245	فلزی	ریل ومکانیزم	56300032	پيچ آلني پله بلند اتصال ريل به سايد کفي  صندلي جلو چپ SP100	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+246	فلزی	ریل ومکانیزم	56300062	پيچ آلني پله کوتاه اتصال ريل به سايد کفي  صندلي جلو چپ SP100	عدد	3	3	3	3	0	0	0	0	0	0	0	0	
+247	فلزی	ریل ومکانیزم	56300029	پیچ اتصال بالابر به ساید ریل کفی صندلی جلو چپ sp100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+248	فلزی	ریل ومکانیزم	56300072	مهره فلنجي M6  فريم کفي صندلي جلو چپ SP100	عدد	3	4	3	4	0	0	0	0	0	0	0	0	
+249	فلزی	ریل ومکانیزم	56300067	مهره جوش سايد  فريم کفي صندلي جلو SP100	عدد	8	8	8	8	0	0	0	0	0	0	0	0	
+250	فلزی	ریل ومکانیزم	56300068	پرچ اتصال ريل به سايد کفي  صندلي جلو چپ SP100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+251	فلزی	ریل ومکانیزم	56300069	پيچ اتصال ريل به سايد کفي  صندلي جلو راست SP100	عدد	4	4	4	4	0	0	0	0	0	0	0	0	
+252	فلزی	ریل ومکانیزم	56400504	براکت عقب داخلي چپ اتصال به ريل کفي	عدد	1	0	1	0	0	0	0	0	0	0	0	0	
+253	فلزی	ریل ومکانیزم	56400508	براکت اتصال به بدنه خودرو عقب راست	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+254	فلزی	ریل ومکانیزم	56400519	فنر لوله بالايي دستگيره تنظيم ريلsp100	عدد	2	2	2	2	0	0	0	0	0	0	0	0	
+255	فلزی	ریل ومکانیزم	56200040	بوش مسي پوشش تفلوني فريم کفي صندلي جلو چپ SP100	عدد	6	6	6	6	0	0	0	0	0	0	0	0	
+256	فلزی	ریل ومکانیزم	56400503	براکت عقب خارجي چپ اتصال ريل به کفي	عدد	1	0	1	0	0	0	0	0	0	0	0	0	
+257	فلزی	ریل ومکانیزم	56400505	براکت عقب داخلي راست اتصال به ريل کفي	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+258	فلزی	ریل ومکانیزم	56400506	براکت عقب خارجي راست اتصال به ريل کفي	عدد	1	1	1	1	0	0	0	0	0	0	0	0	
+259	فلزی	ریل داخل شاهین	56401981	براکت جلویی سمت راست اتصال ریل به کفی صندلی SP100 (ریل ساخت داخل)	عدد	2	1	2	1	0	0	0	0	0	0	0	0	
+260	فلزی	ریل داخل شاهین	56401982	براکت جلویی سمت چپ اتصال ریل به کفی صندلی SP100 (ریل ساخت داخل)	عدد	2	1	2	1	0	0	0	0	0	0	0	0	
 261	فلزی	ریل ومکانیزم	12710020051	گريس‌#	کیلوگرم	0.015	0.015	0.015	0.015	0.015	0.015	0.015	0.015	0.01	0.015	0.015	0.015	0.02
 262	فلزی	ریل ومکانیزم	17321111012	پين  L= 12mm , D=6mm	عدد	0	0	0	0	18	0	18	9	9	20	20	20	20
 263	فلزی	ریل ومکانیزم	17318041154	مهره جوش چهار گوش" 7/16	عدد	0	0	0	0	0	0	2	2	2	2	2	2	2
@@ -986,950 +836,559 @@
 622	غیرفلزی	دوخت	56500536	تسمه پلاستیک J شکل W=130 , L=28	متر	4	4	4	4	0	0	0	0	0	0	0	0	0
 623	غیرفلزی	جمع آوری	****	سلفون عرض یک متر	کیلوگرم	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12	0.12`;
 
-        function parseBOMData() {
-            const lines = RAW_TSV_DATA.split('\n');
-            parsedBOM = lines.map(line => {
-                const cols = line.split('\t').map(c => c.trim());
-                if(cols.length < 5) return null; // Skip invalid lines
-                
-                // Construct material object
-                const item = {
-                    row: cols[0],
-                    dept: cols[1],
-                    line: cols[2],
-                    code: cols[3],
-                    name: cols[4],
-                    unit: cols[5],
-                    carNeeds: [] // Index matches MODEL_TO_BOM_MAP integers
-                };
-
-                // Add needs for 13 cars (cols 6 to 18)
-                for(let i=0; i<13; i++) {
-                    let val = parseFloat(cols[6 + i]);
-                    item.carNeeds.push(isNaN(val) ? 0 : val);
-                }
-                
-                return item;
-            }).filter(i => i !== null);
-        }
-
-        window.onload = () => {
-            parseBOMData();
-            loadPlanFromStorage();
-            renderDailyPlanTable();
-            renderDatabaseTable();
-        };
-
-        // UI Tabs Logic
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(el => {
-                el.classList.remove('text-indigo-700', 'border-indigo-600');
-                el.classList.add('text-gray-500', 'border-transparent');
-            });
-
-            const tabElement = document.getElementById(tabId);
-            if (tabElement) {
-                tabElement.classList.remove('hidden');
-            }
-            
-            const activeBtn = document.getElementById(`btn-${tabId}`);
-            if (activeBtn) {
-                activeBtn.classList.remove('text-gray-500', 'border-transparent');
-                activeBtn.classList.add('text-indigo-700', 'border-indigo-600');
-            }
-        }
-        
-        // Export & Print Helpers
-        function exportBoxToExcel(tableId, title) {
-            const table = document.getElementById(tableId);
-            if (!table) return;
-            const wb = XLSX.utils.table_to_book(table, {sheet: "Sheet1"});
-            XLSX.writeFile(wb, title + ".xlsx");
-        }
-
-        function printBox(tableId, title) {
-            let iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-            let win = iframe.contentWindow;
-            win.document.open();
-            win.document.write(`
-                <html dir="rtl">
-                <head>
-                    <title>${title}</title>
-                    <style>
-                        body { font-family: Tahoma, sans-serif; padding: 20px; }
-                        h2 { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;}
-                        table { width: 100%; border-collapse: collapse; text-align: right; font-size: 11px; }
-                        th, td { border: 1px solid #555; padding: 6px; }
-                        th { background-color: #ddd !important; -webkit-print-color-adjust: exact; font-weight: bold;}
-                    </style>
-                </head>
-                <body>
-                    <h2>${title}</h2>
-                    ${document.getElementById(tableId).outerHTML}
-                </body>
-                </html>
-            `);
-            win.document.close();
-            
-            iframe.onload = function() {
-                win.focus();
-                win.print();
-                setTimeout(() => { document.body.removeChild(iframe); }, 1000);
-            };
-        }
-
-        function renderDailyPlanTable() {
-            const tbody = document.getElementById('daily-plan-tbody');
-            tbody.innerHTML = '';
-            
-            DAILY_PLAN_MODELS.forEach((car, index) => {
-                const tr = document.createElement('tr');
-                if (index % 2 !== 0) tr.classList.add('bg-gray-50');
-                tr.classList.add('hover:bg-indigo-50', 'transition-colors');
-                
-                const val = dailyPlan[car] !== undefined && dailyPlan[car] !== 0 ? dailyPlan[car] : '';
-                
-                tr.innerHTML = `
-                    <td class="border border-gray-300 py-2 font-medium text-gray-500">${index + 1}</td>
-                    <td class="border border-gray-300 py-2 px-4 text-right font-bold text-gray-800">${car}</td>
-                    <td class="border border-gray-300 p-0 relative">
-                        <input type="number" min="0" value="${val}"
-                            onchange="updateDailyPlan('${car}', this.value)"
-                            onkeyup="updateDailyPlan('${car}', this.value)"
-                            class="w-full h-full p-3 text-center text-xl font-bold text-indigo-900 outline-none focus:bg-indigo-100 absolute inset-0 bg-transparent transition-colors">
-                    </td>
-                `;
-                tr.style.height = "55px"; 
-                tbody.appendChild(tr);
-            });
-            calculateTotalSeats();
-        }
-
-        function updateDailyPlan(car, value) {
-            const qty = parseInt(value, 10);
-            if (isNaN(qty) || qty < 0) {
-                dailyPlan[car] = 0;
-            } else {
-                dailyPlan[car] = qty;
-            }
-            savePlanToStorage();
-            calculateTotalSeats();
-        }
-
-        function calculateTotalSeats() {
-            let total = 0;
-            DAILY_PLAN_MODELS.forEach(car => {
-                total += (dailyPlan[car] || 0);
-            });
-            document.getElementById('total-cars-input').innerText = total;
-        }
-
-        function calculateBOM() {
-            let grandTotalCars = 0;
-            DAILY_PLAN_MODELS.forEach(car => grandTotalCars += (dailyPlan[car] || 0));
-
-            if(grandTotalCars === 0) {
-                alert('لطفاً برنامه تولید حداقل یک خودرو را وارد کنید.');
-                return;
-            }
-
-            // Aggregate plan into the 13 BOM base columns based on map
-            let aggregatedPlan = Array(13).fill(0);
-            
-            DAILY_PLAN_MODELS.forEach(car => {
-                const qty = dailyPlan[car] || 0;
-                if(qty > 0) {
-                    const bomIndex = MODEL_TO_BOM_MAP[car];
-                    aggregatedPlan[bomIndex] += qty;
-                }
-            });
-
-            reportData = []; // Reset current report data
-
-            parsedBOM.forEach(item => {
-                let totalMaterialRequired = 0;
-                for(let i=0; i<13; i++) {
-                    if (aggregatedPlan[i] > 0) {
-                        totalMaterialRequired += (aggregatedPlan[i] * item.carNeeds[i]);
+        let bomDict = [];
+        BOM_TSV_DATA.trim().split('\n').forEach(line => {
+            let cols = line.split('\t');
+            if(cols.length >= 18) {
+                bomDict.push({
+                    code: cols[3].trim(),
+                    name: cols[4].trim(),
+                    category: cols[1].trim() + '-' + cols[2].trim(),
+                    unit: cols[5].trim(),
+                    reqs: {
+                        'shahin_m': parseFloat(cols[6])||0, 'shahin_p': parseFloat(cols[7])||0, 'shahin_cvt': parseFloat(cols[8])||0, 'aria': parseFloat(cols[9])||0,
+                        'extend': parseFloat(cols[10])||0, 'p151': parseFloat(cols[11])||0, 'x131': parseFloat(cols[12])||0, 'quick': parseFloat(cols[13])||0,
+                        'saina': parseFloat(cols[14])||0, 'atlas': parseFloat(cols[15])||0, 'sahand': parseFloat(cols[16])||0, 'j4': parseFloat(cols[17])||0, 'x3': parseFloat(cols[18])||0
                     }
-                }
+                });
+            }
+        });
 
-                if (totalMaterialRequired > 0) {
-                    reportData.push({
+        // --- 3. UI INITIALIZATION ---
+        function initApp() {
+            const tbody = document.getElementById('production-table-body');
+            CAR_MODELS.forEach((car, index) => {
+                state.productionPlan[car.id] = { s1: 0, s2: 0 };
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 border-b border-gray-100 transition-colors">
+                        <td class="py-2 px-4 text-center text-gray-500 font-bold border-l border-gray-100">${index + 1}</td>
+                        <td class="py-2 px-4 text-right text-gray-800 font-bold border-l border-gray-100">${car.name}</td>
+                        <td class="py-2 px-2 text-center border-l border-gray-100 bg-blue-50/50">
+                            <input type="number" min="0" class="w-full text-center border border-gray-300 rounded py-1 focus:ring-2 focus:ring-blue-400" 
+                                   onchange="updatePlan('${car.id}', 's1', this.value)">
+                        </td>
+                        <td class="py-2 px-2 text-center border-l border-gray-100 bg-indigo-50/50">
+                            <input type="number" min="0" class="w-full text-center border border-gray-300 rounded py-1 focus:ring-2 focus:ring-indigo-400" 
+                                   onchange="updatePlan('${car.id}', 's2', this.value)">
+                        </td>
+                        <td class="py-2 px-4 text-center font-black text-gray-800 bg-gray-50" id="total-${car.id}">0</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function updatePlan(carId, shift, val) {
+            state.productionPlan[carId][shift] = parseInt(val) || 0;
+            const s1 = state.productionPlan[carId].s1;
+            const s2 = state.productionPlan[carId].s2;
+            document.getElementById(`total-${carId}`).innerText = s1 + s2;
+            
+            let sumS1 = 0, sumS2 = 0;
+            CAR_MODELS.forEach(c => {
+                sumS1 += state.productionPlan[c.id].s1;
+                sumS2 += state.productionPlan[c.id].s2;
+            });
+            document.getElementById('total-shift1').innerText = sumS1;
+            document.getElementById('total-shift2').innerText = sumS2;
+            document.getElementById('total-daily').innerText = sumS1 + sumS2;
+        }
+
+        // --- 4. CORE CALCULATIONS ---
+        function calculateMaterials() {
+            state.totalMaterials = [];
+            
+            bomDict.forEach(item => {
+                let s1Req = 0;
+                let s2Req = 0;
+                
+                CAR_MODELS.forEach(car => {
+                    let bomKey = car.mapTo || car.id;
+                    let coef = item.reqs[bomKey] || 0;
+                    if(coef > 0) {
+                        s1Req += coef * state.productionPlan[car.id].s1;
+                        s2Req += coef * state.productionPlan[car.id].s2;
+                    }
+                });
+                
+                let totalReq = s1Req + s2Req;
+                if(totalReq > 0) {
+                    state.totalMaterials.push({
                         ...item,
-                        required: totalMaterialRequired
+                        s1Amount: s1Req,
+                        s2Amount: s2Req,
+                        totalAmount: totalReq
                     });
                 }
             });
 
-            document.getElementById('report-summary-text').innerHTML = `محاسبه نیازها انجام شد. <strong>جمع کل تولید: ${grandTotalCars} دستگاه</strong>. <br> اکنون می‌توانید برای بررسی کسری، فایل اکسل موجودی را بارگذاری کنید.`;
+            // 1. سوئیچ اتوماتیک به تب دوم
+            switchTab('tab-risk');
             
-            renderReportTable();
+            // 2. محاسبه مجدد باکس‌های ریسک
+            recalculateRisk(); 
             
-            // Re-calculate financials if price map is already loaded
-            if (Object.keys(priceMap).length > 0) {
-                calculateFinancials();
+            if(Object.keys(state.prices).length > 0) {
+                renderGeneralBudget();
+                renderFinancialCrisis();
             }
-
-            switchTab('tab-report');
         }
 
-        function renderReportTable() {
-            const container = document.getElementById('report-table-wrapper');
-            const hasInventoryFile = Object.keys(inventoryMap).length > 0;
-            
-            if (reportData.length === 0) {
-                container.innerHTML = `
-                    <table class="min-w-full border-collapse text-right text-sm">
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <tr>
-                                <td class="py-12 text-center text-gray-400">
-                                    <i class="fas fa-clipboard text-4xl mb-3"></i>
-                                    <p>هنوز محاسبه‌ای انجام نشده است.</p>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                `;
-                return;
-            }
+        // --- 5. EXCEL PARSING HELPER ---
+        function parseExcel(file, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet);
+                callback(json);
+            };
+            reader.readAsArrayBuffer(file);
+        }
 
-            if (!hasInventoryFile) {
-                // نمایش ساده فقط نیاز تولید (قبل از آپلود موجودی)
-                container.classList.add('table-container', 'overflow-y-auto', 'border', 'border-gray-300', 'rounded-lg', 'p-0');
-                container.classList.remove('border-none');
-                
-                let html = `
-                    <table id="result-table" class="min-w-full border-collapse text-right text-sm">
-                        <thead class="bg-gray-100 border-b-2 border-gray-300 sticky top-0 z-10 shadow-sm">
-                            <tr>
-                                <th class="border border-gray-300 py-3 px-3 font-bold text-gray-700 w-12 text-center">ردیف</th>
-                                <th class="border border-gray-300 py-3 px-3 font-bold text-gray-700 w-32">کد کالا</th>
-                                <th class="border border-gray-300 py-3 px-3 font-bold text-gray-700 w-24">اداره</th>
-                                <th class="border border-gray-300 py-3 px-4 font-bold text-gray-700">شرح کالا</th>
-                                <th class="border border-gray-300 py-3 px-3 font-bold text-gray-700 w-24 text-center">واحد</th>
-                                <th class="border border-gray-300 py-3 px-4 font-bold text-blue-900 bg-blue-50 w-28 text-center">نیاز تولید (روز)</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                `;
-                
-                let rowCounter = 1;
-                reportData.forEach(item => {
-                    const required = item.required;
-                    const formattedRequired = required % 1 !== 0 ? required.toFixed(3) : required;
-                    html += `
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="border border-gray-300 py-2 px-3 text-center text-gray-500">${rowCounter++}</td>
-                            <td class="border border-gray-300 py-2 px-3 text-gray-700 font-mono text-sm" dir="ltr">${item.code}</td>
-                            <td class="border border-gray-300 py-2 px-3 text-gray-600 text-xs">${item.dept}</td>
-                            <td class="border border-gray-300 py-2 px-4 text-gray-900 font-medium text-xs sm:text-sm">${item.name}</td>
-                            <td class="border border-gray-300 py-2 px-3 text-gray-600 text-center">${item.unit}</td>
-                            <td class="border border-gray-300 py-2 px-4 text-blue-700 font-bold bg-blue-50 text-center text-base" dir="ltr">${formattedRequired}</td>
-                        </tr>
-                    `;
-                });
-                
-                html += `</tbody></table>`;
-                container.innerHTML = html;
-                
-            } else {
-                // نمایش داشبورد تحلیل ریسک موجودی (بعد از آپلود فایل)
-                container.classList.remove('table-container', 'overflow-y-auto', 'border', 'border-gray-300', 'rounded-lg', 'p-0');
-                container.classList.add('border-none');
-                
-                const superCritical = [];
-                const critical = [];
-                const warning = [];
-                const safe = [];
-
-                reportData.forEach(item => {
-                    let reqD = item.required;
-                    let inv = inventoryMap[item.code] !== undefined ? inventoryMap[item.code] : 0;
-                    item.invAmount = inv;
-                    let days = reqD > 0 ? (inv / reqD) : 999;
-                    item.days = days;
+        function extractKeyValue(json, keyKeywords, valKeywords) {
+            let map = {};
+            json.forEach(row => {
+                let k = null, v = null;
+                for (let prop in row) {
+                    let propStr = prop.toLowerCase().trim();
+                    // جلوگیری از تداخل ستون شرح/نام کالا با ستون کد کالا
+                    if(propStr.includes('شرح') || propStr.includes('نام') || propStr.includes('name')) continue;
                     
-                    if (inv < reqD) {
-                        item.statusCol = days < 0.5 ? 'کمتر از ۱ شیفت' : 'تامین ۱ شیفت';
-                        superCritical.push(item);
-                    } else if (inv >= reqD && inv < (reqD * 5)) {
-                        item.statusCol = days.toFixed(1) + ' روز';
-                        critical.push(item);
-                    } else if (inv >= (reqD * 5) && inv < (reqD * 30)) {
-                        let orderIn = days - 7;
-                        item.statusCol = orderIn <= 0 ? 'اقدام فوری' : 'تا ' + orderIn.toFixed(0) + ' روز دیگر';
-                        warning.push(item);
-                    } else {
-                        item.statusCol = days.toFixed(1) + ' روز';
-                        safe.push(item);
-                    }
-                });
-
-                const buildTableHTML = (items, title, colorClass, icon, headerColor, extraColHeader, tableId) => {
-                    if (items.length === 0) return '';
-                    let html = `
-                    <div class="mb-6 rounded-xl border-2 ${colorClass} overflow-hidden shadow-sm bg-white break-inside-avoid">
-                        <h3 class="text-lg font-bold p-4 ${headerColor} flex items-center justify-between gap-2 flex-wrap">
-                            <div class="flex items-center gap-2">
-                                <span>${icon}</span> ${title} <span class="text-sm font-normal bg-white/50 px-2 py-0.5 rounded-full mx-2">${items.length} قلم</span>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="exportBoxToExcel('${tableId}', '${title.split(' ')[1]}')" class="text-xs bg-white text-gray-700 px-3 py-1.5 rounded shadow hover:bg-gray-50 flex items-center gap-1 transition"><i class="fas fa-file-excel text-green-600"></i> خروجی اکسل</button>
-                                <button onclick="printBox('${tableId}', '${title}')" class="text-xs bg-white text-gray-700 px-3 py-1.5 rounded shadow hover:bg-gray-50 flex items-center gap-1 transition"><i class="fas fa-print text-gray-600"></i> چاپ PDF</button>
-                            </div>
-                        </h3>
-                        <div class="overflow-auto max-h-96">
-                            <table id="${tableId}" class="min-w-full border-collapse text-right text-sm">
-                                <thead class="bg-gray-50 border-y ${colorClass} sticky top-0 z-10 shadow-sm">
-                                    <tr>
-                                        <th class="py-2 px-3 font-bold text-gray-700 w-12 text-center bg-gray-50">ردیف</th>
-                                        <th class="py-2 px-3 font-bold text-gray-700 w-28 bg-gray-50">کد کالا</th>
-                                        <th class="py-2 px-4 font-bold text-gray-700 bg-gray-50">شرح کالا</th>
-                                        <th class="py-2 px-3 font-bold text-gray-700 w-20 text-center bg-gray-50">نیاز 1 روز</th>
-                                        <th class="py-2 px-3 font-bold text-gray-700 w-24 text-center bg-gray-50">موجودی</th>
-                                        <th class="py-2 px-3 font-bold text-gray-700 w-24 text-center bg-gray-50">کسری روز</th>
-                                        <th class="py-2 px-3 font-bold text-indigo-900 bg-indigo-50/80 w-32 text-center">${extraColHeader}</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100">
-                    `;
+                    if(keyKeywords.some(kw => propStr.includes(kw))) k = row[prop];
+                    if(valKeywords.some(kw => propStr.includes(kw))) v = row[prop];
+                }
+                if(k !== null && k !== undefined) {
+                    let kStr = k.toString().trim();
+                    let vFloat = 0;
+                    if(typeof v === 'number') vFloat = v;
+                    else if(typeof v === 'string') vFloat = parseFloat(v.replace(/,/g, '')) || 0;
                     
-                    items.forEach((item, index) => {
-                        const required = item.required;
-                        const formattedRequired = required % 1 !== 0 ? required.toFixed(3) : required;
-                        const inventory = item.invAmount % 1 !== 0 ? item.invAmount.toFixed(3) : item.invAmount;
-                        const shortage = Math.max(0, required - item.invAmount);
-                        const formattedShortage = shortage % 1 !== 0 ? shortage.toFixed(3) : shortage;
-                        const shortageClass = shortage > 0 ? 'text-red-600 font-bold bg-red-50' : 'text-gray-500';
-
-                        html += `
-                            <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="py-2 px-3 text-center text-gray-500 border-x border-gray-100">${index + 1}</td>
-                                <td class="py-2 px-3 text-gray-700 font-mono text-xs border-l border-gray-100" dir="ltr">${item.code}</td>
-                                <td class="py-2 px-4 text-gray-900 font-medium text-xs sm:text-sm border-l border-gray-100">${item.name}</td>
-                                <td class="py-2 px-3 text-blue-700 font-bold bg-blue-50/30 text-center border-l border-gray-100" dir="ltr">${formattedRequired}</td>
-                                <td class="py-2 px-3 text-amber-700 font-semibold bg-amber-50/30 text-center border-l border-gray-100" dir="ltr">${inventory}</td>
-                                <td class="py-2 px-3 text-center ${shortageClass} border-l border-gray-100" dir="ltr">${shortage > 0 ? formattedShortage : 'تامین'}</td>
-                                <td class="py-2 px-3 text-center font-bold text-indigo-800 bg-indigo-50/30" dir="ltr">${item.statusCol}</td>
-                            </tr>
-                        `;
-                    });
-                    
-                    html += `</tbody></table></div></div>`;
-                    return html;
-                };
-
-                let dashboardHTML = `
-                    <div class="space-y-4"> 
-                        ${buildTableHTML(superCritical, 'اقلام فوق بحرانی (توقف آنی خط)', 'border-red-200', '🔴', 'bg-red-100 text-red-900', 'وضعیت شیفت', 'table-super-critical')}
-                        ${buildTableHTML(critical, 'اقلام بحرانی (ریسک توقف خط این هفته)', 'border-orange-200', '🟠', 'bg-orange-100 text-orange-900', 'موجودی (روز)', 'table-critical')}
-                        ${buildTableHTML(warning, 'نقطه سفارش / هشدار (تامین ۳۰ روز آینده)', 'border-yellow-200', '🟡', 'bg-yellow-100 text-yellow-900', 'مهلت ثبت سفارش', 'table-warning')}
-                        ${buildTableHTML(safe, 'حاشیه امن (موجودی بیش از یک ماه)', 'border-green-200', '🟢', 'bg-green-100 text-green-900', 'موجودی (روز)', 'table-safe')}
-                    </div>
-                `;
-                container.innerHTML = dashboardHTML;
-            }
+                    map[kStr] = vFloat;
+                }
+            });
+            return map;
         }
 
         function handleInventoryUpload(event) {
             const file = event.target.files[0];
-            if (!file) return;
-
-            // Show loading state on button
-            const summaryText = document.getElementById('report-summary-text');
-            summaryText.innerHTML = '<i class="fas fa-spinner fa-spin text-blue-500"></i> در حال پردازش فایل اکسل موجودی...';
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    
-                    // Parse options: defval gives default values for empty cells
-                    const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-                    
-                    processInventoryJson(json);
-                    
-                    summaryText.innerHTML = '<i class="fas fa-check-circle text-green-500"></i> فایل موجودی با موفقیت اعمال شد. کسری اقلام در ستون آخر قابل مشاهده است.';
-                    // Reset file input so same file can be uploaded again if needed
-                    event.target.value = ''; 
-                } catch (err) {
-                    console.error(err);
-                    alert('خطا در خواندن فایل اکسل. لطفاً مطمئن شوید فایل معتبر است.');
-                    summaryText.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500"></i> خطا در خواندن فایل موجودی.';
-                }
-            };
-            reader.readAsArrayBuffer(file);
+            if(!file) return;
+            parseExcel(file, (json) => {
+                // کلمه 'کالا' حذف شد تا دقیقاً فقط کدها را پیدا کند
+                state.warehouseInv = extractKeyValue(json, ['کد', 'code'], ['موجودی', 'تعداد', 'مقدار', 'qty']);
+                document.getElementById('risk-status-msg').innerHTML = `<i class="fas fa-check-circle"></i> موجودی انبار بروزرسانی شد (${Object.keys(state.warehouseInv).length} قلم استخراج شد).`;
+                document.getElementById('risk-status-msg').classList.remove('hidden');
+                recalculateRisk();
+            });
         }
 
-        function processInventoryJson(json) {
-            inventoryMap = {};
-            
-            // Expected keywords for columns
-            const codeKeywords = ['کد', 'کالا', 'code', 'part'];
-            const qtyKeywords = ['موجودی', 'تعداد', 'مقدار', 'qty', 'quantity'];
-
-            json.forEach(row => {
-                let code = null;
-                let qty = 0;
-                
-                // Identify columns dynamically
-                for (let key in row) {
-                    if (!key) continue;
-                    let k = key.toString().toLowerCase().trim();
-                    let val = row[key];
-                    
-                    if (!code && codeKeywords.some(keyword => k.includes(keyword))) {
-                        code = String(val).trim();
-                    }
-                    if (qtyKeywords.some(keyword => k.includes(keyword))) {
-                        let parsedQty = parseFloat(val);
-                        if (!isNaN(parsedQty)) qty = parsedQty;
-                    }
-                }
-                
-                // Fallback: If headers aren't clear, assume first string/number is Code, first pure number is Qty
-                if (!code) {
-                     let values = Object.values(row);
-                     code = String(values[0]).trim(); // assume first col is code
-                     for(let i=1; i<values.length; i++) {
-                         let parsed = parseFloat(values[i]);
-                         if(!isNaN(parsed)) {
-                             qty = parsed;
-                             break;
-                         }
-                     }
-                }
-
-                if (code) {
-                    inventoryMap[code] = qty;
-                }
+        function handleLineInventoryUpload(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+            parseExcel(file, (json) => {
+                state.lineInv = extractKeyValue(json, ['کد', 'code'], ['موجودی', 'تعداد', 'مقدار', 'qty']);
+                document.getElementById('risk-status-msg').innerHTML = `<i class="fas fa-check-circle"></i> موجودی پای خط بروزرسانی شد (${Object.keys(state.lineInv).length} قلم استخراج شد).`;
+                document.getElementById('risk-status-msg').classList.remove('hidden');
+                recalculateRisk();
             });
-            
-            renderReportTable();
-            if (Object.keys(priceMap).length > 0) calculateFinancials();
         }
 
         function handlePriceUpload(event) {
             const file = event.target.files[0];
-            if (!file) return;
-
-            const summaryText = document.getElementById('finance-summary-text');
-            summaryText.innerHTML = '<i class="fas fa-spinner fa-spin text-blue-500"></i> در حال پردازش فایل اکسل قیمت‌ها...';
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-                    
-                    processPriceJson(json);
-                    
-                    summaryText.innerHTML = '<i class="fas fa-check-circle text-green-500"></i> فایل قیمت‌ها با موفقیت اعمال شد و جداول مالی به روز رسانی گردیدند.';
-                    event.target.value = ''; // Reset input
-                } catch (err) {
-                    console.error(err);
-                    alert('خطا در خواندن فایل اکسل قیمت. لطفاً مطمئن شوید فایل معتبر است.');
-                    summaryText.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500"></i> خطا در پردازش فایل قیمت.';
-                }
-            };
-            reader.readAsArrayBuffer(file);
+            if(!file) return;
+            parseExcel(file, (json) => {
+                state.prices = extractKeyValue(json, ['کد', 'code'], ['قیمت', 'مبلغ', 'ریال', 'price', 'فی']);
+                document.getElementById('price-status-msg').innerHTML = `<i class="fas fa-check-circle"></i> قیمت‌ها بروزرسانی شد (${Object.keys(state.prices).length} قیمت استخراج شد).`;
+                renderGeneralBudget();
+                renderFinancialCrisis();
+            });
         }
 
-        function processPriceJson(json) {
-            priceMap = {};
-            const codeKeywords = ['کد', 'کالا', 'code', 'part'];
-            const priceKeywords = ['قیمت', 'فی', 'مبلغ', 'ریال', 'ارزش', 'price', 'cost'];
+        function manualLineUpdate(code, val) {
+            state.lineInv[code] = parseFloat(val) || 0;
+        }
 
-            json.forEach(row => {
-                let code = null;
-                let price = 0;
-                
-                for (let key in row) {
-                    if (!key) continue;
-                    let k = key.toString().toLowerCase().trim();
-                    let val = row[key];
-                    
-                    if (!code && codeKeywords.some(keyword => k.includes(keyword))) {
-                        code = String(val).trim();
-                    }
-                    if (priceKeywords.some(keyword => k.includes(keyword))) {
-                        // Extract number by replacing commas in case of pre-formatted text (e.g. 1,000,000)
-                        let parsedPrice = parseFloat(String(val).replace(/,/g, ''));
-                        if (!isNaN(parsedPrice)) price = Math.max(0, parsedPrice);
-                    }
-                }
-                
-                // Fallback parsing if keywords failed
-                if (!code) {
-                     let values = Object.values(row);
-                     code = String(values[0]).trim();
-                     for(let i=1; i<values.length; i++) {
-                         let parsed = parseFloat(String(values[i]).replace(/,/g, ''));
-                         if(!isNaN(parsed) && parsed > 0) {
-                             price = parsed;
-                             break;
-                         }
-                     }
-                }
-
-                if (code) {
-                    priceMap[code] = price;
-                }
-            });
+        // --- 6. TAB 2: RISK DASHBOARD RENDER (5 BOXES) ---
+        function recalculateRisk() {
+            state.crisisDays = parseFloat(document.getElementById('crisis-days').value) || 5;
             
-            calculateFinancials();
-        }
-
-        function formatCurrency(num) {
-            return Math.round(num).toLocaleString('fa-IR');
-        }
-
-        function calculateFinancials() {
-            if (reportData.length === 0) return;
-
-            let totalDailyReq = 0, totalWeeklyReq = 0, totalMonthlyReq = 0;
-            let totalDailyBOMCost = 0, totalWeeklyBOMCost = 0, totalMonthlyBOMCost = 0;
-            let totalDailyShortageCost = 0, totalWeeklyShortageCost = 0, totalMonthlyShortageCost = 0;
-
-            financialData = reportData.map(item => {
-                let price = priceMap[item.code] || 0;
-                let inv = inventoryMap[item.code] || 0;
-
-                // Scale required quantities
-                let reqD = item.required;
-                let reqW = reqD * 5;  // 5 Working days
-                let reqM = reqD * 20; // 20 Working days
-
-                // Shortage accumulates if inventory is static. 
-                // e.g., have 100 inv. Need 30/day. Day 1 short = 0. Week short = max(0, 150-100) = 50.
-                let shortD = Math.max(0, reqD - inv);
-                let shortW = Math.max(0, reqW - inv);
-                let shortM = Math.max(0, reqM - inv);
-
-                // Financial values
-                let costReqD = reqD * price;
-                let costShortD = shortD * price;
-
-                // Sum up aggregates
-                totalDailyReq += reqD;
-                totalWeeklyReq += reqW;
-                totalMonthlyReq += reqM;
-
-                totalDailyBOMCost += costReqD;
-                totalWeeklyBOMCost += reqW * price;
-                totalMonthlyBOMCost += reqM * price;
-
-                totalDailyShortageCost += costShortD;
-                totalWeeklyShortageCost += shortW * price;
-                totalMonthlyShortageCost += shortM * price;
-
-                return {
-                    ...item,
-                    price,
-                    reqD, reqW, reqM,
-                    shortD, shortW, shortM,
-                    costReqD, costShortD
-                };
-            });
-
-            // Sort by highest Total Required Value (CostReqD) to find TOP 20 expensive parts
-            financialData.sort((a, b) => b.costReqD - a.costReqD);
-
-            // Update KPI Cards
-            document.getElementById('kpi-daily-qty').innerText = formatCurrency(totalDailyReq);
-            document.getElementById('kpi-daily-cost').innerText = formatCurrency(totalDailyBOMCost);
-            document.getElementById('kpi-daily-shortage').innerText = formatCurrency(totalDailyShortageCost);
-
-            document.getElementById('kpi-weekly-qty').innerText = formatCurrency(totalWeeklyReq);
-            document.getElementById('kpi-weekly-cost').innerText = formatCurrency(totalWeeklyBOMCost);
-            document.getElementById('kpi-weekly-shortage').innerText = formatCurrency(totalWeeklyShortageCost);
-
-            document.getElementById('kpi-monthly-qty').innerText = formatCurrency(totalMonthlyReq);
-            document.getElementById('kpi-monthly-cost').innerText = formatCurrency(totalMonthlyBOMCost);
-            document.getElementById('kpi-monthly-shortage').innerText = formatCurrency(totalMonthlyShortageCost);
-
-            renderFinancialTables();
-            renderCategorizedFinancials();
-            renderRiskFinancials(); // Call Tab 5 update
-        }
-
-        function renderRiskFinancials() {
-            const container = document.getElementById('tab-risk-finance-content');
-            if (financialData.length === 0 || Object.keys(priceMap).length === 0 || Object.keys(inventoryMap).length === 0) {
-                container.innerHTML = '<div class="text-center py-12 text-gray-500"><i class="fas fa-info-circle text-4xl mb-4 block text-blue-300"></i>برای مشاهده این بخش، لطفاً ابتدا فایل موجودی (تب ۲) و فایل قیمت‌ها (تب ۴) را بارگذاری نمایید.</div>';
+            if (state.totalMaterials.length === 0) {
+                document.getElementById('materials-risk-container').innerHTML = `
+                    <div class="text-center py-12 text-gray-400">
+                        <i class="fas fa-calculator text-5xl mb-3"></i>
+                        <p>لطفاً ابتدا در تب ۱، دکمه «محاسبه کل مواد مورد نیاز» را کلیک کنید.</p>
+                    </div>`;
                 return;
             }
 
-            // We filter items that have ANY shortage during the week (super critical + critical)
-            const riskItems = financialData.filter(item => item.shortW > 0);
+            const shift1Crisis = [];
+            const shift2Crisis = [];
+            const critical = [];
+            const warning = [];
+            const safe = [];
 
-            const metalItems = [];
-            const nonMetalItems = [];
-            
-            // KPI Variables
-            let vitalCount = 0;
-            let vitalCost = 0;
-
-            riskItems.forEach(item => {
-                const dep = item.dept ? item.dept.toLowerCase() : '';
-                // Classify based on the second column "اداره" or keywords
-                if (dep.includes('غیرفلزی') || dep.includes('غیر فلزی') || dep.includes('فوم') || dep.includes('رنگ') || dep.includes('دوخت')) {
-                    nonMetalItems.push(item);
-                } else {
-                    metalItems.push(item);
-                }
+            state.totalMaterials.forEach(item => {
+                let wInv = state.warehouseInv[item.code] || 0;
+                let lInv = state.lineInv[item.code] || 0;
+                let totalInv = wInv + lInv;
+                let daily = item.totalAmount;
                 
-                // Identify Vital/Immediate needs (Super Critical: Inv < Daily Req)
-                if (item.invAmount < item.reqD) {
-                    vitalCount++;
-                    vitalCost += (item.shortW * item.price);
+                item.wInv = wInv;
+                item.lInv = lInv;
+                item.totalInv = totalInv;
+                item.daysCovered = daily > 0 ? (totalInv / daily) : 999;
+                
+                // Status Logic - 5 Box Categorization
+                if (totalInv < item.s1Amount) {
+                    item.statusStr = '<span class="text-red-700 font-bold bg-red-100 px-2 py-1 rounded">کسری قطعی شیفت ۱</span>';
+                    shift1Crisis.push(item);
+                } else if (totalInv < daily) {
+                    item.statusStr = '<span class="text-orange-700 font-bold bg-orange-100 px-2 py-1 rounded">کسری قطعی شیفت ۲</span>';
+                    shift2Crisis.push(item);
+                } else if (item.daysCovered >= 1 && item.daysCovered < state.crisisDays) {
+                    item.statusStr = `<span class="text-yellow-700 font-bold">تامین تا ${item.daysCovered.toFixed(1)} روز</span>`;
+                    critical.push(item);
+                } else if (item.daysCovered >= state.crisisDays && item.daysCovered < 30) {
+                    item.statusStr = `<span class="text-blue-700 font-bold">تامین تا ${item.daysCovered.toFixed(1)} روز</span>`;
+                    warning.push(item);
+                } else {
+                    item.statusStr = `<span class="text-green-700 font-bold">حاشیه امن (${item.daysCovered.toFixed(1)} روز)</span>`;
+                    safe.push(item);
+                }
+
+                // Order Time (Days - 7)
+                let orderTime = item.daysCovered - 7;
+                if (orderTime < 0) {
+                    item.orderStr = '<span class="text-red-600 font-bold blink"><i class="fas fa-exclamation-circle"></i> تاخیر سفارش</span>';
+                } else {
+                    item.orderStr = `<span class="text-gray-600">${orderTime.toFixed(1)} روز دیگر</span>`;
                 }
             });
 
-            // Sort by absolute cost to fix the 5-day shortage (highest first)
-            const sortFn = (a, b) => (b.shortW * b.price) - (a.shortW * a.price);
-            metalItems.sort(sortFn);
-            nonMetalItems.sort(sortFn);
+            renderRiskTables(shift1Crisis, shift2Crisis, critical, warning, safe);
+        }
+
+        function renderRiskTables(s1c, s2c, c, w, s) {
+            const container = document.getElementById('materials-risk-container');
             
-            // Calculate Totals for KPIs
-            const metalCost = metalItems.reduce((sum, item) => sum + (item.shortW * item.price), 0);
-            const nonMetalCost = nonMetalItems.reduce((sum, item) => sum + (item.shortW * item.price), 0);
-            const grandTotal = metalCost + nonMetalCost;
-            
-            // Build KPI Cards HTML
-            const kpiHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-white border-2 border-rose-200 rounded-xl p-4 shadow-sm relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-1 h-full bg-rose-500"></div>
-                        <h3 class="text-sm font-bold text-gray-500 mb-1">کل بودجه خرید بحران (۵ روز)</h3>
-                        <div class="text-xl font-black text-rose-700">${formatCurrency(grandTotal)} <span class="text-xs font-normal text-gray-400">ریال</span></div>
-                    </div>
-                    <div class="bg-white border-2 border-gray-300 rounded-xl p-4 shadow-sm relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-1 h-full bg-gray-500"></div>
-                        <h3 class="text-sm font-bold text-gray-500 mb-1">سهم قطعات فلزی</h3>
-                        <div class="text-xl font-black text-gray-800">${formatCurrency(metalCost)} <span class="text-xs font-normal text-gray-400">ریال</span></div>
-                    </div>
-                    <div class="bg-white border-2 border-indigo-200 rounded-xl p-4 shadow-sm relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-1 h-full bg-indigo-500"></div>
-                        <h3 class="text-sm font-bold text-gray-500 mb-1">سهم اقلام غیرفلزی</h3>
-                        <div class="text-xl font-black text-indigo-700">${formatCurrency(nonMetalCost)} <span class="text-xs font-normal text-gray-400">ریال</span></div>
-                    </div>
-                    <div class="bg-red-50 border-2 border-red-200 rounded-xl p-4 shadow-sm relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-1 h-full bg-red-600"></div>
-                        <h3 class="text-sm font-bold text-red-900 mb-1"><i class="fas fa-exclamation-triangle animate-pulse mr-1"></i> اولویت حیاتی (توقف خط)</h3>
-                        <div class="flex justify-between items-end">
-                            <span class="text-xl font-black text-red-700">${vitalCount} <span class="text-sm font-bold">قلم کالا</span></span>
-                            <span class="text-xs text-red-600 font-bold bg-white px-2 py-0.5 rounded shadow-sm" title="بودجه مورد نیاز اقلام حیاتی">${formatCurrency(vitalCost)} ریال</span>
+            const buildBox = (items, title, colorClass, icon, tableId) => {
+                if(items.length === 0) return '';
+                let rows = items.map(i => {
+                    let shortage = i.totalInv < (i.totalAmount * state.crisisDays) ? ((i.totalAmount * state.crisisDays) - i.totalInv).toFixed(2) : 0;
+                    return `
+                    <tr class="hover:bg-gray-100 border-b border-gray-200 text-sm">
+                        <td class="py-2 px-3 font-mono">${i.code}</td>
+                        <td class="py-2 px-3 text-right">${i.name}</td>
+                        <td class="py-2 px-2 text-center bg-blue-50 font-bold">${i.totalAmount.toFixed(2)}</td>
+                        <td class="py-2 px-2 text-center">${i.wInv.toFixed(2)}</td>
+                        <td class="py-2 px-2 text-center bg-yellow-50">
+                            <input type="number" value="${i.lInv}" class="w-16 text-center border rounded p-1 text-xs focus:ring-2 focus:ring-blue-400" onchange="manualLineUpdate('${i.code}', this.value)">
+                        </td>
+                        <td class="py-2 px-2 text-center font-bold">${i.totalInv.toFixed(2)}</td>
+                        <td class="py-2 px-2 text-center text-red-600 font-bold">${shortage}</td>
+                        <td class="py-2 px-2 text-center text-xs">${i.statusStr}</td>
+                        <td class="py-2 px-2 text-center text-xs">${i.orderStr}</td>
+                    </tr>`;
+                }).join('');
+
+                return `
+                <div class="risk-panel ${colorClass} mb-6 rounded-xl border-2 shadow-sm overflow-hidden">
+                    <div class="p-3 flex justify-between items-center bg-white/50 border-b">
+                        <h3 class="font-bold text-lg flex items-center gap-2">${icon} ${title} (${items.length} قلم)</h3>
+                        <div class="flex gap-2">
+                            <button onclick="exportExcel('${tableId}', '${title}')" class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 shadow flex items-center gap-1"><i class="fas fa-file-excel"></i> اکسل</button>
+                            <button onclick="exportPDF('${tableId}', '${title}')" class="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 shadow flex items-center gap-1"><i class="fas fa-file-pdf"></i> چاپ</button>
                         </div>
                     </div>
+                    <div class="box-container custom-scrollbar bg-white" style="max-height: 400px; overflow-y: auto;">
+                        <table id="${tableId}" class="min-w-full">
+                            <thead class="bg-gray-100 sticky top-0 shadow-sm text-xs text-gray-700 z-10">
+                                <tr>
+                                    <th class="py-2 px-3 border-b">کد کالا</th>
+                                    <th class="py-2 px-3 border-b text-right">شرح</th>
+                                    <th class="py-2 px-2 border-b">نیاز روزانه</th>
+                                    <th class="py-2 px-2 border-b">موجودی انبار</th>
+                                    <th class="py-2 px-2 border-b bg-yellow-100">موجودی خط</th>
+                                    <th class="py-2 px-2 border-b">جمع موجودی</th>
+                                    <th class="py-2 px-2 border-b">کسری (${state.crisisDays} روزه)</th>
+                                    <th class="py-2 px-2 border-b">وضعیت تامین</th>
+                                    <th class="py-2 px-2 border-b">زمان سفارش</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                </div>`;
+            };
+
+            // دقیقا ۵ باکس کاملا مجزا
+            container.innerHTML = 
+                buildBox(s1c, 'فوق بحرانی (کسری قطعی شیفت ۱)', 'border-red-600 bg-red-50 text-red-900', '🚨', 'tbl-s1c') +
+                buildBox(s2c, 'فوق بحرانی (کسری قطعی شیفت ۲)', 'border-orange-500 bg-orange-50 text-orange-900', '🔴', 'tbl-s2c') +
+                buildBox(c, `بحرانی (ریسک ${state.crisisDays} روزه)`, 'border-yellow-500 bg-yellow-50 text-yellow-900', '🟠', 'tbl-c') +
+                buildBox(w, 'هشدار تامین / نقطه سفارش (کمتر از 30 روز)', 'border-blue-400 bg-blue-50 text-blue-900', '🟡', 'tbl-w') +
+                buildBox(s, 'حاشیه امن (بیش از یک ماه)', 'border-green-500 bg-green-50 text-green-900', '🟢', 'tbl-s');
+        }
+
+        // --- 7. TAB 3: GENERAL BUDGET & FAMILIES ---
+        function renderGeneralBudget() {
+            const container = document.getElementById('general-budget-container');
+            if(Object.keys(state.prices).length === 0 || state.totalMaterials.length === 0) {
+                container.classList.add('hidden');
+                return;
+            }
+            container.classList.remove('hidden');
+
+            let all = [];
+            let sumDaily = 0;
+
+            state.totalMaterials.forEach(i => {
+                let price = state.prices[i.code] || 0;
+                let cost = i.totalAmount * price;
+                sumDaily += cost;
+                all.push({...i, price: price, cost: cost});
+            });
+
+            all.sort((a,b) => b.cost - a.cost);
+            let top20 = all.slice(0, 20);
+            let others = all.slice(20);
+
+            document.getElementById('gen-fin-kpis').innerHTML = `
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 p-5 rounded-2xl shadow-sm text-center">
+                    <div class="text-blue-700 text-sm font-black mb-1"><i class="fas fa-calendar-day"></i> بودجه روزانه</div>
+                    <div class="text-2xl font-black text-blue-900">${sumDaily.toLocaleString()} <span class="text-sm font-normal text-blue-700">ریال</span></div>
+                </div>
+                <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 p-5 rounded-2xl shadow-sm text-center">
+                    <div class="text-indigo-700 text-sm font-black mb-1"><i class="fas fa-calendar-week"></i> بودجه هفتگی (۵ روزه)</div>
+                    <div class="text-2xl font-black text-indigo-900">${(sumDaily*5).toLocaleString()} <span class="text-sm font-normal text-indigo-700">ریال</span></div>
+                </div>
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 p-5 rounded-2xl shadow-sm text-center">
+                    <div class="text-purple-700 text-sm font-black mb-1"><i class="fas fa-calendar-alt"></i> بودجه ماهانه (۲۰ روزه)</div>
+                    <div class="text-2xl font-black text-purple-900">${(sumDaily*20).toLocaleString()} <span class="text-sm font-normal text-purple-700">ریال</span></div>
                 </div>
             `;
 
-            const buildRiskTable = (items, title, icon, colorTheme) => {
-                if(items.length === 0) return '';
-                let totalShortageCost = items.reduce((sum, item) => sum + (item.shortW * item.price), 0);
-                
-                let html = `
-                <div class="mb-8 border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-                    <div class="bg-${colorTheme}-50 px-4 py-3 border-b border-${colorTheme}-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                        <h3 class="text-lg font-bold text-${colorTheme}-900 flex items-center gap-2">
-                            <i class="fas ${icon}"></i> ${title} <span class="text-xs bg-white px-2 py-0.5 rounded-full mx-2 shadow-sm">${items.length} کالا</span>
-                        </h3>
-                        <div class="text-left bg-white px-4 py-1.5 rounded-lg border border-${colorTheme}-200 shadow-sm flex items-center gap-3">
-                            <span class="text-xs text-gray-500 font-bold block">ارزش ریالی خرید (۵ روز):</span>
-                            <span class="font-black text-rose-600 text-lg">${formatCurrency(totalShortageCost)} <span class="text-xs font-normal">ریال</span></span>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto max-h-[500px]">
-                        <table class="min-w-full border-collapse text-right text-sm">
-                            <thead class="bg-gray-100 sticky top-0 z-10">
-                                <tr>
-                                    <th class="py-2 px-2 border-b border-gray-200 font-bold text-gray-700 w-12 text-center">ردیف</th>
-                                    <th class="py-2 px-2 border-b border-gray-200 font-bold text-gray-700 w-24">کد کالا</th>
-                                    <th class="py-2 px-3 border-b border-gray-200 font-bold text-gray-700">شرح کالا</th>
-                                    <th class="py-2 px-2 border-b border-gray-200 font-bold text-blue-900 bg-blue-50 text-center w-20">نیاز ۵ روز</th>
-                                    <th class="py-2 px-2 border-b border-gray-200 font-bold text-amber-900 bg-amber-50 text-center w-24">موجودی فعلی</th>
-                                    <th class="py-2 px-2 border-b border-gray-200 font-bold text-red-900 bg-red-50 text-center w-24">کسری ۵ روزه</th>
-                                    <th class="py-2 px-2 border-b border-gray-200 font-bold text-gray-700 text-center w-28">فی (ریال)</th>
-                                    <th class="py-2 px-3 border-b border-gray-200 font-bold text-rose-900 bg-rose-50 text-center w-36">نقدینگی خرید</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-100">
-                `;
-                
-                items.forEach((item, index) => {
-                    let costToFix = item.shortW * item.price;
-                    let formatQty = q => q % 1 !== 0 ? q.toFixed(3) : q;
-                    let hasPrice = item.price > 0;
-                    
-                    // Check if vital (stops line today)
-                    let isVital = item.invAmount < item.reqD;
-                    let rowClass = isVital ? 'bg-red-50 hover:bg-red-100' : `hover:bg-${colorTheme}-50/30`;
-                    let vitalBadge = isVital ? '<span class="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded mr-2 animate-pulse inline-block shadow-sm">اقدام فوری</span>' : '';
-                    let borderClass = isVital ? 'border-r-4 border-r-red-500' : 'border-x border-gray-50';
-                    
-                    html += `
-                        <tr class="${rowClass} transition-colors">
-                            <td class="py-2 px-2 text-center ${isVital ? 'text-red-700 font-bold' : 'text-gray-400'} ${borderClass}">${index + 1}</td>
-                            <td class="py-2 px-2 text-gray-700 font-mono text-xs border-l border-gray-50" dir="ltr">${item.code}</td>
-                            <td class="py-2 px-3 text-gray-900 font-medium text-xs sm:text-sm border-l border-gray-50">${vitalBadge}${item.name}</td>
-                            <td class="py-2 px-2 text-center text-blue-700 font-bold bg-blue-50/30 border-l border-gray-50" dir="ltr">${formatQty(item.reqW)}</td>
-                            <td class="py-2 px-2 text-center text-amber-700 font-bold bg-amber-50/30 border-l border-gray-50" dir="ltr">${formatQty(item.invAmount)}</td>
-                            <td class="py-2 px-2 text-center text-red-600 font-bold bg-red-50/50 border-l border-gray-50" dir="ltr">${formatQty(item.shortW)}</td>
-                            <td class="py-2 px-2 text-center ${hasPrice ? 'text-gray-600' : 'text-red-500 font-bold'} border-l border-gray-50" dir="ltr">${hasPrice ? formatCurrency(item.price) : 'ندارد'}</td>
-                            <td class="py-2 px-3 text-center font-bold text-rose-600 bg-rose-50/30" dir="ltr">${formatCurrency(costToFix)}</td>
+            // صدا زدن تابع خریدهای تجمیعی با ظاهر جدید
+            renderFamilies(all);
+
+            const buildTbl = (arr) => {
+                return `<div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm"><table class="min-w-full text-sm text-center">
+                    <thead class="bg-gray-100 text-gray-700 font-bold border-b-2 border-gray-200">
+                        <tr>
+                            <th class="py-3 px-2 border-l border-gray-200">کد</th>
+                            <th class="py-3 px-2 text-right border-l border-gray-200">شرح</th>
+                            <th class="py-3 px-2 border-l border-gray-200">فی (ریال)</th>
+                            <th class="py-3 px-2 bg-blue-50 border-l border-gray-200">نیاز روزانه</th>
+                            <th class="py-3 px-2 bg-blue-50 border-l border-gray-200">مبلغ روزانه</th>
+                            <th class="py-3 px-2 bg-purple-50 border-l border-gray-200">نیاز ماهانه</th>
+                            <th class="py-3 px-2 bg-purple-50">مبلغ ماهانه</th>
                         </tr>
-                    `;
-                });
-                
-                html += `</tbody></table></div></div>`;
-                return html;
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">${arr.map(x => `
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="py-2 px-2 font-mono text-xs text-gray-500 border-l border-gray-100">${x.code}</td>
+                            <td class="py-2 px-2 text-right font-bold text-gray-800 border-l border-gray-100">${x.name}</td>
+                            <td class="py-2 px-2 border-l border-gray-100">${x.price.toLocaleString()}</td>
+                            <td class="py-2 px-2 font-bold text-blue-700 bg-blue-50/30 border-l border-gray-100">${x.totalAmount.toFixed(1)}</td>
+                            <td class="py-2 px-2 font-black text-blue-900 bg-blue-50/30 border-l border-gray-100">${x.cost.toLocaleString()}</td>
+                            <td class="py-2 px-2 font-bold text-purple-700 bg-purple-50/30 border-l border-gray-100">${(x.totalAmount*20).toFixed(1)}</td>
+                            <td class="py-2 px-2 font-black text-purple-900 bg-purple-50/30">${(x.cost*20).toLocaleString()}</td>
+                        </tr>
+                    `).join('')}</tbody></table></div>`;
             };
 
-            container.innerHTML = 
-                kpiHTML + 
-                buildRiskTable(metalItems, 'بحران و کسری اقلام فلزی (سورت شده بر اساس بیشترین بودجه)', 'fa-cogs', 'gray') +
-                buildRiskTable(nonMetalItems, 'بحران و کسری اقلام غیرفلزی (سورت شده بر اساس بیشترین بودجه)', 'fa-fill-drip', 'indigo');
+            document.getElementById('gen-fin-tables').innerHTML = `
+                <div class="mt-8 mb-4 flex items-center justify-between">
+                    <h3 class="font-bold text-xl text-gray-800 border-r-4 border-amber-500 pr-3"><i class="fas fa-star text-amber-500 ml-1"></i> ۲۰ قلم پرهزینه (A-Class)</h3>
+                </div>
+                ${buildTbl(top20)}
+                <div class="mt-6 bg-white rounded-xl shadow-sm border border-gray-200">
+                    <button class="w-full px-6 py-4 flex justify-between items-center focus:outline-none" onclick="toggleAccordion('other-items-container')">
+                        <span class="font-bold text-gray-700 flex items-center gap-2"><i class="fas fa-list text-gray-400"></i> نمایش سایر اقلام (${others.length} مورد)</span>
+                        <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="icon-other-items-container"></i>
+                    </button>
+                    <div id="other-items-container" class="hidden border-t border-gray-100 p-4 bg-gray-50">
+                        ${buildTbl(others)}
+                    </div>
+                </div>
+            `;
         }
 
-        function renderCategorizedFinancials() {
-            const container = document.getElementById('categorized-financials');
-            container.innerHTML = '<h3 class="text-lg font-bold text-gray-800 mb-3"><i class="fas fa-layer-group text-indigo-500 ml-1"></i> دسته‌بندی اقلام جهت خرید یکپارچه (تامین‌کنندگان)</h3>';
+        // --- 8. TAB 3: FAMILIES LOGIC ---
+        function renderFamilies(allData) {
+            let groups = {
+                'مواد شیمیایی و فوم': { keywords: ['شیمیایی','ایزوسیانات','پلی','حلال','واکس','فوم'], items: [], sum: 0, icon: 'fa-flask' },
+                'پارچه، چرم و روکش': { keywords: ['پارچه','چرم','روکش','موکت','نخ'], items: [], sum: 0, icon: 'fa-scroll' },
+                'قطعات پلاستیکی': { keywords: ['پلاستیک','قاب','مقر','دستگیره'], items: [], sum: 0, icon: 'fa-puzzle-piece' },
+                'سازه و فلزات': { keywords: ['فلزی','ساید','لوله','فریم','ریل','مفتول'], items: [], sum: 0, icon: 'fa-cogs' },
+                'اتصالات (پیچ/پرچ/خار)': { keywords: ['پیچ','مهره','پرچ','خار','واشر'], items: [], sum: 0, icon: 'fa-tools' },
+                'سایر': { keywords: [], items: [], sum: 0, icon: 'fa-box' }
+            };
 
-            const categories = [
-                { id: 'cat-foam', name: 'مواد شیمیایی فوم (پلی‌ال، ایزوسیانات، حلال، واکس)', keywords: ['پلي ال', 'پلی ال', 'ايزوسيانات', 'ایزوسیانات', 'حلال', 'واکس'], items: [], totalCost: 0, totalShortage: 0 },
-                { id: 'cat-fabric', name: 'انواع پارچه، چرم، موکت، نخ و روکش', keywords: ['پارچه', 'چرم', 'موکت', 'متقال', 'آستري', 'آستری', 'روکش', 'مغزي', 'نان وون', 'نخ', 'آرم'], items: [], totalCost: 0, totalShortage: 0 },
-                { id: 'cat-metal', name: 'ریل، مکانیزم و سازه‌های فلزی (فریم، براکت، لوله)', keywords: ['ريل', 'ریل', 'مکانيزم', 'مکانیزم', 'اهرم', 'فريم', 'فریم', 'مفتول', 'سيني', 'سینی', 'براکت', 'سايد', 'ساید', 'لوله', 'پليت', 'پلیت', 'شاخک', 'شفت', 'رکلاينر', 'لولا', 'فنر', 'ساچمه', 'غلطک'], items: [], totalCost: 0, totalShortage: 0 },
-                { id: 'cat-plastic', name: 'قطعات پلاستیکی و پلیمری', keywords: ['پلاستيک', 'پلاستیک', 'قاب', 'مقر', 'دستگيره', 'دستگیره', 'بوش', 'کاور', 'درپوش', 'سلفون', 'نايلون', 'نایلون'], items: [], totalCost: 0, totalShortage: 0 },
-                { id: 'cat-fasteners', name: 'اتصالات و یراق‌آلات (پیچ، مهره، پرچ، واشر)', keywords: ['پيچ', 'پیچ', 'مهره', 'پرچ', 'واشر', 'بست', 'خار', 'پين', 'پین', 'اشپيل', 'ميخ', 'میخ', 'تسمه', 'زيپ'], items: [], totalCost: 0, totalShortage: 0 },
-                { id: 'cat-others', name: 'سایر اقلام (موتور، گرمکن، چسب، رنگ و ...)', keywords: [], items: [], totalCost: 0, totalShortage: 0 }
-            ];
-
-            financialData.forEach(item => {
-                let matched = false;
-                for (let i = 0; i < categories.length - 1; i++) {
-                    if (categories[i].keywords.some(kw => item.name.includes(kw))) {
-                        categories[i].items.push(item);
-                        categories[i].totalCost += item.costReqD;
-                        categories[i].totalShortage += item.costShortD;
-                        matched = true;
-                        break;
+            allData.forEach(item => {
+                let assigned = false;
+                for(let key in groups) {
+                    if(key !== 'سایر' && groups[key].keywords.some(kw => item.name.includes(kw) || item.category.includes(kw))) {
+                        groups[key].items.push(item);
+                        groups[key].sum += item.cost;
+                        assigned = true; break;
                     }
                 }
-                if (!matched) {
-                    categories[categories.length - 1].items.push(item);
-                    categories[categories.length - 1].totalCost += item.costReqD;
-                    categories[categories.length - 1].totalShortage += item.costShortD;
-                }
+                if(!assigned) { groups['سایر'].items.push(item); groups['سایر'].sum += item.cost; }
             });
 
-            if(financialData.length === 0) {
-                container.innerHTML = '';
-                return;
-            }
-
-            categories.forEach(cat => {
-                if (cat.items.length === 0) return;
-
-                // Sort items inside category by highest shortage cost
-                cat.items.sort((a, b) => b.costShortD - a.costShortD);
-
-                let html = `
-                <details class="group bg-white border-2 border-indigo-100 rounded-xl overflow-hidden shadow-sm">
-                    <summary class="flex flex-col sm:flex-row justify-between items-start sm:items-center font-medium cursor-pointer list-none p-4 hover:bg-indigo-50 transition-colors gap-4">
-                        <div class="flex items-center gap-3 w-full sm:w-1/3">
-                            <div class="bg-indigo-100 text-indigo-600 p-2.5 rounded-lg"><i class="fas fa-boxes text-lg"></i></div>
-                            <div>
-                                <span class="text-indigo-900 font-bold text-sm sm:text-base block">${cat.name}</span>
-                                <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full mt-1 inline-block">${cat.items.length} قلم کالا</span>
+            let html = '';
+            let counter = 1;
+            for(let key in groups) {
+                if(groups[key].items.length > 0) {
+                    html += `
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow mb-4 overflow-hidden">
+                        <button class="w-full px-6 py-4 flex flex-col md:flex-row justify-between items-center focus:outline-none hover:bg-gray-50 transition-colors" onclick="toggleAccordion('family-items-${counter}')">
+                            <div class="flex items-center gap-4 mb-2 md:mb-0">
+                                <div class="bg-indigo-50 text-indigo-600 w-12 h-12 rounded-full flex items-center justify-center text-xl shadow-inner">
+                                    <i class="fas ${groups[key].icon}"></i>
+                                </div>
+                                <div class="text-right">
+                                    <h4 class="font-bold text-gray-800 text-lg">${key}</h4>
+                                    <p class="text-sm text-gray-500 font-medium">${groups[key].items.length} قلم کالا شناسایی شده</p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="flex items-center gap-4 sm:gap-6 w-full sm:w-auto justify-between sm:justify-end flex-1">
-                            <div class="text-left bg-gray-50 px-3 py-1.5 rounded border border-gray-100">
-                                <span class="text-[11px] text-gray-500 block">ارزش کل مصرف (روز)</span>
-                                <span class="font-bold text-emerald-600">${formatCurrency(cat.totalCost)} <span class="text-[10px] font-normal">ریال</span></span>
+                            <div class="flex items-center gap-4">
+                                <div class="text-left">
+                                    <div class="text-xs text-gray-400 font-bold mb-1">بودجه روزانه گروه</div>
+                                    <span class="block text-xl font-black text-indigo-700">${groups[key].sum.toLocaleString()} <span class="text-sm font-normal text-gray-500">ریال</span></span>
+                                </div>
+                                <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="icon-family-items-${counter}"></i>
                             </div>
-                            <div class="text-left bg-rose-50 px-3 py-1.5 rounded border border-rose-100">
-                                <span class="text-[11px] text-rose-700 block">بودجه خرید کسری (روز)</span>
-                                <span class="font-bold text-rose-700">${formatCurrency(cat.totalShortage)} <span class="text-[10px] font-normal">ریال</span></span>
-                            </div>
-                            <span class="transition group-open:rotate-180 bg-white shadow-sm border p-1 rounded-full"><i class="fas fa-chevron-down text-indigo-400"></i></span>
-                        </div>
-                    </summary>
-                    <div class="border-t border-gray-200">
-                        <div class="max-h-96 overflow-y-auto bg-gray-50 p-3">
-                            <table class="min-w-full border-collapse text-right text-xs bg-white shadow-sm rounded-lg overflow-hidden">
-                                <thead class="bg-indigo-50 sticky top-0 z-10 border-b border-indigo-100">
-                                    <tr>
-                                        <th class="py-2 px-2 text-center text-indigo-900 w-10">ردیف</th>
-                                        <th class="py-2 px-2 text-indigo-900 w-24">کد کالا</th>
-                                        <th class="py-2 px-3 text-indigo-900">شرح کالا</th>
-                                        <th class="py-2 px-2 text-center text-indigo-900 w-16">نیاز روز</th>
-                                        <th class="py-2 px-2 text-center text-rose-900 w-16">کسری روز</th>
-                                        <th class="py-2 px-2 text-center text-indigo-900 w-24">فی (ریال)</th>
-                                        <th class="py-2 px-2 text-center text-rose-900 w-28">بودجه خرید کسری</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100">
-                                    ${cat.items.map((item, index) => {
-                                        const hasPrice = item.price > 0;
-                                        const priceText = hasPrice ? formatCurrency(item.price) : 'وارد نشده';
-                                        const priceClass = hasPrice ? 'text-gray-600' : 'text-red-500 font-bold bg-red-50';
-                                        const formatQty = (qty) => qty % 1 !== 0 ? qty.toFixed(3) : qty;
-                                        return `
-                                        <tr class="hover:bg-indigo-50/30 transition-colors">
-                                            <td class="py-2 px-2 text-center text-gray-400 border-x border-gray-50">${index + 1}</td>
-                                            <td class="py-2 px-2 font-mono text-gray-600 border-l border-gray-50" dir="ltr">${item.code}</td>
-                                            <td class="py-2 px-3 text-gray-800 font-medium border-l border-gray-50">${item.name}</td>
-                                            <td class="py-2 px-2 text-center text-blue-700 bg-blue-50/30 border-l border-gray-50" dir="ltr">${formatQty(item.reqD)}</td>
-                                            <td class="py-2 px-2 text-center text-red-600 font-bold bg-red-50/50 border-l border-gray-50" dir="ltr">${formatQty(item.shortD)}</td>
-                                            <td class="py-2 px-2 text-center ${priceClass} border-l border-gray-50" dir="ltr">${priceText}</td>
-                                            <td class="py-2 px-2 text-center font-bold text-rose-600 bg-rose-50/30" dir="ltr">${formatCurrency(item.costShortD)}</td>
+                        </button>
+                        <div id="family-items-${counter}" class="hidden border-t border-gray-100 bg-gray-50 p-4">
+                            <div class="box-container custom-scrollbar" style="max-height: 350px; overflow-y: auto;">
+                                <table class="min-w-full text-sm text-center bg-white border border-gray-200 rounded-lg overflow-hidden">
+                                    <thead class="bg-gray-100 sticky top-0 z-10 shadow-sm">
+                                        <tr>
+                                            <th class="py-2 px-3 text-gray-600 border-b border-gray-200 border-l">کد</th>
+                                            <th class="py-2 px-3 text-right text-gray-600 border-b border-gray-200 border-l">شرح</th>
+                                            <th class="py-2 px-3 text-gray-600 border-b border-gray-200 border-l bg-blue-50">نیاز روزانه</th>
+                                            <th class="py-2 px-3 text-gray-600 border-b border-gray-200 bg-blue-50">مبلغ روزانه (ریال)</th>
                                         </tr>
-                                        `;
-                                    }).join('')}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        ${groups[key].items.sort((a,b)=>b.cost-a.cost).map(i => `
+                                            <tr class="hover:bg-indigo-50/30 transition-colors">
+                                                <td class="py-2 px-3 font-mono text-xs text-gray-500 border-l border-gray-100">${i.code}</td>
+                                                <td class="py-2 px-3 text-right font-bold text-gray-700 border-l border-gray-100">${i.name}</td>
+                                                <td class="py-2 px-3 font-bold text-indigo-600 border-l border-gray-100">${i.totalAmount.toFixed(1)}</td>
+                                                <td class="py-2 px-3 font-black text-gray-900">${i.cost.toLocaleString()}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
-                </details>
-                `;
-                container.innerHTML += html;
-            });
-        }
-
-        function renderFinancialTables() {
-            const topTbody = document.getElementById('finance-top-tbody');
-            const otherTbody = document.getElementById('finance-other-tbody');
-            
-            topTbody.innerHTML = '';
-            otherTbody.innerHTML = '';
-
-            if (financialData.length === 0) return;
-
-            const top20 = financialData.slice(0, 20);
-            const others = financialData.slice(20);
-
-            const formatQty = (qty) => qty % 1 !== 0 ? qty.toFixed(3) : qty;
-
-            const createRow = (item, index, isTop) => {
-                const tr = document.createElement('tr');
-                tr.className = `hover:bg-gray-50 transition-colors border-b border-gray-100 ${isTop ? 'h-12' : 'h-10'}`;
-                
-                const hasPrice = item.price > 0;
-                const priceClass = hasPrice ? 'text-gray-800' : 'text-red-500 font-bold bg-red-50';
-                const priceText = hasPrice ? formatCurrency(item.price) : 'وارد نشده';
-
-                tr.innerHTML = `
-                    <td class="py-2 px-2 text-center text-gray-500 ${isTop ? 'text-sm' : 'text-xs'}">${index + 1}</td>
-                    <td class="py-2 px-2 text-gray-700 font-mono ${isTop ? 'text-sm' : 'text-xs'}" dir="ltr">${item.code}</td>
-                    <td class="py-2 px-3 text-gray-900 ${isTop ? 'text-sm' : 'text-xs truncate max-w-xs'}" title="${item.name}">${item.name}</td>
-                    <td class="py-2 px-2 text-blue-700 font-bold bg-blue-50 text-center ${isTop ? 'text-base' : 'text-xs'}" dir="ltr">${formatQty(item.reqD)}</td>
-                    <td class="py-2 px-2 text-red-600 font-bold bg-red-50 text-center ${isTop ? 'text-base' : 'text-xs'}" dir="ltr">${formatQty(item.shortD)}</td>
-                    <td class="py-2 px-2 text-center ${isTop ? 'text-sm' : 'text-xs'} ${priceClass}" dir="ltr">${priceText}</td>
-                    <td class="py-2 px-2 text-center font-bold text-emerald-700 ${isTop ? 'text-base' : 'text-xs'}" dir="ltr">${formatCurrency(item.costReqD)}</td>
-                    <td class="py-2 px-2 text-center font-bold text-rose-700 ${isTop ? 'text-base' : 'text-xs'}" dir="ltr">${formatCurrency(item.costShortD)}</td>
-                `;
-                return tr;
-            };
-
-            top20.forEach((item, index) => topTbody.appendChild(createRow(item, index, true)));
-            others.forEach((item, index) => otherTbody.appendChild(createRow(item, index + 20, false)));
-            
-            document.getElementById('others-count').innerText = others.length;
-        }
-
-        function renderDatabaseTable() {
-            const tbody = document.getElementById('database-tbody');
-            tbody.innerHTML = '';
-            
-            parsedBOM.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="border py-1 px-2 text-gray-400">${item.row}</td>
-                    <td class="border py-1 px-2 font-mono text-gray-600">${item.code}</td>
-                    <td class="border py-1 px-4 text-gray-800">${item.name}</td>
-                    ${item.carNeeds.map(val => `<td class="border py-1 px-2 text-center ${val > 0 ? 'font-bold text-gray-800' : 'text-gray-300'}">${val}</td>`).join('')}
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function savePlanToStorage() {
-            localStorage.setItem('bomAppPlan', JSON.stringify(dailyPlan));
-        }
-
-        function loadPlanFromStorage() {
-            const savedPlan = localStorage.getItem('bomAppPlan');
-            let parsedPlan = savedPlan ? JSON.parse(savedPlan) : {};
-            DAILY_PLAN_MODELS.forEach(car => {
-                if (parsedPlan[car] === undefined) parsedPlan[car] = 0;
-            });
-            dailyPlan = parsedPlan;
-        }
-
-        function resetPlan() {
-            if (confirm('آیا مطمئن هستید؟ تمام مقادیر ورودی برنامه تولید صفر خواهند شد.')) {
-                localStorage.removeItem('bomAppPlan');
-                loadPlanFromStorage(); 
-                renderDailyPlanTable();
-                
-                reportData = [];
-                inventoryMap = {};
-                priceMap = {};
-                financialData = [];
-                
-                renderReportTable();
-                
-                // Clear all states and tables
-                document.getElementById('report-summary-text').innerText = 'برنامه صفر شد. مقادیر جدید وارد کنید.';
-                document.getElementById('finance-summary-text').innerHTML = 'برای محاسبه هزینه‌ها، لطفاً پس از اعمال برنامه تولید، فایل اکسل <strong>قیمت اقلام</strong> را آپلود کنید.';
-                
-                const kpis = ['daily-qty', 'daily-cost', 'daily-shortage', 'weekly-qty', 'weekly-cost', 'weekly-shortage', 'monthly-qty', 'monthly-cost', 'monthly-shortage'];
-                kpis.forEach(kpi => document.getElementById(`kpi-${kpi}`).innerText = '0');
-                
-                document.getElementById('finance-top-tbody').innerHTML = '<tr><td colspan="8" class="py-8 text-center text-gray-400">اطلاعات صفر شد.</td></tr>';
-                document.getElementById('finance-other-tbody').innerHTML = '';
-                document.getElementById('others-count').innerText = '0';
-                document.getElementById('categorized-financials').innerHTML = '';
-
-                // Reset file inputs
-                document.getElementById('inventory-file').value = '';
-                document.getElementById('price-file').value = '';
-
-                switchTab('tab-plan');
-            }
-        }
-
-        function copyTableToClipboard() {
-            const elTable = document.getElementById('result-table');
-            let range, sel;
-            if (document.createRange && window.getSelection) {
-                range = document.createRange();
-                sel = window.getSelection();
-                sel.removeAllRanges();
-                try {
-                    range.selectNodeContents(elTable);
-                    sel.addRange(range);
-                } catch (e) {
-                    range.selectNode(elTable);
-                    sel.addRange(range);
+                    </div>`;
+                    counter++;
                 }
-                document.execCommand('copy');
-                alert('جدول خروجی با موفقیت در حافظه موقت (Clipboard) کپی شد. می‌توانید در اکسل Paste کنید.');
             }
-            sel.removeAllRanges();
+            document.getElementById('family-container').innerHTML = html;
         }
+
+        // --- 9. TAB 4: FINANCIAL CRISIS (Old Tab 5) ---
+        function renderFinancialCrisis() {
+            const container = document.getElementById('crisis-tables-container');
+            const kpiContainer = document.getElementById('crisis-kpis');
+            if(Object.keys(state.prices).length === 0 || Object.keys(state.warehouseInv).length === 0) return;
+
+            let metal = [];
+            let nonMetal = [];
+            let totalCost = 0;
+            let immediateCount = 0;
+            let immediateCost = 0;
+
+            state.totalMaterials.forEach(item => {
+                let tInv = (state.warehouseInv[item.code]||0) + (state.lineInv[item.code]||0);
+                let neededForCrisis = (item.totalAmount * state.crisisDays) - tInv;
+                
+                if (neededForCrisis > 0) {
+                    let price = state.prices[item.code] || 0;
+                    let cost = neededForCrisis * price;
+                    totalCost += cost;
+                    
+                    let obj = {...item, shortage: neededForCrisis, cost: cost, tInv: tInv, immediate: (tInv < item.totalAmount)};
+                    if (obj.immediate) {
+                        immediateCount++;
+                        immediateCost += cost;
+                    }
+
+                    if(item.category.includes('غیرفلزی')) nonMetal.push(obj);
+                    else metal.push(obj);
+                }
+            });
+
+            metal.sort((a,b) => b.cost - a.cost);
+            nonMetal.sort((a,b) => b.cost - a.cost);
+
+            // Render KPIs
+            kpiContainer.innerHTML = `
+                <div class="bg-red-50 border border-red-200 p-4 rounded-xl text-center"><div class="text-red-600 text-sm font-bold">کل نقدینگی بحران (${state.crisisDays} روزه)</div><div class="text-xl font-black text-red-900">${totalCost.toLocaleString()}</div></div>
+                <div class="bg-gray-100 border border-gray-300 p-4 rounded-xl text-center"><div class="text-gray-600 text-sm font-bold">سهم اقلام فلزی</div><div class="text-xl font-black text-gray-900">${metal.reduce((a,b)=>a+b.cost,0).toLocaleString()}</div></div>
+                <div class="bg-teal-50 border border-teal-200 p-4 rounded-xl text-center"><div class="text-teal-600 text-sm font-bold">سهم اقلام غیرفلزی</div><div class="text-xl font-black text-teal-900">${nonMetal.reduce((a,b)=>a+b.cost,0).toLocaleString()}</div></div>
+                <div class="bg-red-600 border border-red-800 p-4 rounded-xl text-center text-white blink"><div class="text-red-100 text-sm font-bold">نیاز فوری (توقف خط امروز)</div><div class="text-xl font-black">${immediateCount} قلم | ${immediateCost.toLocaleString()} ریال</div></div>
+            `;
+
+            const buildTbl = (arr, title, color) => `
+                <div class="mb-6 rounded-xl border border-gray-300 overflow-hidden shadow-sm">
+                    <div class="bg-${color}-100 p-3 font-bold text-${color}-800 border-b border-${color}-200">${title}</div>
+                    <div class="box-container custom-scrollbar bg-white">
+                        <table class="min-w-full text-sm text-center">
+                            <thead class="bg-gray-50 sticky top-0 shadow-sm"><tr><th>کد</th><th class="text-right">شرح</th><th>موجودی</th><th>کسری(${state.crisisDays} روز)</th><th>ارزش ریالی کسری</th><th>اقدام</th></tr></thead>
+                            <tbody>${arr.map(x => `
+                                <tr class="border-b ${x.immediate ? 'bg-red-50' : 'hover:bg-gray-50'}">
+                                    <td>${x.code}</td><td class="text-right">${x.name}</td><td>${x.tInv.toFixed(1)}</td><td class="font-bold text-red-600">${x.shortage.toFixed(1)}</td><td class="font-bold">${x.cost.toLocaleString()}</td>
+                                    <td>${x.immediate ? '<span class="text-xs bg-red-600 text-white px-2 py-1 rounded blink">فوری</span>' : '-'}</td>
+                                </tr>
+                            `).join('')}</tbody>
+                        </table>
+                    </div>
+                </div>`;
+
+            container.innerHTML = buildTbl(metal, `بحران اقلام فلزی (${metal.length} قلم)`, 'gray') + buildTbl(nonMetal, `بحران اقلام غیرفلزی (${nonMetal.length} قلم)`, 'teal');
+        }
+
+        // --- 10. UTILS & EXPORTS ---
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            const icon = document.getElementById('icon-' + id);
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                el.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.getElementById('btn-' + tabId).classList.add('active');
+        }
+
+        function exportExcel(tableId, title) {
+            let table = document.getElementById(tableId);
+            let wb = XLSX.utils.table_to_book(table, {sheet: "Sheet1"});
+            XLSX.writeFile(wb, title + ".xlsx");
+        }
+
+        function exportPDF(tableId, title) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'pt', 'a4');
+            doc.text(title, 40, 40);
+            doc.autoTable({ html: '#' + tableId, startY: 60, styles: { font: 'helvetica', halign: 'right' } });
+            doc.save(title + '.pdf');
+        }
+
+        window.onload = initApp;
     </script>
 </body>
 </html>
