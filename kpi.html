@@ -73,24 +73,77 @@
     <!-- STREAMING_CHUNK:Creating the Tab Navigation... -->
     <main class="container mx-auto px-2 md:px-4 py-6">
         
-        <div class="flex border-b border-slate-200 mb-6 gap-1 relative">
-            <button onclick="switchTab('data-entry')" id="tab-btn-data-entry" class="px-6 py-3 font-bold text-sm rounded-t-lg transition-all bg-corporate-700 text-white shadow-sm border-b-2 border-transparent z-10 flex items-center gap-2">
-                <i class="fa-solid fa-folder-tree"></i> ۱. کارپوشه ورود اطلاعات (مبتنی بر چارت)
+        <div class="flex border-b border-slate-200 mb-6 gap-1 relative overflow-x-auto">
+            <button onclick="switchTab('checklist-tab')" id="tab-btn-checklist-tab" class="px-4 py-3 font-bold text-sm rounded-t-lg transition-all bg-corporate-700 text-white shadow-sm border-b-2 border-transparent z-10 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-clipboard-check"></i> ۱. فرم ارزیابی عمومی
             </button>
-            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="px-6 py-3 font-bold text-sm rounded-t-lg transition-all text-slate-500 hover:bg-slate-100 hover:text-slate-700 border-b-2 border-transparent z-10 flex items-center gap-2">
-                <i class="fa-solid fa-chart-line"></i> ۲. داشبورد فرماندهی (ماتریس مدیران)
+            <button onclick="switchTab('data-entry')" id="tab-btn-data-entry" class="px-4 py-3 font-bold text-sm rounded-t-lg transition-all text-slate-500 hover:bg-slate-100 hover:text-slate-700 border-b-2 border-transparent z-10 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-folder-tree"></i> ۲. ماتریس ورود اطلاعات
+            </button>
+            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="px-4 py-3 font-bold text-sm rounded-t-lg transition-all text-slate-500 hover:bg-slate-100 hover:text-slate-700 border-b-2 border-transparent z-10 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-chart-line"></i> ۳. داشبورد فرماندهی
             </button>
             <div class="absolute bottom-0 left-0 w-full h-0.5 bg-slate-200 z-0"></div>
         </div>
 
+        <!-- STREAMING_CHUNK:Building the Checklist Form Tab... -->
+        <!-- TAB 1: Checklist -->
+        <div id="checklist-tab" class="tab-content active space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div class="flex items-center gap-4">
+                        <i class="fa-solid fa-clipboard-list text-2xl text-corporate-500"></i>
+                        <div>
+                            <h2 class="text-lg font-black text-slate-800">چک لیست ارزیابی عملکرد شاخص‌های عمومی سطح مدیریت</h2>
+                            <p class="text-xs text-slate-500 mt-1 font-medium">شرکت سایپا آذین (سهامی عام) - مقادیر به صورت خودکار به ماتریس منتقل می‌شوند.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4 md:p-6 space-y-6">
+                    <!-- Selector -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2">مدیریت مورد ارزیابی:</label>
+                            <select id="checklist-selector" class="w-full border border-slate-300 rounded-md text-sm p-2.5 focus:ring-2 focus:ring-corporate-500 focus:border-corporate-500 outline-none shadow-inner bg-white font-medium text-slate-700 custom-scrollbar" onchange="loadChecklistData()">
+                                <option value="">-- مدیریت را انتخاب کنید --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 mb-2">دوره ارزیابی:</label>
+                            <input type="text" class="w-full border border-slate-300 rounded-md text-sm p-2.5 bg-slate-100 text-slate-500 font-bold" value="ارزیابی ادواری" disabled>
+                        </div>
+                    </div>
+                    
+                    <!-- Checklist Sections -->
+                    <div id="checklist-sections" class="space-y-6 opacity-50 pointer-events-none transition-opacity duration-300">
+                        <!-- Injected via JS -->
+                    </div>
+                    
+                    <!-- Results Footer -->
+                    <div class="bg-indigo-50 border border-indigo-200 p-4 md:p-6 rounded-lg flex flex-col md:flex-row justify-between items-center mt-6 gap-4 shadow-sm">
+                         <div class="text-center md:text-right">
+                             <span class="block text-xs font-bold text-indigo-400 mb-1">مجموع امتیاز کسب شده (از ۶۰)</span>
+                             <span id="checklist-total-score" class="font-black text-indigo-700 text-3xl dir-ltr inline-block">0</span>
+                         </div>
+                         <div class="hidden md:block w-px h-12 bg-indigo-200"></div>
+                         <div class="text-center md:text-right">
+                             <span class="block text-xs font-bold text-emerald-500 mb-1">درصد کل (میانگین ۴ شاخص)</span>
+                             <span id="checklist-percentage" class="font-black text-emerald-600 text-3xl dir-ltr inline-block drop-shadow-sm">0%</span>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- STREAMING_CHUNK:Building the Data Entry Matrix Structure... -->
-        <!-- TAB 1: Data Entry -->
-        <div id="data-entry" class="tab-content active space-y-6">
+        <!-- TAB 2: Data Entry -->
+        <div id="data-entry" class="tab-content space-y-6">
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex justify-between items-center flex-wrap gap-4">
                     <div>
-                        <h2 class="text-lg font-black text-slate-800">ماتریس یکپارچه ارزیابی عملکرد و انضباط سازمانی</h2>
-                        <p class="text-xs text-slate-500 mt-1 font-medium">روی نام هر معاونت/مدیریت کلیک کنید تا ادارات زیرمجموعه باز شوند. (وزن: ۴۰٪ عمومی، ۶۰٪ تخصصی)</p>
+                        <h2 class="text-lg font-black text-slate-800">ماتریس یکپارچه ورود اطلاعات و پایش</h2>
+                        <p class="text-xs text-slate-500 mt-1 font-medium">نمرات شاخص‌های عمومی از چک‌لیست فراخوانی می‌شود اما قابلیت ویرایش دستی نیز دارد.</p>
                     </div>
                     <button onclick="toggleAllRows()" class="text-xs font-bold bg-white border border-slate-300 text-slate-600 px-3 py-1.5 rounded hover:bg-slate-100 transition">
                         <i class="fa-solid fa-expand ml-1"></i> باز/بسته کردن همه
@@ -103,24 +156,22 @@
                             <tr>
                                 <th colspan="1" class="px-3 py-2 bg-slate-100 border-b border-l border-slate-200"></th>
                                 <th colspan="4" class="px-3 py-2 bg-indigo-50 text-indigo-800 font-black text-center border-b border-l border-indigo-100 text-xs tracking-wide">
-                                    <i class="fa-solid fa-users-viewfinder ml-1"></i> شاخص‌های عمومی / انضباطی (وزن ۴۰٪)
+                                    <i class="fa-solid fa-users-viewfinder ml-1"></i> شاخص‌های عمومی (محاسبه از چک‌لیست) - وزن ۴۰٪
                                 </th>
-                                <th colspan="3" class="px-3 py-2 bg-emerald-50 text-emerald-800 font-black text-center border-b border-emerald-100 text-xs tracking-wide">
-                                    <i class="fa-solid fa-crosshairs ml-1"></i> شاخص تخصصی اداره (وزن ۶۰٪)
+                                <th colspan="1" class="px-3 py-2 bg-emerald-50 text-emerald-800 font-black text-center border-b border-emerald-100 text-xs tracking-wide">
+                                    <i class="fa-solid fa-crosshairs ml-1"></i> شاخص تخصصی - وزن ۶۰٪
                                 </th>
                                 <th colspan="1" class="px-3 py-2 bg-slate-100 border-b border-slate-200"></th>
                             </tr>
                             <tr class="bg-slate-50 text-slate-600 font-bold text-[11px] uppercase">
-                                <th class="px-4 py-3 border-b border-l border-slate-200 min-w-[280px]">ساختار سازمانی (معاونت / اداره)</th>
+                                <th class="px-4 py-3 border-b border-l border-slate-200 min-w-[280px]">ساختار سازمانی (معاونت / مدیریت)</th>
                                 
-                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-indigo-50/30" title="پاسخگویی مکاتبات">پاسخگویی مکاتبات</th>
-                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-indigo-50/30" title="پیگیری امور محوله">پیگیری امور</th>
-                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-indigo-50/30" title="نهایی سازی کارهای واگذار شده">نهایی‌سازی کارها</th>
-                                <th class="px-2 py-3 text-center border-b border-l border-indigo-100 bg-indigo-50/50" title="اثر گذاری در فرآیند تولید">اثرگذاری تولید</th>
+                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-indigo-50/30" title="پاسخگویی به مکاتبات و ارتباطات">۱. مکاتبات (%)</th>
+                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-indigo-50/30" title="پیگیری امور و تسریع فرآیندها">۲. پیگیری (%)</th>
+                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-indigo-50/30" title="نهایی سازی و تحویل کامل کارها">۳. نهایی‌سازی (%)</th>
+                                <th class="px-2 py-3 text-center border-b border-l border-indigo-100 bg-indigo-50/50" title="اثرگذاری بر بهره وری، تولید و فرآیندها">۴. اثرگذاری (%)</th>
                                 
-                                <th class="px-3 py-3 border-b border-slate-200 bg-emerald-50/30">عنوان شاخص تخصصی</th>
-                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-emerald-50/30">هدف</th>
-                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-emerald-100/50 text-emerald-900">عملکرد</th>
+                                <th class="px-2 py-3 text-center border-b border-slate-200 bg-emerald-100/50 text-emerald-900">عملکرد (%)</th>
                                 
                                 <th class="px-3 py-3 text-center border-b border-slate-200 bg-slate-100 w-24">نمره کل</th>
                             </tr>
@@ -134,14 +185,14 @@
         </div>
 
         <!-- STREAMING_CHUNK:Building the Dashboard Matrix Structure... -->
-        <!-- TAB 2: Dashboard -->
+        <!-- TAB 3: Dashboard -->
         <div id="dashboard" class="tab-content space-y-6">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
                 <div>
                     <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
                         <i class="fa-solid fa-layer-group text-corporate-500"></i> داشبورد جامع عملکرد حاکمیتی
                     </h2>
-                    <p class="text-xs text-slate-500 mt-1">نمایش نمره کل معاونت‌ها و مدیریت‌ها بر اساس معدل عملکرد ادارات زیرمجموعه</p>
+                    <p class="text-xs text-slate-500 mt-1">نمایش نمره کل معاونت‌ها بر اساس معدل عملکرد مدیریت‌های زیرمجموعه</p>
                 </div>
                 <div class="flex flex-wrap gap-3 text-[10px] font-bold">
                     <div class="flex items-center gap-1.5 bg-slate-50 px-2 py-1.5 rounded border border-slate-200"><div class="w-3 h-3 rounded-full bg-emerald-500"></div>مطلوب (≥ ۸۵)</div>
@@ -162,106 +213,99 @@
         <span id="toast-msg" class="font-bold text-sm tracking-wide">اطلاعات با موفقیت ذخیره شد.</span>
     </div>
 
-    <!-- STREAMING_CHUNK:Defining the Complex State Object Based on the PDF Chart... -->
+    <!-- STREAMING_CHUNK:Defining the Complex State Object Based on the Custom Structure... -->
     <script>
-        // Data Structure Based strictly on "چارت تفصیلی.pdf"
+        // Data Structure Based strictly on User's tailored code
+        const defaultChecklist = { q1_1: null, q1_2: null, q1_3: null, q2_1: null, q2_2: null, q2_3: null, q3_1: null, q3_2: null, q3_3: null, q4_1: null, q4_2: null, q4_3: null };
+        
         const initialData = [
             {
                 id: 'prod', name: 'معاونت تولید', icon: 'fa-industry', isGroup: true, isOpen: false,
                 children: [
-                    { id: 'p_weld', name: 'اداره فلزی (جوشکاری)', kpiName: 'اثربخشی تجهیزات (OEE)', unit: '%', target: 85, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'p_mech', name: 'اداره ریل و مکانیزم و رنگ', kpiName: 'راندمان تولید ریل', unit: '%', target: 90, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'p_foam', name: 'اداره تولید فوم', kpiName: 'نرخ ضایعات فوم', unit: '%', target: 3, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'p_asm', name: 'اداره مونتاژ نهایی', kpiName: 'تحقق برنامه مونتاژ', unit: '%', target: 95, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'p_sew', name: 'اداره برش و دوخت', kpiName: 'بهره‌وری نیروی کار', unit: '%', target: 85, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'p_maint', name: 'اداره نگهداری و تعمیرات تولیدی', kpiName: 'زمان توقفات (Downtime)', unit: 'ساعت', target: 20, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
+                    { id: 'p_weld', name: 'مدیریت تولید فلزی و فوم', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'p_mech', name: 'مدیریت تولید مونتاژ و دوخت', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'p_foam', name: 'مدیریت نگهداری و تعمیرات', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
                 ]
             },
             {
                 id: 'com', name: 'معاونت بازرگانی و فروش', icon: 'fa-handshake-angle', isGroup: true, isOpen: false,
                 children: [
-                    { id: 'c_met', name: 'اداره تامین فلزی', kpiName: 'تحویل به‌موقع (OTD)', unit: '%', target: 95, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'c_nmet', name: 'اداره تامین غیر فلزی', kpiName: 'تامین شیمیایی/فوم', unit: '%', target: 95, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'c_np', name: 'اداره خرید غیر تولیدی', kpiName: 'کاهش زمان خرید', unit: 'روز', target: 14, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'c_for', name: 'اداره بازرگانی خارجی', kpiName: 'ترخیص به‌موقع گمرک', unit: '%', target: 90, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'c_sale', name: 'اداره بازاریابی و فروش', kpiName: 'سهم از مشتری (Share)', unit: '%', target: 80, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
+                    { id: 'c_met', name: 'مدیریت تامین غیرفلزی', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'c_nmet', name: 'مدیریت تامین فلزی', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'c_sale', name: 'اداره بازاریابی و فروش', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} }
                 ]
             },
             {
                 id: 'eng_qc', name: 'معاونت مهندسی و کیفیت', icon: 'fa-microscope', isGroup: true, isOpen: false,
                 children: [
-                    { id: 'q_mat', name: 'اداره کنترل مواد و ورودیه', kpiName: 'نرخ رد مواد ورودی', unit: '%', target: 2, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'q_proc', name: 'اداره کنترل فرآیند', kpiName: 'هزینه کیفیت (COPQ)', unit: '%', target: 5, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'q_assur', name: 'اداره تضمین کیفیت', kpiName: 'انطباق سیستم IATF', unit: '%', target: 100, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'e_des', name: 'اداره مهندسی طراحی', kpiName: 'تاییدیه‌های طراحی (DV)', unit: '%', target: 100, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'e_ind', name: 'اداره مهندسی صنایع/فرآیند', kpiName: 'صرفه‌جویی BOM', unit: 'م.تومان', target: 5000, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
+                    { id: 'q_mat', name: 'مدیریت مهندسی فرآیند', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'q_proc', name: 'مدیریت تحقیق و توسعه طراحی محصول', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'q_assur', name: 'مدیریت کیفیت', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
                 ]
             },
             {
                 id: 'fin', name: 'مدیریت مالی و اقتصادی', icon: 'fa-vault', isGroup: true, isOpen: false,
                 children: [
-                    { id: 'f_trs', name: 'اداره خزانه داری و تامین منابع', kpiName: 'موجودی نقد عملیاتی', unit: 'روز', target: 15, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'f_fin', name: 'اداره حسابداری مالی', kpiName: 'دوره وصول (DSO)', unit: 'روز', target: 90, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'f_ind', name: 'اداره حسابداری صنعتی', kpiName: 'دقت بهای تمام شده', unit: '%', target: 98, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'f_com', name: 'اداره حسابداری بازرگانی', kpiName: 'دوره پرداخت (DPO)', unit: 'روز', target: 120, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
+                    { id: 'f_trs', name: 'اداره خزانه داری و تامین منابع', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'f_fin', name: 'اداره حسابداری مالی و اقتصادی', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'f_ind', name: 'اداره حسابداری صنعتی و دارائی ثابت', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'f_com', name: 'اداره حسابداری بازرگانی', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} }
                 ]
             },
             {
                 id: 'plan', name: 'مدیریت برنامه ریزی', icon: 'fa-chart-gantt', isGroup: true, isOpen: false,
                 children: [
-                    { id: 'pl_prod', name: 'اداره برنامه ریزی تولید', kpiName: 'تحقق برنامه (MPS)', unit: '%', target: 98, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'pl_mat', name: 'اداره برنامه ریزی مواد', kpiName: 'دقت موجودی انبارها', unit: '%', target: 95, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'pl_log', name: 'اداره لجستیک داخلی', kpiName: 'توقف خط ناشی از لجستیک', unit: 'ساعت', target: 0, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
+                    { id: 'pl_prod', name: ' اداره برنامه ریزی تولید و سفارشات مشتری', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'pl_mat', name: ' اداره برنامه ریزی مواد و انبارها', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'pl_log', name: 'اداره لجستیک داخلی', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} }
                 ]
             },
             {
                 id: 'hr', name: 'مدیریت اداری و توسعه منابع انسانی', icon: 'fa-users-gear', isGroup: true, isOpen: false,
                 children: [
-                    { id: 'h_serv', name: 'اداره خدمات اداری و رفاه', kpiName: 'رضایت از خدمات', unit: '%', target: 80, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'h_hse', name: 'اداره ایمنی و بهداشت (HSE)', kpiName: 'ضریب تکرار حوادث', unit: 'نرخ', target: 0, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'h_emp', name: 'اداره برنامه ریزی و آموزش', kpiName: 'سرانه آموزش', unit: 'ساعت', target: 40, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
+                    { id: 'h_serv', name: 'اداره خدمات اداری و رفاه', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'h_hse', name: 'اداره ایمنی و بهداشت و درمان و محیط زیست', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'h_emp', name: 'اداره برنامه ریزی و امور کارکنان و آموزش', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} }
                 ]
             },
             {
                 id: 'sec', name: 'مدیریت حراست', icon: 'fa-shield-halved', isGroup: true, isOpen: false,
                 children: [
-                    { id: 's_phys', name: 'اداره حراست فیزیکی', kpiName: 'نفوذ / سرقت', unit: 'مورد', target: 0, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 's_pers', name: 'اداره حراست پرسنلی', kpiName: 'تخلفات انضباطی', unit: 'مورد', target: 5, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 's_fire', name: 'اداره اطفاء حریق', kpiName: 'آمادگی تجهیزات', unit: '%', target: 100, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
+                    { id: 's_phys', name: 'اداره حراست فیزیکی', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 's_pers', name: 'اداره حراست پرسنلی', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 's_it', name: 'اداره حراست اسناد و رایانه', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 's_fire', name: 'اداره اطفاء حریق', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} }
                 ]
             },
             {
                 id: 'strat', name: 'مدیریت طرح و برنامه', icon: 'fa-lightbulb', isGroup: true, isOpen: false,
                 children: [
-                    { id: 'st_str', name: 'اداره استراتژی', kpiName: 'تحقق اهداف کلان', unit: '%', target: 90, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'st_sys', name: 'اداره مهندسی سیستم‌ها', kpiName: 'بهبود فرآیندها', unit: 'پروژه', target: 5, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'st_it', name: 'اداره فناوری اطلاعات (IT)', kpiName: 'پایداری شبکه (Uptime)', unit: '%', target: 99, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
+                    { id: 'st_str', name: 'اداره استراتژی و مطالعات راهبردی', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'st_sys', name: 'اداره مهندسی سیستم‌ها', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'st_proj', name: 'اداره نظارت بر طرح و پروژه ها', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'st_it', name: 'اداره فناوری اطلاعات (IT)', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} }
                 ]
             },
             {
                 id: 'indep', name: 'حوزه‌های مستقل و حاکمیتی', icon: 'fa-scale-balanced', isGroup: true, isOpen: false,
                 children: [
-                    { id: 'i_leg', name: 'اداره حقوقی و قراردادها', kpiName: 'موفقیت پرونده‌ها', unit: '%', target: 85, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'i_com', name: 'کمیسیون معاملات', kpiName: 'انطباق مناقصات', unit: '%', target: 100, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'i_aud', name: 'اداره حسابرسی داخلی', kpiName: 'کشف انحرافات', unit: 'مورد', target: 0, type: 'lower', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'i_ceo', name: 'حوزه مدیرعامل و ارتباطات', kpiName: 'نفوذ پیام شرکتی', unit: '%', target: 85, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null },
-                    { id: 'i_insp', name: 'اداره بازرسی', kpiName: 'رسیدگی به شکایات', unit: '%', target: 100, type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null }
+                    { id: 'i_leg', name: 'اداره حقوقی و قراردادها', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'i_aud', name: 'اداره حسابرسی داخلی', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'i_ceo', name: 'حوزه مدیرعامل و ارتباطات', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'i_com', name: 'اداره دبیرخانه کمیسیون معاملات', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} },
+                    { id: 'i_insp', name: 'اداره بازرسی', kpiName: '', unit: '%', type: 'higher', gen1: null, gen2: null, gen3: null, gen4: null, spec: null, checklist: {...defaultChecklist} }
                 ]
             }
         ];
 
         let state = [];
 
-        function calculateSingleSpecScore(target, actual, type) {
+        // STREAMING_CHUNK:Implementing Core Calculation Logic...
+        function calculateSingleSpecScore(actual) {
+            // Target is removed, assuming actual is a percentage 0-100
             if (actual === null || actual === "") return null;
             let v = parseFloat(actual);
-            let t = parseFloat(target);
-            if (type === 'higher') {
-                return Math.min((v / t) * 100, 100);
-            } else {
-                if (t === 0) return v === 0 ? 100 : 0;
-                return v <= t ? 100 : Math.max(0, 100 - (((v - t) / t) * 100));
-            }
+            return Math.min(Math.max(v, 0), 100);
         }
 
         function getChildScores(child) {
@@ -273,7 +317,7 @@
             let genArray = [gen1, gen2, gen3, gen4].filter(v => v !== null);
             let genScore = genArray.length > 0 ? genArray.reduce((a,b)=>a+b,0) / genArray.length : null;
             
-            let specScore = calculateSingleSpecScore(child.target, child.spec, child.type);
+            let specScore = calculateSingleSpecScore(child.spec);
             
             let totalScore = null;
             if (genScore !== null && specScore !== null) {
@@ -324,18 +368,19 @@
             return { text: 'text-rose-700', bg: 'bg-rose-100', border: 'border-rose-500', hex: 'bg-rose-500', lightBg: 'bg-rose-50/50' };
         }
 
+        // STREAMING_CHUNK:Rendering the Complex Table...
         function renderTable() {
             const tbody = document.getElementById('data-table-body');
             tbody.innerHTML = '';
             
-            const inputCls = "w-14 md:w-16 text-center border border-slate-200 rounded py-1 px-1 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs font-mono dir-ltr bg-white shadow-inner";
-            const specInputCls = "w-20 md:w-24 text-center border-2 border-emerald-200 rounded py-1 px-1 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm font-mono dir-ltr font-black text-slate-800 bg-white shadow-inner";
+            const inputCls = "w-12 md:w-16 text-center border border-slate-200 rounded py-1 px-1 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-xs font-mono dir-ltr bg-white shadow-inner";
+            const specInputCls = "w-16 md:w-20 text-center border-2 border-emerald-200 rounded py-1 px-1 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm font-mono dir-ltr font-black text-slate-800 bg-white shadow-inner";
 
             state.forEach((parent) => {
                 const parentScores = getParentScores(parent);
                 const sCls = getStatusClasses(parentScores.status, parentScores.totalScore !== null);
                 
-                // Parent Row (Clickable)
+                // Parent Row
                 const tr = document.createElement('tr');
                 tr.className = `parent-row cursor-pointer transition-colors border-t-2 border-slate-300 hover:bg-blue-50 ${parent.isOpen ? 'bg-blue-50/50 open-parent' : 'bg-slate-100/80'}`;
                 tr.onclick = () => toggleRow(parent.id);
@@ -354,7 +399,7 @@
                         معدل شاخص‌های عمومی: <span id="parent-avgGen-${parent.id}" class="font-mono dir-ltr ${parentScores.avgGen !== null ? 'text-indigo-700' : ''}">${parentScores.avgGen !== null ? parentScores.avgGen + '%' : '--'}</span>
                     </td>
                     
-                    <td colspan="3" class="px-2 py-3 text-center border-l border-emerald-100 bg-emerald-50/20 text-xs font-bold text-slate-500">
+                    <td colspan="1" class="px-2 py-3 text-center border-l border-emerald-100 bg-emerald-50/20 text-xs font-bold text-slate-500">
                         معدل شاخص‌های تخصصی: <span id="parent-avgSpec-${parent.id}" class="font-mono dir-ltr ${parentScores.avgSpec !== null ? 'text-emerald-700' : ''}">${parentScores.avgSpec !== null ? parentScores.avgSpec + '%' : '--'}</span>
                     </td>
                     
@@ -380,36 +425,29 @@
                         <td class="px-3 py-2 text-slate-700 border-l border-slate-200 bg-white pl-8">
                             <div class="flex items-center gap-2 pr-6">
                                 <i class="fa-solid fa-level-up-alt fa-rotate-90 text-slate-300"></i>
-                                <span class="font-bold">${child.name}</span>
+                                <span class="font-bold text-[11px]">${child.name}</span>
                             </div>
                         </td>
                         
-                        <!-- General Inputs -->
+                        <!-- General Inputs (4 sections) -->
                         <td class="px-1 py-2 text-center bg-indigo-50/10">
-                            <input type="number" max="100" class="${inputCls}" value="${child.gen1 !== null ? child.gen1 : ''}" oninput="updateData('${parent.id}', '${child.id}', 'gen1', this.value)" placeholder="%" onclick="event.stopPropagation()">
+                            <input id="input-gen1-${child.id}" type="number" max="100" class="${inputCls}" value="${child.gen1 !== null ? child.gen1 : ''}" oninput="updateData('${parent.id}', '${child.id}', 'gen1', this.value)" placeholder="%" onclick="event.stopPropagation()">
                         </td>
                         <td class="px-1 py-2 text-center bg-indigo-50/10">
-                            <input type="number" max="100" class="${inputCls}" value="${child.gen2 !== null ? child.gen2 : ''}" oninput="updateData('${parent.id}', '${child.id}', 'gen2', this.value)" placeholder="%" onclick="event.stopPropagation()">
+                            <input id="input-gen2-${child.id}" type="number" max="100" class="${inputCls}" value="${child.gen2 !== null ? child.gen2 : ''}" oninput="updateData('${parent.id}', '${child.id}', 'gen2', this.value)" placeholder="%" onclick="event.stopPropagation()">
                         </td>
                         <td class="px-1 py-2 text-center bg-indigo-50/10">
-                            <input type="number" max="100" class="${inputCls}" value="${child.gen3 !== null ? child.gen3 : ''}" oninput="updateData('${parent.id}', '${child.id}', 'gen3', this.value)" placeholder="%" onclick="event.stopPropagation()">
+                            <input id="input-gen3-${child.id}" type="number" max="100" class="${inputCls}" value="${child.gen3 !== null ? child.gen3 : ''}" oninput="updateData('${parent.id}', '${child.id}', 'gen3', this.value)" placeholder="%" onclick="event.stopPropagation()">
                         </td>
                         <td class="px-1 py-2 text-center border-l border-indigo-100 bg-indigo-50/10">
-                            <input type="number" max="100" class="${inputCls}" value="${child.gen4 !== null ? child.gen4 : ''}" oninput="updateData('${parent.id}', '${child.id}', 'gen4', this.value)" placeholder="%" onclick="event.stopPropagation()">
+                            <input id="input-gen4-${child.id}" type="number" max="100" class="${inputCls}" value="${child.gen4 !== null ? child.gen4 : ''}" oninput="updateData('${parent.id}', '${child.id}', 'gen4', this.value)" placeholder="%" onclick="event.stopPropagation()">
                         </td>
                         
                         <!-- Specialized Inputs -->
-                        <td class="px-2 py-2 bg-emerald-50/10 text-slate-600">
-                            <div class="truncate font-bold" title="${child.kpiName}">${child.kpiName}</div>
-                            <div class="text-[9px] text-slate-400 mt-0.5">${child.type === 'higher' ? '↑ بالاتر بهتر' : '↓ پایین‌تر بهتر'}</div>
-                        </td>
-                        <td class="px-2 py-2 bg-emerald-50/10 text-center font-bold text-slate-500 dir-ltr text-xs">
-                            ${child.target} <span class="text-[9px] font-normal">${child.unit}</span>
-                        </td>
                         <td class="px-2 py-2 bg-emerald-50/30 text-center group-hover:bg-emerald-100/50 transition-colors">
-                            <input type="number" class="${specInputCls}" 
+                            <input type="number" max="100" class="${specInputCls}" 
                                 value="${child.spec !== null ? child.spec : ''}" 
-                                oninput="updateData('${parent.id}', '${child.id}', 'spec', this.value)" placeholder="..." onclick="event.stopPropagation()">
+                                oninput="updateData('${parent.id}', '${child.id}', 'spec', this.value)" placeholder="(0-100)" onclick="event.stopPropagation()">
                         </td>
                         
                         <td class="px-2 py-2 text-center bg-slate-50/50">
@@ -420,9 +458,10 @@
                 });
             });
             
-            renderCards(); // Update dashboard automatically
+            renderCards(); 
         }
 
+        // STREAMING_CHUNK:Rendering Dashboard Cards...
         function renderCards() {
             const container = document.getElementById('kpi-cards-container');
             container.innerHTML = '';
@@ -441,7 +480,7 @@
                     let displayVal = cScores.totalScore !== null ? scoreVal + '%' : '-';
                     return `
                     <div class="text-[10px] flex justify-between items-center py-1 border-b border-slate-50 last:border-0">
-                        <span class="text-slate-600 truncate w-32" title="${child.name}">${child.name.replace('اداره ', '')}</span>
+                        <span class="text-slate-600 truncate w-32" title="${child.name}">${child.name.replace('مدیریت ', '').replace('اداره ', '')}</span>
                         <div class="flex-grow mx-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                             <div class="h-1.5 bg-slate-400 rounded-full" style="width: ${Math.min(scoreVal, 100)}%; background-color: ${scoreVal >= 85 ? '#10b981' : scoreVal >= 70 ? '#f59e0b' : '#ef4444'}"></div>
                         </div>
@@ -484,7 +523,7 @@
                         </div>
 
                         <div class="bg-slate-50 rounded-lg p-2 border border-slate-100 flex-grow">
-                            <div class="text-[9px] font-bold text-slate-400 mb-2 pb-1 border-b border-slate-200">عملکرد تفکیکی ادارات (نمره کل)</div>
+                            <div class="text-[9px] font-bold text-slate-400 mb-2 pb-1 border-b border-slate-200">عملکرد تفکیکی زیرمجموعه‌ها (نمره کل)</div>
                             <div class="space-y-0.5">
                                 ${childrenHtml}
                             </div>
@@ -495,12 +534,12 @@
             });
         }
 
-        // STREAMING_CHUNK:Interaction and State Management...
+        // STREAMING_CHUNK:Checklist Form Logic & Live DOM Updater...
         function toggleRow(parentId) {
             const parent = state.find(p => p.id === parentId);
             if (parent) {
                 parent.isOpen = !parent.isOpen;
-                renderTable(); // Re-render to show/hide children
+                renderTable(); 
             }
         }
 
@@ -515,20 +554,33 @@
             if (pIndex > -1) {
                 const cIndex = state[pIndex].children.findIndex(c => c.id === childId);
                 if (cIndex > -1) {
-                    state[pIndex].children[cIndex][field] = value === "" ? null : parseFloat(value);
-                    
-                    // Live DOM Updates without rebuilding the table (preserves focus)
-                    updateLiveScores(parentId, childId);
-                    renderCards(); // Cards can be safely rebuilt
+                    if(field === 'kpiName') {
+                        state[pIndex].children[cIndex][field] = value;
+                    } else {
+                        state[pIndex].children[cIndex][field] = value === "" ? null : parseFloat(value);
+                        updateLiveScores(parentId, childId);
+                        renderCards(); 
+                    }
                 }
             }
         }
 
+        // Updates ONLY the specific DOM elements to prevent input focus loss
         function updateLiveScores(parentId, childId) {
             const parent = state.find(p => p.id === parentId);
             const child = parent.children.find(c => c.id === childId);
             
-            // 1. Update child total score
+            // Sync general inputs in matrix in case they were updated via checklist
+            const gen1Input = document.getElementById(`input-gen1-${childId}`);
+            if(gen1Input) gen1Input.value = child.gen1 !== null ? child.gen1 : '';
+            const gen2Input = document.getElementById(`input-gen2-${childId}`);
+            if(gen2Input) gen2Input.value = child.gen2 !== null ? child.gen2 : '';
+            const gen3Input = document.getElementById(`input-gen3-${childId}`);
+            if(gen3Input) gen3Input.value = child.gen3 !== null ? child.gen3 : '';
+            const gen4Input = document.getElementById(`input-gen4-${childId}`);
+            if(gen4Input) gen4Input.value = child.gen4 !== null ? child.gen4 : '';
+
+            // 1. Update child total score DOM
             const cScores = getChildScores(child);
             const childScoreEl = document.getElementById(`child-score-${childId}`);
             if (childScoreEl) {
@@ -536,7 +588,7 @@
                 childScoreEl.className = `font-mono font-bold dir-ltr ${cScores.totalScore !== null ? 'text-slate-700' : 'text-slate-300'}`;
             }
 
-            // 2. Update parent scores (Gen, Spec, Total)
+            // 2. Update parent scores (Gen, Spec, Total) DOM
             const pScores = getParentScores(parent);
             const pAvgGenEl = document.getElementById(`parent-avgGen-${parentId}`);
             const pAvgSpecEl = document.getElementById(`parent-avgSpec-${parentId}`);
@@ -559,18 +611,198 @@
             }
         }
 
+        // --- CHECKLIST LOGIC ---
+        const checklistQuestions = [
+            {
+                id: 1, title: '۱. شاخص پاسخگویی مکاتبات و ارتباطات سازمانی', prop: 'gen1',
+                items: [
+                    { id: 'q1_1', text: '۱.۱ تعیین تکلیف به‌موقع مکاتبات و کارتابل' },
+                    { id: 'q1_2', text: '۲.۱ شفافیت و دقت گزارش‌های کاری' },
+                    { id: 'q1_3', text: '۳.۱ اطلاع‌رسانی سریع در شرایط اضطراری/تغییرات' }
+                ]
+            },
+            {
+                id: 2, title: '۲. شاخص پیگیری امور و تسریع فرآیندها', prop: 'gen2',
+                items: [
+                    { id: 'q2_1', text: '۱.۲ گره‌گشایی و رفع توقفات کاری تیم' },
+                    { id: 'q2_2', text: '۲.۲ پیگیری و انجام به‌موقع تعهدات بین‌واحدی' },
+                    { id: 'q2_3', text: '۳.۲ اقدام پیشگیرانه قبل از بروز مشکل' }
+                ]
+            },
+            {
+                id: 3, title: '۳. شاخص نهایی‌سازی و تحویل کامل کارها', prop: 'gen3',
+                items: [
+                    { id: 'q3_1', text: '۱.۳ مستندسازی و ثبت منظم فعالیت‌های کاری' },
+                    { id: 'q3_2', text: '۲.۳ تحقق برنامه‌ها و مأموریت‌های ابلاغی' },
+                    { id: 'q3_3', text: '۳.۳ کیفیت خروجی کار (عدم نیاز به دوباره‌کاری)' }
+                ]
+            },
+            {
+                id: 4, title: '۴. شاخص اثرگذاری بر بهره‌وری، تولید و فرآیندها', prop: 'gen4',
+                items: [
+                    { id: 'q4_1', text: '۱.۴ کنترل و تاثیرگذاری در کارنامه عملکرد سازمان و مدیریت هزینه‌ها و صیانت از منابع' },
+                    { id: 'q4_2', text: '۲.۴ آموزش و هدایت انضباطی پرسنل زیرمجموعه' },
+                    { id: 'q4_3', text: '۳.۴ ارائه و اجرای پیشنهادات بهبود (ساده‌سازی کار)' }
+                ]
+            }
+        ];
+
+        let currentChecklistParent = null;
+        let currentChecklistChild = null;
+
+        function initChecklist() {
+            const container = document.getElementById('checklist-sections');
+            let html = '';
+            checklistQuestions.forEach(sec => {
+                html += `
+                <div class="border border-blue-200 rounded-lg overflow-hidden shadow-sm">
+                    <div class="bg-blue-100/70 px-4 py-2 border-b border-blue-200 font-black text-sm text-blue-900">${sec.title}</div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-right min-w-[600px]">
+                            <thead class="bg-slate-50 text-slate-600 text-[11px]">
+                                <tr>
+                                    <th class="px-4 py-2 border-b">مؤلفه سنجش</th>
+                                    <th class="px-2 py-2 border-b text-center w-16">۱ (ضعیف)</th>
+                                    <th class="px-2 py-2 border-b text-center w-16">۲ (بحرانی)</th>
+                                    <th class="px-2 py-2 border-b text-center w-16">۳ (متوسط)</th>
+                                    <th class="px-2 py-2 border-b text-center w-16">۴ (خوب)</th>
+                                    <th class="px-2 py-2 border-b text-center w-16">۵ (عالی)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                sec.items.forEach(item => {
+                    html += `<tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors"><td class="px-4 py-2 text-slate-700 font-medium">${item.text}</td>`;
+                    for(let i=1; i<=5; i++) {
+                        html += `<td class="px-2 py-2 text-center">
+                            <input type="radio" name="${item.id}" value="${i}" onchange="setChecklistScore('${item.id}', ${i})" class="w-4 h-4 text-corporate-600 focus:ring-corporate-500 cursor-pointer">
+                        </td>`;
+                    }
+                    html += `</tr>`;
+                });
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="bg-slate-50 px-4 py-2.5 text-xs font-bold text-slate-600 border-t border-slate-200 flex justify-between items-center">
+                        <span>مجموع امتیاز این بخش (از ۱۵):</span>
+                        <span id="sec-total-${sec.id}" class="text-blue-700 bg-blue-100 px-3 py-1 rounded-md dir-ltr text-sm inline-block min-w-[2.5rem] text-center">0</span>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+
+            // Populate Dropdown
+            const selector = document.getElementById('checklist-selector');
+            selector.innerHTML = '<option value="">-- مدیریت / اداره را انتخاب کنید --</option>';
+            state.forEach(p => {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = p.name;
+                p.children.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = `${p.id}|${c.id}`;
+                    opt.textContent = c.name;
+                    optgroup.appendChild(opt);
+                });
+                selector.appendChild(optgroup);
+            });
+        }
+
+        function loadChecklistData() {
+            const val = document.getElementById('checklist-selector').value;
+            const sections = document.getElementById('checklist-sections');
+            if(!val) {
+                sections.classList.add('opacity-50', 'pointer-events-none');
+                currentChecklistParent = null;
+                currentChecklistChild = null;
+                document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+                updateChecklistTotals();
+                return;
+            }
+            
+            sections.classList.remove('opacity-50', 'pointer-events-none');
+            const [pId, cId] = val.split('|');
+            currentChecklistParent = pId;
+            currentChecklistChild = cId;
+            
+            const parent = state.find(p => p.id === pId);
+            const child = parent.children.find(c => c.id === cId);
+            
+            // Load existing answers into radios
+            checklistQuestions.forEach(sec => {
+                sec.items.forEach(item => {
+                    const score = child.checklist[item.id];
+                    if(score) {
+                        const radio = document.querySelector(`input[name="${item.id}"][value="${score}"]`);
+                        if(radio) radio.checked = true;
+                    } else {
+                        document.querySelectorAll(`input[name="${item.id}"]`).forEach(r => r.checked = false);
+                    }
+                });
+            });
+            
+            updateChecklistTotals(false); 
+        }
+
+        function setChecklistScore(qId, score) {
+            if(!currentChecklistParent || !currentChecklistChild) return;
+            const parent = state.find(p => p.id === currentChecklistParent);
+            const child = parent.children.find(c => c.id === currentChecklistChild);
+            
+            child.checklist[qId] = score;
+            updateChecklistTotals(true); // true = update the matrix scores
+        }
+
+        function updateChecklistTotals(updateMatrix = false) {
+            if(!currentChecklistParent || !currentChecklistChild) {
+                document.getElementById('checklist-total-score').textContent = '0';
+                document.getElementById('checklist-percentage').textContent = '0%';
+                return;
+            }
+            const parent = state.find(p => p.id === currentChecklistParent);
+            const child = parent.children.find(c => c.id === currentChecklistChild);
+            
+            let grandTotal = 0;
+            
+            checklistQuestions.forEach(sec => {
+                let secTotal = 0;
+                sec.items.forEach(item => {
+                    if(child.checklist[item.id]) secTotal += child.checklist[item.id];
+                });
+                document.getElementById(`sec-total-${sec.id}`).textContent = secTotal;
+                grandTotal += secTotal;
+                
+                // Convert 15 points to 100% scale and push to matrix if requested
+                if(updateMatrix) {
+                    let isAnyClicked = sec.items.some(i => child.checklist[i.id] !== null);
+                    // 15 = 100%, therefore score/15 * 100
+                    child[sec.prop] = isAnyClicked ? Math.round((secTotal / 15) * 100) : null;
+                }
+            });
+            
+            document.getElementById('checklist-total-score').textContent = grandTotal;
+            document.getElementById('checklist-percentage').textContent = Math.round((grandTotal / 60) * 100) + '%';
+            
+            if(updateMatrix) {
+                updateLiveScores(currentChecklistParent, currentChecklistChild);
+                renderCards(); 
+            }
+        }
+
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             
-            const inactiveClass = "px-6 py-3 font-bold text-sm rounded-t-lg transition-all text-slate-500 hover:bg-slate-100 hover:text-slate-700 border-b-2 border-transparent z-10 flex items-center gap-2";
+            const inactiveClass = "px-4 py-3 font-bold text-sm rounded-t-lg transition-all text-slate-500 hover:bg-slate-100 hover:text-slate-700 border-b-2 border-transparent z-10 flex items-center gap-2 whitespace-nowrap";
+            document.getElementById('tab-btn-checklist-tab').className = inactiveClass;
             document.getElementById('tab-btn-data-entry').className = inactiveClass;
             document.getElementById('tab-btn-dashboard').className = inactiveClass;
             
             const activeBtn = document.getElementById(`tab-btn-${tabId}`);
-            activeBtn.className = "px-6 py-3 font-bold text-sm rounded-t-lg transition-all bg-corporate-700 text-white shadow-sm border-b-2 border-transparent z-10 flex items-center gap-2";
+            activeBtn.className = "px-4 py-3 font-bold text-sm rounded-t-lg transition-all bg-corporate-700 text-white shadow-sm border-b-2 border-transparent z-10 flex items-center gap-2 whitespace-nowrap";
         }
 
+        // STREAMING_CHUNK:Storage and Initialization...
         function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
             const msgEl = document.getElementById('toast-msg');
@@ -620,13 +852,14 @@
                 state = JSON.parse(JSON.stringify(initialData));
                 localStorage.removeItem('saipa_azin_chart_v4');
                 renderTable();
+                initChecklist(); // reset UI
                 showToast("فرم‌ها بازنشانی شدند.", true);
             }
         }
 
-        // Initialization
         document.addEventListener("DOMContentLoaded", () => {
             loadData();
+            initChecklist();
             renderTable();
         });
     </script>
