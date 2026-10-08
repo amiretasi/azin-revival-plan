@@ -13,8 +13,6 @@
     <!-- jsPDF for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    <!-- Chart.js for Cashflow -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700;900&display=swap');
@@ -28,12 +26,14 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         .blink { animation: blinker 1.5s linear infinite; }
         @keyframes blinker { 50% { opacity: 0; } }
-        .box-container { max-height: 450px; overflow-y: auto; }
+        
+        .box-container { max-height: 500px; overflow-y: auto; }
     </style>
 </head>
 <body class="text-gray-800">
     <div class="max-w-7xl mx-auto p-4 sm:p-6">
         
+        <!-- Header -->
         <div class="bg-gradient-to-l from-blue-900 to-blue-700 rounded-2xl p-6 mb-6 text-white shadow-xl flex flex-col md:flex-row justify-between items-center">
             <div class="flex items-center gap-4 mb-4 md:mb-0">
                 <div class="bg-white p-3 rounded-xl shadow-inner">
@@ -50,14 +50,15 @@
             </div>
         </div>
 
+        <!-- Navigation Tabs -->
         <div class="flex flex-wrap gap-1 border-b border-gray-200 bg-white rounded-t-xl px-2 pt-2 shadow-sm overflow-x-auto">
             <button onclick="switchTab('tab-plan')" id="btn-tab-plan" class="tab-btn active px-4 py-3 rounded-t-lg transition-colors flex items-center gap-2 text-sm whitespace-nowrap"><i class="fas fa-clipboard-list"></i> ۱. برنامه روزانه</button>
             <button onclick="switchTab('tab-risk')" id="btn-tab-risk" class="tab-btn px-4 py-3 rounded-t-lg transition-colors flex items-center gap-2 text-sm whitespace-nowrap"><i class="fas fa-exclamation-triangle"></i> ۲. داشبورد ریسک تامین</button>
             <button onclick="switchTab('tab-budget')" id="btn-tab-budget" class="tab-btn px-4 py-3 rounded-t-lg transition-colors flex items-center gap-2 text-sm whitespace-nowrap"><i class="fas fa-money-check-alt"></i> ۳. بودجه و خریدهای تجمیعی</button>
             <button onclick="switchTab('tab-crisis')" id="btn-tab-crisis" class="tab-btn px-4 py-3 rounded-t-lg transition-colors flex items-center gap-2 text-sm whitespace-nowrap"><i class="fas fa-chart-line"></i> ۴. تحلیل مالی بحران</button>
-            <button onclick="switchTab('tab-cashflow')" id="btn-tab-cashflow" class="tab-btn px-4 py-3 rounded-t-lg transition-colors flex items-center gap-2 text-sm whitespace-nowrap"><i class="fas fa-chart-pie"></i> ۵. کش‌فلو و تامین مالی</button>
         </div>
 
+        <!-- TAB 1: PRODUCTION PLAN -->
         <div id="tab-plan" class="tab-content active bg-white shadow-sm rounded-b-xl rounded-tl-xl p-6 mb-6">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold text-gray-800 border-r-4 border-blue-500 pr-3">ورود برنامه تولید روزانه (تفکیک شیفت)</h2>
@@ -77,7 +78,9 @@
                             <th class="py-3 px-4 text-center font-bold text-gray-900 w-32 bg-gray-200">جمع روزانه</th>
                         </tr>
                     </thead>
-                    <tbody id="production-table-body"></tbody>
+                    <tbody id="production-table-body">
+                        <!-- JS Will Populate This -->
+                    </tbody>
                     <tfoot class="bg-gray-800 text-white">
                         <tr>
                             <td colspan="2" class="py-3 px-4 text-left font-bold text-lg">جمع کل صندلی:</td>
@@ -90,8 +93,10 @@
             </div>
         </div>
 
+        <!-- TAB 2: RISK DASHBOARD -->
         <div id="tab-risk" class="tab-content bg-white shadow-sm rounded-b-xl rounded-tl-xl p-6 mb-6">
             <div class="flex flex-col lg:flex-row gap-4 mb-6 p-4 bg-gray-50 border border-gray-200 rounded-xl items-center justify-between">
+                
                 <div class="flex flex-wrap gap-4">
                     <div class="relative group">
                         <input type="file" id="inventory-file" accept=".xlsx, .xls" class="hidden" onchange="handleInventoryUpload(event)">
@@ -99,6 +104,7 @@
                             <i class="fas fa-warehouse"></i> ۱. آپلود موجودی انبار
                         </button>
                     </div>
+                    
                     <div class="relative group">
                         <input type="file" id="line-inv-file" accept=".xlsx, .xls" class="hidden" onchange="handleLineInventoryUpload(event)">
                         <button onclick="document.getElementById('line-inv-file').click()" class="bg-cyan-600 hover:bg-cyan-700 text-white px-5 py-2.5 rounded-lg shadow transition font-bold flex items-center gap-2">
@@ -106,6 +112,7 @@
                         </button>
                     </div>
                 </div>
+
                 <div class="flex items-center gap-4 bg-white px-4 py-2 rounded-lg border border-gray-300 shadow-sm">
                     <label class="font-bold text-gray-700 text-sm">افق بحران (روز):</label>
                     <input type="number" id="crisis-days" value="5" step="0.5" class="w-20 border border-gray-300 rounded px-2 py-1 text-center font-bold text-red-600 focus:ring-2 focus:ring-red-400">
@@ -118,13 +125,15 @@
             <div id="risk-status-msg" class="text-sm font-bold text-teal-600 mb-4 hidden"></div>
 
             <div id="materials-risk-container" class="space-y-6">
+                <!-- Data populated by JS -->
                 <div class="text-center py-12 text-gray-400">
                     <i class="fas fa-calculator text-5xl mb-3"></i>
-                    <p>برای مشاهده داشبورد ریسک، ابتدا برنامه تولید را محاسبه کنید.</p>
+                    <p>برای مشاهده داشبورد ریسک، ابتدا در تب اول محاسبه را انجام دهید.</p>
                 </div>
             </div>
         </div>
 
+        <!-- TAB 3: GENERAL BUDGET & FAMILIES (Combined) -->
         <div id="tab-budget" class="tab-content bg-white shadow-sm rounded-b-xl rounded-tl-xl p-6 mb-6">
             <div class="flex flex-col items-center justify-center py-8 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 mb-6">
                 <i class="fas fa-file-invoice-dollar text-5xl text-emerald-500 mb-3"></i>
@@ -137,71 +146,39 @@
             </div>
 
             <div id="general-budget-container" class="hidden">
+                <!-- KPIs -->
                 <div id="gen-fin-kpis" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"></div>
                 
+                <!-- AGGREGATED FAMILIES -->
                 <h3 class="text-xl font-bold mb-4 border-r-4 border-indigo-500 pr-3 text-gray-800">خریدهای تجمیعی بر اساس خانواده محصول</h3>
-                <div id="family-container" class="space-y-4 mb-8"></div>
+                <div id="family-container" class="space-y-4 mb-8">
+                    <!-- JS Populated Families -->
+                </div>
 
+                <!-- TOP 20 & Others -->
                 <div id="gen-fin-tables"></div>
             </div>
         </div>
 
+        <!-- TAB 4: FINANCIAL CRISIS (Old Tab 5) -->
         <div id="tab-crisis" class="tab-content bg-white shadow-sm rounded-b-xl rounded-tl-xl p-6 mb-6">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold text-gray-800 border-r-4 border-red-500 pr-3">تحلیل مالی اقلام بحرانی (نیاز به نقدینگی)</h2>
             </div>
             
-            <div id="crisis-kpis" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8"></div>
+            <div id="crisis-kpis" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <!-- Populated by JS -->
+            </div>
 
             <div id="crisis-tables-container">
                 <div class="text-center py-8 text-gray-400">لطفا فایل‌های موجودی و قیمت را بارگذاری کنید.</div>
             </div>
         </div>
 
-        <div id="tab-cashflow" class="tab-content bg-white shadow-sm rounded-b-xl rounded-tl-xl p-6 mb-6">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-gray-800 border-r-4 border-emerald-500 pr-3">پیش‌بینی کش‌فلو و برنامه تامین مالی (از ۱۴ شهریور تا پایان سال)</h2>
-            </div>
-            
-            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-8">
-                <h3 class="text-sm font-bold text-gray-700 mb-2"><i class="fas fa-sliders-h"></i> ترکیب ابزارهای پرداخت (درصد):</h3>
-                <p class="text-xs text-blue-700 mb-4 bg-blue-50 p-2 rounded border border-blue-200 shadow-inner">
-                    <i class="fas fa-info-circle"></i> <b>قوانین تخصیص اعمال شده:</b> شیمیایی و فوم (۶۵٪ نقد)، پارچه/چرم (۱۵٪ نقد)، پلاستیک (۱۰۰٪ نقد)، سازه و فلزات (۲۵٪ نقد). <br>
-                    * درصدهای زیر برای تقسیمِ سهمِ "ابزارهای مالی" بین خودرو، خرید دین و برات استفاده می‌شود.
-                </p>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">نقد (سایر اقلام) (%)</label>
-                        <input type="number" id="fin-cash" value="20" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500" onchange="updateCashflow()">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">تهاتر خودرو (%)</label>
-                        <input type="number" id="fin-car" value="30" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500" onchange="updateCashflow()">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">خرید دین (%)</label>
-                        <input type="number" id="fin-dain" value="25" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500" onchange="updateCashflow()">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">برات / LC داخلی (%)</label>
-                        <input type="number" id="fin-barat" value="25" class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500" onchange="updateCashflow()">
-                    </div>
-                </div>
-                <div id="fin-warning" class="text-red-600 text-xs font-bold mt-2 hidden"><i class="fas fa-exclamation-triangle"></i> هشدار: جمع درصدها باید ۱۰۰ باشد! (در حال حاضر: <span id="fin-sum-val"></span>٪)</div>
-            </div>
-
-            <div class="mb-8 bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                <canvas id="cashflowChart" height="100"></canvas>
-            </div>
-
-            <div id="cashflow-tables">
-                <div class="text-center py-8 text-gray-400">لطفا ابتدا در تب ۳، فایل قیمت‌ها را بارگذاری کنید.</div>
-            </div>
-        </div>
-
     </div>
 
     <script>
+        // --- 1. DATA MODELS & STATE ---
         const CAR_MODELS = [
             { id: 'x131', name: '131 صادرات' },
             { id: 'p151', name: '151 بنرو' },
@@ -217,23 +194,24 @@
             { id: 'atlas_m', name: 'اطلس مارون', mapTo: 'atlas' },
             { id: 'sahand_l', name: 'سهند چرم', mapTo: 'sahand' },
             { id: 'sahand_f', name: 'سهند پارچه', mapTo: 'sahand' },
-            { id: 'padra', name: 'پادراپلاس', mapTo: 'p151' }, 
+            { id: 'padra', name: 'پادراپلاس', mapTo: 'p151' }, // Fallback mapping based on BOM overlap
             { id: 'extend', name: 'اکستند' },
             { id: 'x3', name: 'استراکچر x3', mapTo: 'x3' }
         ];
 
         let state = {
-            productionPlan: {}, 
-            totalMaterials: [], 
-            warehouseInv: {},   
-            lineInv: {},        
-            prices: {},         
-            familyGroups: null, 
+            productionPlan: {}, // { carId: { s1: 0, s2: 0 } }
+            totalMaterials: [], // array of objects with calculated daily need
+            warehouseInv: {},   // { itemCode: qty }
+            lineInv: {},        // { itemCode: qty }
+            prices: {},         // { itemCode: price }
             crisisDays: 5
         };
 
+        // Date Display
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('fa-IR', { year: 'numeric', month: 'long', day: 'numeric' });
 
+        // --- 2. BOM DATA PARSER ---
         const BOM_TSV_DATA = `1	#N/A	مونتاژ نهایی	35921169984	مجموعه روکش کامل صندلي X131	دستگاه	0	0	0	0	0	0	1	0	0	0	0	0	
 2	#N/A	مونتاژ نهایی	35919709052	مجموعه کامل روکش هاي صندلي X232	دستگاه	0	0	0	0	0	0	0	0	1	0	0	0	
 3	#N/A	مونتاژ نهایی	35919740304	مجموعه کامل روکش پارچه کوئیک بهینه	دستگاه	0	0	0	0	0	0	0	1	0	0	0	0	
@@ -876,6 +854,7 @@
             }
         });
 
+        // --- 3. UI INITIALIZATION ---
         function initApp() {
             const tbody = document.getElementById('production-table-body');
             CAR_MODELS.forEach((car, index) => {
@@ -914,6 +893,7 @@
             document.getElementById('total-daily').innerText = sumS1 + sumS2;
         }
 
+        // --- 4. CORE CALCULATIONS ---
         function calculateMaterials() {
             state.totalMaterials = [];
             
@@ -941,7 +921,10 @@
                 }
             });
 
+            // 1. سوئیچ اتوماتیک به تب دوم
             switchTab('tab-risk');
+            
+            // 2. محاسبه مجدد باکس‌های ریسک
             recalculateRisk(); 
             
             if(Object.keys(state.prices).length > 0) {
@@ -950,6 +933,7 @@
             }
         }
 
+        // --- 5. EXCEL PARSING HELPER ---
         function parseExcel(file, callback) {
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -968,6 +952,7 @@
                 let k = null, v = null;
                 for (let prop in row) {
                     let propStr = prop.toLowerCase().trim();
+                    // جلوگیری از تداخل ستون شرح/نام کالا با ستون کد کالا
                     if(propStr.includes('شرح') || propStr.includes('نام') || propStr.includes('name')) continue;
                     
                     if(keyKeywords.some(kw => propStr.includes(kw))) k = row[prop];
@@ -989,11 +974,11 @@
             const file = event.target.files[0];
             if(!file) return;
             parseExcel(file, (json) => {
+                // کلمه 'کالا' حذف شد تا دقیقاً فقط کدها را پیدا کند
                 state.warehouseInv = extractKeyValue(json, ['کد', 'code'], ['موجودی', 'تعداد', 'مقدار', 'qty']);
                 document.getElementById('risk-status-msg').innerHTML = `<i class="fas fa-check-circle"></i> موجودی انبار بروزرسانی شد (${Object.keys(state.warehouseInv).length} قلم استخراج شد).`;
                 document.getElementById('risk-status-msg').classList.remove('hidden');
                 recalculateRisk();
-                renderFinancialCrisis();
             });
         }
 
@@ -1005,7 +990,6 @@
                 document.getElementById('risk-status-msg').innerHTML = `<i class="fas fa-check-circle"></i> موجودی پای خط بروزرسانی شد (${Object.keys(state.lineInv).length} قلم استخراج شد).`;
                 document.getElementById('risk-status-msg').classList.remove('hidden');
                 recalculateRisk();
-                renderFinancialCrisis();
             });
         }
 
@@ -1014,7 +998,7 @@
             if(!file) return;
             parseExcel(file, (json) => {
                 state.prices = extractKeyValue(json, ['کد', 'code'], ['قیمت', 'مبلغ', 'ریال', 'price', 'فی']);
-                document.getElementById('price-status-msg').innerHTML = `<i class="fas fa-check-circle"></i> قیمت‌ها بروزرسانی شد (${Object.keys(state.prices).length} قلم قیمت استخراج شد).`;
+                document.getElementById('price-status-msg').innerHTML = `<i class="fas fa-check-circle"></i> قیمت‌ها بروزرسانی شد (${Object.keys(state.prices).length} قیمت استخراج شد).`;
                 renderGeneralBudget();
                 renderFinancialCrisis();
             });
@@ -1024,6 +1008,7 @@
             state.lineInv[code] = parseFloat(val) || 0;
         }
 
+        // --- 6. TAB 2: RISK DASHBOARD RENDER (5 BOXES) ---
         function recalculateRisk() {
             state.crisisDays = parseFloat(document.getElementById('crisis-days').value) || 5;
             
@@ -1036,8 +1021,8 @@
                 return;
             }
 
-            const s1Crisis = [];
-            const s2Crisis = [];
+            const shift1Crisis = [];
+            const shift2Crisis = [];
             const critical = [];
             const warning = [];
             const safe = [];
@@ -1053,12 +1038,13 @@
                 item.totalInv = totalInv;
                 item.daysCovered = daily > 0 ? (totalInv / daily) : 999;
                 
+                // Status Logic - 5 Box Categorization
                 if (totalInv < item.s1Amount) {
                     item.statusStr = '<span class="text-red-700 font-bold bg-red-100 px-2 py-1 rounded">کسری قطعی شیفت ۱</span>';
-                    s1Crisis.push(item);
+                    shift1Crisis.push(item);
                 } else if (totalInv < daily) {
                     item.statusStr = '<span class="text-orange-700 font-bold bg-orange-100 px-2 py-1 rounded">کسری قطعی شیفت ۲</span>';
-                    s2Crisis.push(item);
+                    shift2Crisis.push(item);
                 } else if (item.daysCovered >= 1 && item.daysCovered < state.crisisDays) {
                     item.statusStr = `<span class="text-yellow-700 font-bold">تامین تا ${item.daysCovered.toFixed(1)} روز</span>`;
                     critical.push(item);
@@ -1070,6 +1056,7 @@
                     safe.push(item);
                 }
 
+                // Order Time (Days - 7)
                 let orderTime = item.daysCovered - 7;
                 if (orderTime < 0) {
                     item.orderStr = '<span class="text-red-600 font-bold blink"><i class="fas fa-exclamation-circle"></i> تاخیر سفارش</span>';
@@ -1078,8 +1065,7 @@
                 }
             });
 
-            renderRiskTables(s1Crisis, s2Crisis, critical, warning, safe);
-            if(Object.keys(state.prices).length > 0) renderFinancialCrisis();
+            renderRiskTables(shift1Crisis, shift2Crisis, critical, warning, safe);
         }
 
         function renderRiskTables(s1c, s2c, c, w, s) {
@@ -1106,15 +1092,15 @@
                 }).join('');
 
                 return `
-                <div class="risk-panel ${colorClass} mb-6 rounded-xl border-2 shadow-sm overflow-hidden bg-white">
-                    <div class="p-3 flex justify-between items-center bg-white border-b border-gray-200">
+                <div class="risk-panel ${colorClass} mb-6 rounded-xl border-2 shadow-sm overflow-hidden">
+                    <div class="p-3 flex justify-between items-center bg-white/50 border-b">
                         <h3 class="font-bold text-lg flex items-center gap-2">${icon} ${title} (${items.length} قلم)</h3>
                         <div class="flex gap-2">
                             <button onclick="exportExcel('${tableId}', '${title}')" class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 shadow flex items-center gap-1"><i class="fas fa-file-excel"></i> اکسل</button>
                             <button onclick="exportPDF('${tableId}', '${title}')" class="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 shadow flex items-center gap-1"><i class="fas fa-file-pdf"></i> چاپ</button>
                         </div>
                     </div>
-                    <div class="box-container custom-scrollbar" style="max-height: 400px; overflow-y: auto;">
+                    <div class="box-container custom-scrollbar bg-white" style="max-height: 400px; overflow-y: auto;">
                         <table id="${tableId}" class="min-w-full">
                             <thead class="bg-gray-100 sticky top-0 shadow-sm text-xs text-gray-700 z-10">
                                 <tr>
@@ -1135,14 +1121,16 @@
                 </div>`;
             };
 
+            // دقیقا ۵ باکس کاملا مجزا
             container.innerHTML = 
-                buildBox(s1c, 'فوق بحرانی (کسری قطعی شیفت ۱)', 'border-red-600', '🚨', 'tbl-s1c') +
-                buildBox(s2c, 'فوق بحرانی (کسری قطعی شیفت ۲)', 'border-orange-500', '🔴', 'tbl-s2c') +
-                buildBox(c, `بحرانی (ریسک ${state.crisisDays} روزه)`, 'border-yellow-500', '🟠', 'tbl-c') +
-                buildBox(w, 'هشدار تامین / نقطه سفارش (کمتر از 30 روز)', 'border-blue-400', '🟡', 'tbl-w') +
-                buildBox(s, 'حاشیه امن (بیش از یک ماه)', 'border-green-500', '🟢', 'tbl-s');
+                buildBox(s1c, 'فوق بحرانی (کسری قطعی شیفت ۱)', 'border-red-600 bg-red-50 text-red-900', '🚨', 'tbl-s1c') +
+                buildBox(s2c, 'فوق بحرانی (کسری قطعی شیفت ۲)', 'border-orange-500 bg-orange-50 text-orange-900', '🔴', 'tbl-s2c') +
+                buildBox(c, `بحرانی (ریسک ${state.crisisDays} روزه)`, 'border-yellow-500 bg-yellow-50 text-yellow-900', '🟠', 'tbl-c') +
+                buildBox(w, 'هشدار تامین / نقطه سفارش (کمتر از 30 روز)', 'border-blue-400 bg-blue-50 text-blue-900', '🟡', 'tbl-w') +
+                buildBox(s, 'حاشیه امن (بیش از یک ماه)', 'border-green-500 bg-green-50 text-green-900', '🟢', 'tbl-s');
         }
 
+        // --- 7. TAB 3: GENERAL BUDGET & FAMILIES ---
         function renderGeneralBudget() {
             const container = document.getElementById('general-budget-container');
             if(Object.keys(state.prices).length === 0 || state.totalMaterials.length === 0) {
@@ -1167,19 +1155,20 @@
 
             document.getElementById('gen-fin-kpis').innerHTML = `
                 <div class="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 p-5 rounded-2xl shadow-sm text-center">
-                    <div class="text-blue-700 text-sm font-black mb-1"><i class="fas fa-calendar-day"></i> بودجه کل روزانه</div>
-                    <div class="text-2xl font-black text-blue-900">${Math.round(sumDaily).toLocaleString()} <span class="text-sm font-normal text-blue-700">ریال</span></div>
+                    <div class="text-blue-700 text-sm font-black mb-1"><i class="fas fa-calendar-day"></i> بودجه روزانه</div>
+                    <div class="text-2xl font-black text-blue-900">${sumDaily.toLocaleString()} <span class="text-sm font-normal text-blue-700">ریال</span></div>
                 </div>
                 <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200 p-5 rounded-2xl shadow-sm text-center">
                     <div class="text-indigo-700 text-sm font-black mb-1"><i class="fas fa-calendar-week"></i> بودجه هفتگی (۵ روزه)</div>
-                    <div class="text-2xl font-black text-indigo-900">${Math.round(sumDaily*5).toLocaleString()} <span class="text-sm font-normal text-indigo-700">ریال</span></div>
+                    <div class="text-2xl font-black text-indigo-900">${(sumDaily*5).toLocaleString()} <span class="text-sm font-normal text-indigo-700">ریال</span></div>
                 </div>
                 <div class="bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 p-5 rounded-2xl shadow-sm text-center">
                     <div class="text-purple-700 text-sm font-black mb-1"><i class="fas fa-calendar-alt"></i> بودجه ماهانه (۲۰ روزه)</div>
-                    <div class="text-2xl font-black text-purple-900">${Math.round(sumDaily*20).toLocaleString()} <span class="text-sm font-normal text-purple-700">ریال</span></div>
+                    <div class="text-2xl font-black text-purple-900">${(sumDaily*20).toLocaleString()} <span class="text-sm font-normal text-purple-700">ریال</span></div>
                 </div>
             `;
 
+            // صدا زدن تابع خریدهای تجمیعی با ظاهر جدید
             renderFamilies(all);
 
             const buildTbl = (arr) => {
@@ -1190,27 +1179,27 @@
                             <th class="py-3 px-2 text-right border-l border-gray-200">شرح</th>
                             <th class="py-3 px-2 border-l border-gray-200">فی (ریال)</th>
                             <th class="py-3 px-2 bg-blue-50 border-l border-gray-200">نیاز روزانه</th>
-                            <th class="py-3 px-2 bg-blue-50 border-l border-gray-200">مبلغ روزانه (ریال)</th>
+                            <th class="py-3 px-2 bg-blue-50 border-l border-gray-200">مبلغ روزانه</th>
                             <th class="py-3 px-2 bg-purple-50 border-l border-gray-200">نیاز ماهانه</th>
-                            <th class="py-3 px-2 bg-purple-50">مبلغ ماهانه (ریال)</th>
+                            <th class="py-3 px-2 bg-purple-50">مبلغ ماهانه</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">${arr.map(x => `
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="py-2 px-2 font-mono text-xs text-gray-500 border-l border-gray-100">${x.code}</td>
                             <td class="py-2 px-2 text-right font-bold text-gray-800 border-l border-gray-100">${x.name}</td>
-                            <td class="py-2 px-2 border-l border-gray-100">${Math.round(x.price).toLocaleString()}</td>
+                            <td class="py-2 px-2 border-l border-gray-100">${x.price.toLocaleString()}</td>
                             <td class="py-2 px-2 font-bold text-blue-700 bg-blue-50/30 border-l border-gray-100">${x.totalAmount.toFixed(1)}</td>
-                            <td class="py-2 px-2 font-black text-blue-900 bg-blue-50/30 border-l border-gray-100">${Math.round(x.cost).toLocaleString()}</td>
+                            <td class="py-2 px-2 font-black text-blue-900 bg-blue-50/30 border-l border-gray-100">${x.cost.toLocaleString()}</td>
                             <td class="py-2 px-2 font-bold text-purple-700 bg-purple-50/30 border-l border-gray-100">${(x.totalAmount*20).toFixed(1)}</td>
-                            <td class="py-2 px-2 font-black text-purple-900 bg-purple-50/30">${Math.round(x.cost*20).toLocaleString()}</td>
+                            <td class="py-2 px-2 font-black text-purple-900 bg-purple-50/30">${(x.cost*20).toLocaleString()}</td>
                         </tr>
                     `).join('')}</tbody></table></div>`;
             };
 
             document.getElementById('gen-fin-tables').innerHTML = `
                 <div class="mt-8 mb-4 flex items-center justify-between">
-                    <h3 class="font-bold text-xl text-gray-800 border-r-4 border-amber-500 pr-3"><i class="fas fa-star text-amber-500 ml-1"></i> ۲۰ قلم پرهزینه روزانه (A-Class)</h3>
+                    <h3 class="font-bold text-xl text-gray-800 border-r-4 border-amber-500 pr-3"><i class="fas fa-star text-amber-500 ml-1"></i> ۲۰ قلم پرهزینه (A-Class)</h3>
                 </div>
                 ${buildTbl(top20)}
                 <div class="mt-6 bg-white rounded-xl shadow-sm border border-gray-200">
@@ -1225,6 +1214,7 @@
             `;
         }
 
+        // --- 8. TAB 3: FAMILIES LOGIC ---
         function renderFamilies(allData) {
             let groups = {
                 'مواد شیمیایی و فوم': { keywords: ['شیمیایی','ایزوسیانات','پلی','حلال','واکس','فوم'], items: [], sum: 0, icon: 'fa-flask' },
@@ -1266,7 +1256,7 @@
                             <div class="flex items-center gap-4">
                                 <div class="text-left">
                                     <div class="text-xs text-gray-400 font-bold mb-1">بودجه روزانه گروه</div>
-                                    <span class="block text-xl font-black text-indigo-700">${Math.round(groups[key].sum).toLocaleString()} <span class="text-sm font-normal text-gray-500">ریال</span></span>
+                                    <span class="block text-xl font-black text-indigo-700">${groups[key].sum.toLocaleString()} <span class="text-sm font-normal text-gray-500">ریال</span></span>
                                 </div>
                                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="icon-family-items-${counter}"></i>
                             </div>
@@ -1288,7 +1278,7 @@
                                                 <td class="py-2 px-3 font-mono text-xs text-gray-500 border-l border-gray-100">${i.code}</td>
                                                 <td class="py-2 px-3 text-right font-bold text-gray-700 border-l border-gray-100">${i.name}</td>
                                                 <td class="py-2 px-3 font-bold text-indigo-600 border-l border-gray-100">${i.totalAmount.toFixed(1)}</td>
-                                                <td class="py-2 px-3 font-black text-gray-900">${Math.round(i.cost).toLocaleString()}</td>
+                                                <td class="py-2 px-3 font-black text-gray-900">${i.cost.toLocaleString()}</td>
                                             </tr>
                                         `).join('')}
                                     </tbody>
@@ -1300,12 +1290,9 @@
                 }
             }
             document.getElementById('family-container').innerHTML = html;
-            
-            // Save state and update cashflow
-            state.familyGroups = groups;
-            updateCashflow();
         }
 
+        // --- 9. TAB 4: FINANCIAL CRISIS (Old Tab 5) ---
         function renderFinancialCrisis() {
             const container = document.getElementById('crisis-tables-container');
             const kpiContainer = document.getElementById('crisis-kpis');
@@ -1340,38 +1327,24 @@
             metal.sort((a,b) => b.cost - a.cost);
             nonMetal.sort((a,b) => b.cost - a.cost);
 
+            // Render KPIs
             kpiContainer.innerHTML = `
-                <div class="bg-red-50 border border-red-200 p-4 rounded-xl text-center shadow-sm"><div class="text-red-600 text-sm font-bold mb-1">کل نقدینگی بحران (${state.crisisDays} روزه)</div><div class="text-2xl font-black text-red-900">${Math.round(totalCost).toLocaleString()} <span class="text-xs font-normal">ریال</span></div></div>
-                <div class="bg-gray-100 border border-gray-300 p-4 rounded-xl text-center shadow-sm"><div class="text-gray-600 text-sm font-bold mb-1">سهم اقلام فلزی</div><div class="text-2xl font-black text-gray-900">${Math.round(metal.reduce((a,b)=>a+b.cost,0)).toLocaleString()} <span class="text-xs font-normal">ریال</span></div></div>
-                <div class="bg-teal-50 border border-teal-200 p-4 rounded-xl text-center shadow-sm"><div class="text-teal-600 text-sm font-bold mb-1">سهم اقلام غیرفلزی</div><div class="text-2xl font-black text-teal-900">${Math.round(nonMetal.reduce((a,b)=>a+b.cost,0)).toLocaleString()} <span class="text-xs font-normal">ریال</span></div></div>
-                <div class="bg-red-600 border-2 border-red-800 p-4 rounded-xl text-center text-white shadow-md blink"><div class="text-red-100 text-sm font-bold mb-1"><i class="fas fa-ambulance"></i> نیاز فوری (توقف خط امروز)</div><div class="text-xl font-black">${immediateCount} قلم | ${Math.round(immediateCost).toLocaleString()} ریال</div></div>
+                <div class="bg-red-50 border border-red-200 p-4 rounded-xl text-center"><div class="text-red-600 text-sm font-bold">کل نقدینگی بحران (${state.crisisDays} روزه)</div><div class="text-xl font-black text-red-900">${totalCost.toLocaleString()}</div></div>
+                <div class="bg-gray-100 border border-gray-300 p-4 rounded-xl text-center"><div class="text-gray-600 text-sm font-bold">سهم اقلام فلزی</div><div class="text-xl font-black text-gray-900">${metal.reduce((a,b)=>a+b.cost,0).toLocaleString()}</div></div>
+                <div class="bg-teal-50 border border-teal-200 p-4 rounded-xl text-center"><div class="text-teal-600 text-sm font-bold">سهم اقلام غیرفلزی</div><div class="text-xl font-black text-teal-900">${nonMetal.reduce((a,b)=>a+b.cost,0).toLocaleString()}</div></div>
+                <div class="bg-red-600 border border-red-800 p-4 rounded-xl text-center text-white blink"><div class="text-red-100 text-sm font-bold">نیاز فوری (توقف خط امروز)</div><div class="text-xl font-black">${immediateCount} قلم | ${immediateCost.toLocaleString()} ریال</div></div>
             `;
 
             const buildTbl = (arr, title, color) => `
-                <div class="mb-8 rounded-xl border-2 border-${color}-300 overflow-hidden shadow-sm bg-white">
-                    <div class="bg-${color}-100 p-4 font-bold text-${color}-800 border-b border-${color}-200 flex justify-between items-center">
-                        <span class="text-lg"><i class="fas fa-list"></i> ${title}</span>
-                    </div>
+                <div class="mb-6 rounded-xl border border-gray-300 overflow-hidden shadow-sm">
+                    <div class="bg-${color}-100 p-3 font-bold text-${color}-800 border-b border-${color}-200">${title}</div>
                     <div class="box-container custom-scrollbar bg-white">
                         <table class="min-w-full text-sm text-center">
-                            <thead class="bg-gray-100 text-gray-700 sticky top-0 shadow-sm z-10 border-b-2 border-gray-200">
-                                <tr>
-                                    <th class="py-3 px-2 border-l">کد</th>
-                                    <th class="py-3 px-2 text-right border-l">شرح کالا</th>
-                                    <th class="py-3 px-2 border-l">موجودی کل</th>
-                                    <th class="py-3 px-2 border-l text-red-600">کسری(${state.crisisDays} روز)</th>
-                                    <th class="py-3 px-2 border-l bg-${color}-50">ارزش ریالی کسری (ریال)</th>
-                                    <th class="py-3 px-2">اولویت خرید</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-100">${arr.map(x => `
-                                <tr class="${x.immediate ? 'bg-red-50 border-red-200' : 'hover:bg-gray-50'} transition-colors">
-                                    <td class="py-3 px-2 font-mono text-gray-500 border-l">${x.code}</td>
-                                    <td class="py-3 px-2 text-right font-bold text-gray-800 border-l">${x.name}</td>
-                                    <td class="py-3 px-2 font-bold border-l">${x.tInv.toFixed(1)}</td>
-                                    <td class="py-3 px-2 font-black text-red-600 border-l">${x.shortage.toFixed(1)}</td>
-                                    <td class="py-3 px-2 font-black text-${color}-900 bg-${color}-50/30 border-l">${Math.round(x.cost).toLocaleString()}</td>
-                                    <td class="py-3 px-2">${x.immediate ? '<span class="text-xs font-bold bg-red-600 text-white px-3 py-1.5 rounded-full shadow-sm blink"><i class="fas fa-exclamation-triangle"></i> اقدام فوری</span>' : '<span class="text-gray-400">-</span>'}</td>
+                            <thead class="bg-gray-50 sticky top-0 shadow-sm"><tr><th>کد</th><th class="text-right">شرح</th><th>موجودی</th><th>کسری(${state.crisisDays} روز)</th><th>ارزش ریالی کسری</th><th>اقدام</th></tr></thead>
+                            <tbody>${arr.map(x => `
+                                <tr class="border-b ${x.immediate ? 'bg-red-50' : 'hover:bg-gray-50'}">
+                                    <td>${x.code}</td><td class="text-right">${x.name}</td><td>${x.tInv.toFixed(1)}</td><td class="font-bold text-red-600">${x.shortage.toFixed(1)}</td><td class="font-bold">${x.cost.toLocaleString()}</td>
+                                    <td>${x.immediate ? '<span class="text-xs bg-red-600 text-white px-2 py-1 rounded blink">فوری</span>' : '-'}</td>
                                 </tr>
                             `).join('')}</tbody>
                         </table>
@@ -1381,197 +1354,7 @@
             container.innerHTML = buildTbl(metal, `بحران اقلام فلزی (${metal.length} قلم)`, 'gray') + buildTbl(nonMetal, `بحران اقلام غیرفلزی (${nonMetal.length} قلم)`, 'teal');
         }
 
-        let cashflowChartInstance = null;
-
-        function updateCashflow() {
-            if (!state.familyGroups) return;
-
-            let pCash = parseFloat(document.getElementById('fin-cash').value) || 0;
-            let pCar = parseFloat(document.getElementById('fin-car').value) || 0;
-            let pDain = parseFloat(document.getElementById('fin-dain').value) || 0;
-            let pBarat = parseFloat(document.getElementById('fin-barat').value) || 0;
-            let totalP = pCash + pCar + pDain + pBarat;
-
-            if (totalP !== 100) {
-                document.getElementById('fin-warning').classList.remove('hidden');
-                document.getElementById('fin-sum-val').innerText = totalP;
-            } else {
-                document.getElementById('fin-warning').classList.add('hidden');
-            }
-
-            let toolsTotal = pCar + pDain + pBarat;
-            let wCar = toolsTotal > 0 ? pCar / toolsTotal : 0;
-            let wDain = toolsTotal > 0 ? pDain / toolsTotal : 0;
-            let wBarat = toolsTotal > 0 ? pBarat / toolsTotal : 0;
-
-            let wGlobalCash = pCash / 100;
-            let wGlobalTools = toolsTotal / 100;
-
-            const familyRules = {
-                'مواد شیمیایی و فوم': { cash: 0.65, tools: 0.35 },
-                'پارچه، چرم و روکش': { cash: 0.15, tools: 0.85 },
-                'قطعات پلاستیکی': { cash: 1.00, tools: 0.00 },
-                'سازه و فلزات': { cash: 0.25, tools: 0.75 }
-            };
-
-            let dailyCash = 0, dailyCar = 0, dailyDain = 0, dailyBarat = 0, dailyTotal = 0;
-            let familiesArr = [];
-
-            for (let key in state.familyGroups) {
-                let sum = state.familyGroups[key].sum;
-                if (sum > 0) {
-                    let rule = familyRules[key];
-                    let cashRatio = rule ? rule.cash : wGlobalCash;
-                    let toolsRatio = rule ? rule.tools : wGlobalTools;
-
-                    let fCash = sum * cashRatio;
-                    let fCar = sum * toolsRatio * wCar;
-                    let fDain = sum * toolsRatio * wDain;
-                    let fBarat = sum * toolsRatio * wBarat;
-
-                    dailyCash += fCash;
-                    dailyCar += fCar;
-                    dailyDain += fDain;
-                    dailyBarat += fBarat;
-                    dailyTotal += sum;
-
-                    familiesArr.push({ 
-                        name: key, 
-                        dailySum: sum,
-                        dailyCash: fCash,
-                        dailyCar: fCar,
-                        dailyDain: fDain,
-                        dailyBarat: fBarat,
-                        hasRule: !!rule,
-                        cashRatio: cashRatio
-                    });
-                }
-            }
-
-            renderCashflowChart(dailyCash, dailyCar, dailyDain, dailyBarat);
-            renderCashflowTables(familiesArr);
-        }
-
-        function renderCashflowChart(dailyCash, dailyCar, dailyDain, dailyBarat) {
-            const ctx = document.getElementById('cashflowChart').getContext('2d');
-            const labels = ['شهریور (از ۱۴ام)', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
-            
-            // اصلاح از روزهای تقویمی به روزهای کاری واقعی خط تولید (۲۰ روز در ماه)
-            const workingDaysInMonth = [12, 20, 20, 20, 20, 20, 19];
-
-            const dCash = [], dCar = [], dDain = [], dBarat = [];
-
-            workingDaysInMonth.forEach(days => {
-                dCash.push(Math.round(dailyCash * days));
-                dCar.push(Math.round(dailyCar * days));
-                dDain.push(Math.round(dailyDain * days));
-                dBarat.push(Math.round(dailyBarat * days));
-            });
-
-            if (cashflowChartInstance) cashflowChartInstance.destroy();
-
-            cashflowChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'نقد', data: dCash, backgroundColor: '#10b981' },
-                        { label: 'تهاتر خودرو', data: dCar, backgroundColor: '#3b82f6' },
-                        { label: 'خرید دین', data: dDain, backgroundColor: '#f59e0b' },
-                        { label: 'برات / LC داخلی', data: dBarat, backgroundColor: '#8b5cf6' }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        title: { display: true, text: 'جریان نقدینگی و نیاز به ابزارهای مالی تا پایان سال (ریال)', font: { family: 'Vazirmatn', size: 16 } },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) { return context.dataset.label + ': ' + context.raw.toLocaleString() + ' ریال'; }
-                            },
-                            titleFont: { family: 'Vazirmatn' },
-                            bodyFont: { family: 'Vazirmatn' }
-                        },
-                        legend: { labels: { font: { family: 'Vazirmatn' } } }
-                    },
-                    scales: {
-                        x: { stacked: true, ticks: { font: { family: 'Vazirmatn' } } },
-                        y: { stacked: true, ticks: { font: { family: 'Vazirmatn' }, callback: function(value) { return (value/1e9).toFixed(1) + ' میلیارد'; } } }
-                    }
-                }
-            });
-        }
-
-        function renderCashflowTables(families) {
-            const buildTbl = (months, title, color) => {
-                let workingDays = months * 20; // بر اساس استاندارد تب ۳ (هر ماه ۲۰ روز کاری)
-                let rows = families.map(f => {
-                    let tSum = Math.round(f.dailySum * workingDays);
-                    let tCash = Math.round(f.dailyCash * workingDays);
-                    let tCar = Math.round(f.dailyCar * workingDays);
-                    let tDain = Math.round(f.dailyDain * workingDays);
-                    let tBarat = Math.round(f.dailyBarat * workingDays);
-                    
-                    let badge = f.hasRule ? `<span class="text-xs text-gray-500 block mt-1 font-normal"><i class="fas fa-lock"></i> نقد ثابت: ${Math.round(f.cashRatio*100)}٪</span>` : `<span class="text-xs text-gray-400 block mt-1 font-normal">نقد شناور</span>`;
-                    
-                    return `
-                    <tr class="hover:bg-gray-50 border-b border-gray-100 transition">
-                        <td class="py-3 px-4 font-bold text-gray-700 text-right">${f.name} ${badge}</td>
-                        <td class="py-3 px-4 font-black text-gray-900 border-l border-r border-gray-200">${tSum.toLocaleString()}</td>
-                        <td class="py-3 px-4 text-emerald-700">${tCash.toLocaleString()}</td>
-                        <td class="py-3 px-4 text-blue-700">${tCar.toLocaleString()}</td>
-                        <td class="py-3 px-4 text-amber-700">${tDain.toLocaleString()}</td>
-                        <td class="py-3 px-4 text-violet-700">${tBarat.toLocaleString()}</td>
-                    </tr>`;
-                }).join('');
-
-                let gSum = 0, gCash = 0, gCar = 0, gDain = 0, gBarat = 0;
-                families.forEach(f => {
-                    gSum += f.dailySum * workingDays;
-                    gCash += f.dailyCash * workingDays;
-                    gCar += f.dailyCar * workingDays;
-                    gDain += f.dailyDain * workingDays;
-                    gBarat += f.dailyBarat * workingDays;
-                });
-
-                return `
-                <div class="mb-8 rounded-xl border-2 border-${color}-200 overflow-hidden shadow-sm bg-white">
-                    <div class="bg-${color}-100 p-4 font-bold text-${color}-800 border-b border-${color}-200 text-lg flex items-center gap-2">
-                        <i class="fas fa-table"></i> ${title}
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full text-sm text-center">
-                            <thead class="bg-gray-50 text-gray-600 font-bold sticky top-0 shadow-sm border-b-2 border-gray-200">
-                                <tr>
-                                    <th class="py-3 px-4 text-right border-l">خانواده محصول</th>
-                                    <th class="py-3 px-4 border-l border-gray-200 bg-gray-100">کل بودجه ${months} ماهه (ریال)</th>
-                                    <th class="py-3 px-4 border-l">سهم نقد (ریال)</th>
-                                    <th class="py-3 px-4 border-l">سهم تهاتر خودرو (ریال)</th>
-                                    <th class="py-3 px-4 border-l">سهم خرید دین (ریال)</th>
-                                    <th class="py-3 px-4">سهم برات / LC داخلی (ریال)</th>
-                                </tr>
-                            </thead>
-                            <tbody>${rows}</tbody>
-                            <tfoot class="bg-gray-800 text-white font-black text-base">
-                                <tr>
-                                    <td class="py-4 px-4 text-right border-l border-gray-600">جمع کل:</td>
-                                    <td class="py-4 px-4 border-l border-gray-600">${Math.round(gSum).toLocaleString()}</td>
-                                    <td class="py-4 px-4 text-emerald-300 border-l border-gray-600">${Math.round(gCash).toLocaleString()}</td>
-                                    <td class="py-4 px-4 text-blue-300 border-l border-gray-600">${Math.round(gCar).toLocaleString()}</td>
-                                    <td class="py-4 px-4 text-amber-300 border-l border-gray-600">${Math.round(gDain).toLocaleString()}</td>
-                                    <td class="py-4 px-4 text-violet-300">${Math.round(gBarat).toLocaleString()}</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                </div>`;
-            };
-
-            document.getElementById('cashflow-tables').innerHTML = 
-                buildTbl(3, 'برنامه تامین مالی سه‌ماهه به تفکیک خانواده محصول', 'indigo') + 
-                buildTbl(6, 'برنامه تامین مالی شش‌ماهه به تفکیک خانواده محصول', 'teal');
-        }
-
+        // --- 10. UTILS & EXPORTS ---
         function toggleAccordion(id) {
             const el = document.getElementById(id);
             const icon = document.getElementById('icon-' + id);
@@ -1600,11 +1383,8 @@
         function exportPDF(tableId, title) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('l', 'pt', 'a4');
-            
-            doc.addFileToVFS("Vazirmatn.ttf", "AAEAAAARAQAABAAQRkZUTWwAAA0AAAEAAAAAHEdERUYAQCJwAAABIAAAACBPUy8yZ6... (Base64 omitted for brevity, using fallback)");
-            
             doc.text(title, 40, 40);
-            doc.autoTable({ html: '#' + tableId, startY: 60, styles: { halign: 'right' } });
+            doc.autoTable({ html: '#' + tableId, startY: 60, styles: { font: 'helvetica', halign: 'right' } });
             doc.save(title + '.pdf');
         }
 
