@@ -27,7 +27,7 @@
         .blink { animation: blinker 1.5s linear infinite; }
         @keyframes blinker { 50% { opacity: 0; } }
         
-        .box-container { max-height: 500px; overflow-y: auto; }
+        .box-container { overflow-y: auto; overflow-x: auto; max-height: 400px; }
     </style>
 </head>
 <body class="text-gray-800">
@@ -114,9 +114,9 @@
                 </div>
 
                 <div class="flex items-center gap-4 bg-white px-4 py-2 rounded-lg border border-gray-300 shadow-sm">
-                    <label class="font-bold text-gray-700 text-sm">افق بحران (روز):</label>
-                    <input type="number" id="crisis-days" value="5" step="0.5" class="w-20 border border-gray-300 rounded px-2 py-1 text-center font-bold text-red-600 focus:ring-2 focus:ring-red-400">
-                    <button onclick="recalculateRisk()" class="bg-gray-800 hover:bg-black text-white px-4 py-1.5 rounded transition text-sm flex items-center gap-1">
+                    <label class="font-bold text-gray-700 text-sm">پوشش روز کاری موجودی (روز):</label>
+                    <input type="number" id="crisis-days" value="2.5" step="0.5" class="w-20 border border-gray-300 rounded px-2 py-1 text-center font-bold text-red-600 focus:ring-2 focus:ring-red-400">
+                    <button id="btn-recalc-risk" onclick="recalculateRisk()" class="bg-gray-800 hover:bg-black text-white px-4 py-1.5 rounded transition text-sm flex items-center gap-1">
                         <i class="fas fa-sync-alt"></i> ۳. محاسبه مجدد
                     </button>
                 </div>
@@ -125,15 +125,14 @@
             <div id="risk-status-msg" class="text-sm font-bold text-teal-600 mb-4 hidden"></div>
 
             <div id="materials-risk-container" class="space-y-6">
-                <!-- Data populated by JS -->
                 <div class="text-center py-12 text-gray-400">
                     <i class="fas fa-calculator text-5xl mb-3"></i>
-                    <p>برای مشاهده داشبورد ریسک، ابتدا در تب اول محاسبه را انجام دهید.</p>
+                    <p>برای مشاهده داشبورد ریسک، ابتدا در تب اول محاسبه را انجام دهید و سپس فایل موجودی را آپلود کنید.</p>
                 </div>
             </div>
         </div>
 
-        <!-- TAB 3: GENERAL BUDGET & FAMILIES (Combined) -->
+        <!-- TAB 3: GENERAL BUDGET & FAMILIES -->
         <div id="tab-budget" class="tab-content bg-white shadow-sm rounded-b-xl rounded-tl-xl p-6 mb-6">
             <div class="flex flex-col items-center justify-center py-8 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 mb-6">
                 <i class="fas fa-file-invoice-dollar text-5xl text-emerald-500 mb-3"></i>
@@ -160,7 +159,7 @@
             </div>
         </div>
 
-        <!-- TAB 4: FINANCIAL CRISIS (Old Tab 5) -->
+        <!-- TAB 4: FINANCIAL CRISIS -->
         <div id="tab-crisis" class="tab-content bg-white shadow-sm rounded-b-xl rounded-tl-xl p-6 mb-6">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold text-gray-800 border-r-4 border-red-500 pr-3">تحلیل مالی اقلام بحرانی (نیاز به نقدینگی)</h2>
@@ -200,12 +199,12 @@
         ];
 
         let state = {
-            productionPlan: {}, // { carId: { s1: 0, s2: 0 } }
-            totalMaterials: [], // array of objects with calculated daily need
-            warehouseInv: {},   // { itemCode: qty }
-            lineInv: {},        // { itemCode: qty }
-            prices: {},         // { itemCode: price }
-            crisisDays: 5
+            productionPlan: {}, 
+            totalMaterials: [], 
+            warehouseInv: {},   
+            lineInv: {},        
+            prices: {},         
+            crisisDays: 2.5
         };
 
         // Date Display
@@ -921,10 +920,7 @@
                 }
             });
 
-            // 1. سوئیچ اتوماتیک به تب دوم
             switchTab('tab-risk');
-            
-            // 2. محاسبه مجدد باکس‌های ریسک
             recalculateRisk(); 
             
             if(Object.keys(state.prices).length > 0) {
@@ -952,7 +948,6 @@
                 let k = null, v = null;
                 for (let prop in row) {
                     let propStr = prop.toLowerCase().trim();
-                    // جلوگیری از تداخل ستون شرح/نام کالا با ستون کد کالا
                     if(propStr.includes('شرح') || propStr.includes('نام') || propStr.includes('name')) continue;
                     
                     if(keyKeywords.some(kw => propStr.includes(kw))) k = row[prop];
@@ -963,7 +958,6 @@
                     let vFloat = 0;
                     if(typeof v === 'number') vFloat = v;
                     else if(typeof v === 'string') vFloat = parseFloat(v.replace(/,/g, '')) || 0;
-                    
                     map[kStr] = vFloat;
                 }
             });
@@ -974,11 +968,11 @@
             const file = event.target.files[0];
             if(!file) return;
             parseExcel(file, (json) => {
-                // کلمه 'کالا' حذف شد تا دقیقاً فقط کدها را پیدا کند
-                state.warehouseInv = extractKeyValue(json, ['کد', 'code'], ['موجودی', 'تعداد', 'مقدار', 'qty']);
+                state.warehouseInv = extractKeyValue(json, ['کد', 'code', 'کالا'], ['موجودی', 'تعداد', 'مقدار', 'qty']);
                 document.getElementById('risk-status-msg').innerHTML = `<i class="fas fa-check-circle"></i> موجودی انبار بروزرسانی شد (${Object.keys(state.warehouseInv).length} قلم استخراج شد).`;
                 document.getElementById('risk-status-msg').classList.remove('hidden');
                 recalculateRisk();
+                if(Object.keys(state.prices).length > 0) renderFinancialCrisis();
             });
         }
 
@@ -986,10 +980,11 @@
             const file = event.target.files[0];
             if(!file) return;
             parseExcel(file, (json) => {
-                state.lineInv = extractKeyValue(json, ['کد', 'code'], ['موجودی', 'تعداد', 'مقدار', 'qty']);
+                state.lineInv = extractKeyValue(json, ['کد', 'code', 'کالا'], ['موجودی', 'تعداد', 'مقدار', 'qty']);
                 document.getElementById('risk-status-msg').innerHTML = `<i class="fas fa-check-circle"></i> موجودی پای خط بروزرسانی شد (${Object.keys(state.lineInv).length} قلم استخراج شد).`;
                 document.getElementById('risk-status-msg').classList.remove('hidden');
                 recalculateRisk();
+                if(Object.keys(state.prices).length > 0) renderFinancialCrisis();
             });
         }
 
@@ -997,121 +992,120 @@
             const file = event.target.files[0];
             if(!file) return;
             parseExcel(file, (json) => {
-                state.prices = extractKeyValue(json, ['کد', 'code'], ['قیمت', 'مبلغ', 'ریال', 'price', 'فی']);
+                state.prices = extractKeyValue(json, ['کد', 'code', 'کالا'], ['قیمت', 'مبلغ', 'ریال', 'price', 'فی']);
                 document.getElementById('price-status-msg').innerHTML = `<i class="fas fa-check-circle"></i> قیمت‌ها بروزرسانی شد (${Object.keys(state.prices).length} قیمت استخراج شد).`;
                 renderGeneralBudget();
                 renderFinancialCrisis();
             });
         }
 
-        function manualLineUpdate(code, val) {
+        // --- 6. TAB 2: RENDER RISK DASHBOARD (Cascading Logic) ---
+        function updateLineInv(code, val) {
             state.lineInv[code] = parseFloat(val) || 0;
+            const btn = document.getElementById('btn-recalc-risk');
+            btn.classList.add('animate-pulse', 'bg-red-600');
+            btn.classList.remove('bg-gray-800');
         }
 
-        // --- 6. TAB 2: RISK DASHBOARD RENDER (5 BOXES) ---
         function recalculateRisk() {
-            state.crisisDays = parseFloat(document.getElementById('crisis-days').value) || 5;
-            
-            if (state.totalMaterials.length === 0) {
-                document.getElementById('materials-risk-container').innerHTML = `
-                    <div class="text-center py-12 text-gray-400">
-                        <i class="fas fa-calculator text-5xl mb-3"></i>
-                        <p>لطفاً ابتدا در تب ۱، دکمه «محاسبه کل مواد مورد نیاز» را کلیک کنید.</p>
-                    </div>`;
+            const container = document.getElementById('materials-risk-container');
+            if(state.totalMaterials.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-gray-400"><i class="fas fa-calculator text-5xl mb-3"></i><p>لطفاً ابتدا در تب ۱، محاسبه را انجام دهید.</p></div>`;
                 return;
             }
 
-            const shift1Crisis = [];
-            const shift2Crisis = [];
-            const critical = [];
-            const warning = [];
-            const safe = [];
+            state.crisisDays = parseFloat(document.getElementById('crisis-days').value) || 2.5;
+            
+            const btn = document.getElementById('btn-recalc-risk');
+            btn.classList.remove('animate-pulse', 'bg-red-600');
+            btn.classList.add('bg-gray-800');
+
+            const g1 = [];
+            const g2 = [];
+            const g3 = [];
+            const g4 = [];
+            const g5 = [];
 
             state.totalMaterials.forEach(item => {
                 let wInv = state.warehouseInv[item.code] || 0;
                 let lInv = state.lineInv[item.code] || 0;
                 let totalInv = wInv + lInv;
                 let daily = item.totalAmount;
-                
+                let s1 = item.s1Amount;
+
                 item.wInv = wInv;
                 item.lInv = lInv;
                 item.totalInv = totalInv;
                 item.daysCovered = daily > 0 ? (totalInv / daily) : 999;
-                
-                // Status Logic - 5 Box Categorization
-                if (totalInv < item.s1Amount) {
-                    item.statusStr = '<span class="text-red-700 font-bold bg-red-100 px-2 py-1 rounded">کسری قطعی شیفت ۱</span>';
-                    shift1Crisis.push(item);
-                } else if (totalInv < daily) {
-                    item.statusStr = '<span class="text-orange-700 font-bold bg-orange-100 px-2 py-1 rounded">کسری قطعی شیفت ۲</span>';
-                    shift2Crisis.push(item);
-                } else if (item.daysCovered >= 1 && item.daysCovered < state.crisisDays) {
-                    item.statusStr = `<span class="text-yellow-700 font-bold">تامین تا ${item.daysCovered.toFixed(1)} روز</span>`;
-                    critical.push(item);
-                } else if (item.daysCovered >= state.crisisDays && item.daysCovered < 30) {
-                    item.statusStr = `<span class="text-blue-700 font-bold">تامین تا ${item.daysCovered.toFixed(1)} روز</span>`;
-                    warning.push(item);
-                } else {
-                    item.statusStr = `<span class="text-green-700 font-bold">حاشیه امن (${item.daysCovered.toFixed(1)} روز)</span>`;
-                    safe.push(item);
-                }
+                item.orderTime = item.daysCovered !== 999 ? (item.daysCovered - 7) : 999;
 
-                // Order Time (Days - 7)
-                let orderTime = item.daysCovered - 7;
-                if (orderTime < 0) {
-                    item.orderStr = '<span class="text-red-600 font-bold blink"><i class="fas fa-exclamation-circle"></i> تاخیر سفارش</span>';
-                } else {
-                    item.orderStr = `<span class="text-gray-600">${orderTime.toFixed(1)} روز دیگر</span>`;
+                if (daily > 0) {
+                    // Logic: Cumulative/Cascading Groups
+                    if (totalInv <= s1) {
+                        g1.push(item);
+                        g2.push(item);
+                        g3.push(item);
+                        g4.push(item);
+                    } else if (totalInv <= daily) {
+                        g2.push(item);
+                        g3.push(item);
+                        g4.push(item);
+                    } else if (item.daysCovered <= state.crisisDays) {
+                        g3.push(item);
+                        g4.push(item);
+                    } else if (item.daysCovered <= 20) {
+                        g4.push(item);
+                    } else {
+                        g5.push(item);
+                    }
                 }
             });
 
-            renderRiskTables(shift1Crisis, shift2Crisis, critical, warning, safe);
-        }
-
-        function renderRiskTables(s1c, s2c, c, w, s) {
-            const container = document.getElementById('materials-risk-container');
-            
-            const buildBox = (items, title, colorClass, icon, tableId) => {
+            const buildBox = (items, title, colorClass, bgClass, textClass, icon, tableId) => {
                 if(items.length === 0) return '';
                 let rows = items.map(i => {
-                    let shortage = i.totalInv < (i.totalAmount * state.crisisDays) ? ((i.totalAmount * state.crisisDays) - i.totalInv).toFixed(2) : 0;
+                    let shortage = i.totalInv < i.totalAmount ? (i.totalAmount - i.totalInv).toFixed(2) : 0;
+                    let orderStr = i.orderTime < 0 ? `<span class="text-red-600 font-bold blink">تاخیر سفارش</span>` : `${i.orderTime.toFixed(1)} روز`;
+
                     return `
-                    <tr class="hover:bg-gray-100 border-b border-gray-200 text-sm">
+                    <tr class="hover:bg-gray-50 border-b border-gray-200 text-sm transition">
                         <td class="py-2 px-3 font-mono">${i.code}</td>
                         <td class="py-2 px-3 text-right">${i.name}</td>
-                        <td class="py-2 px-2 text-center bg-blue-50 font-bold">${i.totalAmount.toFixed(2)}</td>
+                        <td class="py-2 px-2 text-center bg-blue-50">${i.s1Amount.toFixed(2)}</td>
+                        <td class="py-2 px-2 text-center bg-blue-100 font-bold">${i.totalAmount.toFixed(2)}</td>
                         <td class="py-2 px-2 text-center">${i.wInv.toFixed(2)}</td>
                         <td class="py-2 px-2 text-center bg-yellow-50">
-                            <input type="number" value="${i.lInv}" class="w-16 text-center border rounded p-1 text-xs focus:ring-2 focus:ring-blue-400" onchange="manualLineUpdate('${i.code}', this.value)">
+                            <input type="number" value="${i.lInv}" class="w-16 text-center border rounded p-1 text-xs focus:ring-2 focus:ring-blue-400" onchange="updateLineInv('${i.code}', this.value)">
                         </td>
                         <td class="py-2 px-2 text-center font-bold">${i.totalInv.toFixed(2)}</td>
                         <td class="py-2 px-2 text-center text-red-600 font-bold">${shortage}</td>
-                        <td class="py-2 px-2 text-center text-xs">${i.statusStr}</td>
-                        <td class="py-2 px-2 text-center text-xs">${i.orderStr}</td>
+                        <td class="py-2 px-2 text-center font-bold">${i.daysCovered === 999 ? '∞' : i.daysCovered.toFixed(1)}</td>
+                        <td class="py-2 px-2 text-center text-xs" dir="ltr">${orderStr}</td>
                     </tr>`;
                 }).join('');
 
                 return `
-                <div class="risk-panel ${colorClass} mb-6 rounded-xl border-2 shadow-sm overflow-hidden">
-                    <div class="p-3 flex justify-between items-center bg-white/50 border-b">
-                        <h3 class="font-bold text-lg flex items-center gap-2">${icon} ${title} (${items.length} قلم)</h3>
-                        <div class="flex gap-2">
+                <div class="risk-panel ${colorClass} mb-6 rounded-xl border-2 shadow-sm overflow-hidden flex flex-col">
+                    <div class="p-3 flex flex-wrap justify-between items-center ${bgClass} border-b">
+                        <h3 class="font-bold text-lg flex items-center gap-2 ${textClass}">${icon} ${title} (${items.length} قلم)</h3>
+                        <div class="flex gap-2 mt-2 sm:mt-0">
                             <button onclick="exportExcel('${tableId}', '${title}')" class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 shadow flex items-center gap-1"><i class="fas fa-file-excel"></i> اکسل</button>
                             <button onclick="exportPDF('${tableId}', '${title}')" class="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 shadow flex items-center gap-1"><i class="fas fa-file-pdf"></i> چاپ</button>
                         </div>
                     </div>
-                    <div class="box-container custom-scrollbar bg-white" style="max-height: 400px; overflow-y: auto;">
+                    <div class="box-container custom-scrollbar bg-white">
                         <table id="${tableId}" class="min-w-full">
                             <thead class="bg-gray-100 sticky top-0 shadow-sm text-xs text-gray-700 z-10">
                                 <tr>
                                     <th class="py-2 px-3 border-b">کد کالا</th>
                                     <th class="py-2 px-3 border-b text-right">شرح</th>
+                                    <th class="py-2 px-2 border-b">نیاز شیفت ۱</th>
                                     <th class="py-2 px-2 border-b">نیاز روزانه</th>
                                     <th class="py-2 px-2 border-b">موجودی انبار</th>
-                                    <th class="py-2 px-2 border-b bg-yellow-100">موجودی خط</th>
-                                    <th class="py-2 px-2 border-b">جمع موجودی</th>
-                                    <th class="py-2 px-2 border-b">کسری (${state.crisisDays} روزه)</th>
-                                    <th class="py-2 px-2 border-b">وضعیت تامین</th>
+                                    <th class="py-2 px-2 border-b bg-yellow-100">موجودی پای‌خط</th>
+                                    <th class="py-2 px-2 border-b">کل موجودی</th>
+                                    <th class="py-2 px-2 border-b">کسری روزانه</th>
+                                    <th class="py-2 px-2 border-b">پوشش (روز)</th>
                                     <th class="py-2 px-2 border-b">زمان سفارش</th>
                                 </tr>
                             </thead>
@@ -1121,13 +1115,12 @@
                 </div>`;
             };
 
-            // دقیقا ۵ باکس کاملا مجزا
             container.innerHTML = 
-                buildBox(s1c, 'فوق بحرانی (کسری قطعی شیفت ۱)', 'border-red-600 bg-red-50 text-red-900', '🚨', 'tbl-s1c') +
-                buildBox(s2c, 'فوق بحرانی (کسری قطعی شیفت ۲)', 'border-orange-500 bg-orange-50 text-orange-900', '🔴', 'tbl-s2c') +
-                buildBox(c, `بحرانی (ریسک ${state.crisisDays} روزه)`, 'border-yellow-500 bg-yellow-50 text-yellow-900', '🟠', 'tbl-c') +
-                buildBox(w, 'هشدار تامین / نقطه سفارش (کمتر از 30 روز)', 'border-blue-400 bg-blue-50 text-blue-900', '🟡', 'tbl-w') +
-                buildBox(s, 'حاشیه امن (بیش از یک ماه)', 'border-green-500 bg-green-50 text-green-900', '🟢', 'tbl-s');
+                buildBox(g1, 'گروه اول: فوق بحران (پوشش کوچکتر مساوی یک شیفت)', 'border-red-600', 'bg-red-100', 'text-red-900', '🚨', 'tbl-g1') +
+                buildBox(g2, 'گروه دوم: بحران (پوشش کوچکتر مساوی از یکروز)', 'border-orange-500', 'bg-orange-100', 'text-orange-900', '🔴', 'tbl-g2') +
+                buildBox(g3, `گروه سوم: کسری (پوشش کوچکتر مساوی از ${state.crisisDays} روز)`, 'border-yellow-500', 'bg-yellow-100', 'text-yellow-900', '🟠', 'tbl-g3') +
+                buildBox(g4, 'گروه چهارم: هشدار تامین (پوشش کوچکتر مساوی ۲۰روز)', 'border-blue-400', 'bg-blue-100', 'text-blue-900', '🟡', 'tbl-g4') +
+                buildBox(g5, 'گروه پنجم: حاشیه امن (پوشش بزرگتر از ۲۰ روز کاری)', 'border-green-500', 'bg-green-100', 'text-green-900', '🟢', 'tbl-g5');
         }
 
         // --- 7. TAB 3: GENERAL BUDGET & FAMILIES ---
@@ -1168,7 +1161,6 @@
                 </div>
             `;
 
-            // صدا زدن تابع خریدهای تجمیعی با ظاهر جدید
             renderFamilies(all);
 
             const buildTbl = (arr) => {
@@ -1214,7 +1206,6 @@
             `;
         }
 
-        // --- 8. TAB 3: FAMILIES LOGIC ---
         function renderFamilies(allData) {
             let groups = {
                 'مواد شیمیایی و فوم': { keywords: ['شیمیایی','ایزوسیانات','پلی','حلال','واکس','فوم'], items: [], sum: 0, icon: 'fa-flask' },
@@ -1262,7 +1253,7 @@
                             </div>
                         </button>
                         <div id="family-items-${counter}" class="hidden border-t border-gray-100 bg-gray-50 p-4">
-                            <div class="box-container custom-scrollbar" style="max-height: 350px; overflow-y: auto;">
+                            <div class="box-container custom-scrollbar">
                                 <table class="min-w-full text-sm text-center bg-white border border-gray-200 rounded-lg overflow-hidden">
                                     <thead class="bg-gray-100 sticky top-0 z-10 shadow-sm">
                                         <tr>
@@ -1292,11 +1283,11 @@
             document.getElementById('family-container').innerHTML = html;
         }
 
-        // --- 9. TAB 4: FINANCIAL CRISIS (Old Tab 5) ---
+        // --- 8. TAB 4: FINANCIAL CRISIS ---
         function renderFinancialCrisis() {
             const container = document.getElementById('crisis-tables-container');
             const kpiContainer = document.getElementById('crisis-kpis');
-            if(Object.keys(state.prices).length === 0 || Object.keys(state.warehouseInv).length === 0) return;
+            if(Object.keys(state.prices).length === 0) return;
 
             let metal = [];
             let nonMetal = [];
@@ -1313,7 +1304,9 @@
                     let cost = neededForCrisis * price;
                     totalCost += cost;
                     
-                    let obj = {...item, shortage: neededForCrisis, cost: cost, tInv: tInv, immediate: (tInv < item.totalAmount)};
+                    let immediate = tInv <= item.s1Amount; 
+                    let obj = {...item, shortage: neededForCrisis, cost: cost, tInv: tInv, immediate: immediate};
+                    
                     if (obj.immediate) {
                         immediateCount++;
                         immediateCost += cost;
@@ -1337,14 +1330,16 @@
 
             const buildTbl = (arr, title, color) => `
                 <div class="mb-6 rounded-xl border border-gray-300 overflow-hidden shadow-sm">
-                    <div class="bg-${color}-100 p-3 font-bold text-${color}-800 border-b border-${color}-200">${title}</div>
+                    <div class="bg-${color}-100 p-3 font-bold text-${color}-800 border-b border-${color}-200 flex justify-between">
+                        <span>${title}</span>
+                    </div>
                     <div class="box-container custom-scrollbar bg-white">
                         <table class="min-w-full text-sm text-center">
-                            <thead class="bg-gray-50 sticky top-0 shadow-sm"><tr><th>کد</th><th class="text-right">شرح</th><th>موجودی</th><th>کسری(${state.crisisDays} روز)</th><th>ارزش ریالی کسری</th><th>اقدام</th></tr></thead>
+                            <thead class="bg-gray-50 sticky top-0 shadow-sm"><tr><th>کد</th><th class="text-right">شرح</th><th>کل موجودی</th><th>کسری(${state.crisisDays} روز)</th><th>ارزش ریالی کسری</th><th>اقدام</th></tr></thead>
                             <tbody>${arr.map(x => `
                                 <tr class="border-b ${x.immediate ? 'bg-red-50' : 'hover:bg-gray-50'}">
-                                    <td>${x.code}</td><td class="text-right">${x.name}</td><td>${x.tInv.toFixed(1)}</td><td class="font-bold text-red-600">${x.shortage.toFixed(1)}</td><td class="font-bold">${x.cost.toLocaleString()}</td>
-                                    <td>${x.immediate ? '<span class="text-xs bg-red-600 text-white px-2 py-1 rounded blink">فوری</span>' : '-'}</td>
+                                    <td class="font-mono">${x.code}</td><td class="text-right">${x.name}</td><td>${x.tInv.toFixed(1)}</td><td class="font-bold text-red-600">${x.shortage.toFixed(1)}</td><td class="font-bold">${x.cost.toLocaleString()}</td>
+                                    <td>${x.immediate ? '<span class="text-xs bg-red-600 text-white px-2 py-1 rounded blink">اقدام فوری</span>' : '-'}</td>
                                 </tr>
                             `).join('')}</tbody>
                         </table>
@@ -1354,7 +1349,7 @@
             container.innerHTML = buildTbl(metal, `بحران اقلام فلزی (${metal.length} قلم)`, 'gray') + buildTbl(nonMetal, `بحران اقلام غیرفلزی (${nonMetal.length} قلم)`, 'teal');
         }
 
-        // --- 10. UTILS & EXPORTS ---
+        // --- 9. UTILS & EXPORTS ---
         function toggleAccordion(id) {
             const el = document.getElementById(id);
             const icon = document.getElementById('icon-' + id);
@@ -1383,8 +1378,10 @@
         function exportPDF(tableId, title) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('l', 'pt', 'a4');
+            // Adding a simple font mapping for persian chars if font exists or fallback
+            doc.addFileToVFS("Vazirmatn.ttf", ""); // Base64 needed for actual persian, skipping detailed PDF styling here
             doc.text(title, 40, 40);
-            doc.autoTable({ html: '#' + tableId, startY: 60, styles: { font: 'helvetica', halign: 'right' } });
+            doc.autoTable({ html: '#' + tableId, startY: 60 });
             doc.save(title + '.pdf');
         }
 
