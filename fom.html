@@ -90,6 +90,20 @@
             pointer-events: none;
             filter: grayscale(0.4);
         }
+        /* استایل دکمه کشویی (+ / −) جداول */
+        .acc-btn {
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            font-weight: 900;
+            font-size: 1rem;
+            line-height: 1;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
         /* تنظیمات مخصوص چاپ و خروجی PDF مدیریتی */
         @media print {
             body {
@@ -192,20 +206,35 @@
             </div>
         </section>
 
+        <!-- نوار کنترل سریع گروه‌های کشویی جداول -->
+        <section class="bg-white rounded-2xl px-4 py-3 border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-2 no-print">
+            <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                <span>مدیریت نمایش کشویی جداول و گروه‌های تحلیلی (برای مشاهده جزئیات هر جدول روی علامت + کلیک کنید)</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="setAllAccordions(true)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-800 text-xs font-bold transition cursor-pointer">
+                    <span>+</span>
+                    <span>باز کردن همه جداول</span>
+                </button>
+                <button type="button" onclick="setAllAccordions(false)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer">
+                    <span>−</span>
+                    <span>بستن همه جداول</span>
+                </button>
+            </div>
+        </section>
+
         <!-- پنل کنترل مفروضات زنده (Interactive Parameter Studio) -->
         <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden no-print">
-            <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div class="flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+            <div onclick="toggleAccordion('paramsPanelBody')" class="px-5 py-4 bg-slate-50 hover:bg-slate-100/70 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 cursor-pointer transition select-none">
+                <div class="flex items-center gap-2.5">
+                    <span id="icon-paramsPanelBody" class="acc-btn bg-indigo-600 text-white">−</span>
                     <h2 class="text-sm sm:text-base font-bold text-slate-800">پنل تنظیمات و مفروضات زنده مدل مالی (قابل ویرایش)</h2>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
                     <span id="activeSettlementBadge" class="inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-800 text-xs font-bold">
                         حالت ترکیبی (خودرو + اوراق)
                     </span>
-                    <button onclick="toggleParamsPanel()" id="toggleParamsBtn" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 cursor-pointer">
-                        بستن / باز کردن تنظیمات ▾
-                    </button>
                 </div>
             </div>
 
@@ -298,6 +327,15 @@
                                 <option value="ex_vat_cap">سقف معامله بدون VAT است</option>
                             </select>
                         </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-indigo-900 mb-1">مبنای محاسبه درصد سود خالص هدف</label>
+                        <select id="inProfitBasis" onchange="recalculate()" class="w-full px-2.5 py-2 rounded-lg border border-indigo-300 bg-indigo-50/40 text-xs font-bold text-indigo-950 outline-none">
+                            <option value="base_material" selected>درصد از بهای خرید مواد مستقیم (تغییر سربار و دفتر مرکزی روی سود کل اثر دارد)</option>
+                            <option value="production_cost">درصد از بهای تولید (مواد + سربار؛ تغییر دفتر مرکزی روی سود کل اثر دارد)</option>
+                            <option value="operating_cost">درصد از کل بهای تمام‌شده (Cost-Plus کامل روی کل هزینه‌ها)</option>
+                            <option value="net_sales">درصد از نرخ فروش نقدی (حاشیه سود روی فروش)</option>
+                        </select>
                     </div>
                 </div>
 
@@ -438,16 +476,22 @@
 
         <!-- جدول ۱: آنالیز نرخ خرید پایه سیستم (فرمولاسیون ۱۰۰:۶۱) -->
         <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden print-break-avoid">
-            <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                    <h2 class="text-base font-extrabold text-slate-900">جدول ۱: آنالیز بهای خرید پایه هر کیلوگرم سیستم فوم (فرمولاسیون اختلاط)</h2>
-                    <p class="text-xs text-slate-600 mt-0.5">محاسبه میانگین وزنی نرخ خرید مواد اولیه بر مبنای نسبت اختلاط به همراه مالیات بر ارزش افزوده خرید</p>
+            <div onclick="toggleAccordion('bodyTable1')" class="px-5 py-4 bg-slate-50 hover:bg-slate-100/80 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 cursor-pointer transition select-none">
+                <div class="flex items-start sm:items-center gap-3">
+                    <span id="icon-bodyTable1" class="acc-btn bg-slate-800 text-white">+</span>
+                    <div>
+                        <h2 class="text-base font-extrabold text-slate-900">جدول ۱: آنالیز بهای خرید پایه هر کیلوگرم سیستم فوم (فرمولاسیون اختلاط)</h2>
+                        <p class="text-xs text-slate-600 mt-0.5">محاسبه میانگین وزنی نرخ خرید مواد اولیه بر مبنای نسبت اختلاط به همراه مالیات بر ارزش افزوده خرید</p>
+                    </div>
                 </div>
-                <span id="badgeMixRatio" class="inline-flex items-center px-3 py-1 rounded-lg bg-indigo-100 text-indigo-800 text-xs font-bold self-start sm:self-auto">
-                    نسبت ۱۰۰ : ۶۱ (مجموع ۱۶۱ واحد)
-                </span>
+                <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                    <span id="summaryTable1" class="inline-flex items-center px-3 py-1 rounded-lg bg-slate-200 text-slate-800 text-xs font-bold tabular-nums">بهای پایه: —</span>
+                    <span id="badgeMixRatio" class="inline-flex items-center px-3 py-1 rounded-lg bg-indigo-100 text-indigo-800 text-xs font-bold">
+                        نسبت ۱۰۰ : ۶۱ (مجموع ۱۶۱ واحد)
+                    </span>
+                </div>
             </div>
-            <div class="overflow-x-auto">
+            <div id="bodyTable1" data-accordion-body class="hidden overflow-x-auto">
                 <table class="w-full text-right border-collapse">
                     <thead>
                         <tr class="bg-slate-100/80 text-slate-600 text-xs font-bold border-b border-slate-200">
@@ -455,9 +499,9 @@
                             <th class="py-3 px-4">نسبت وزنی</th>
                             <th class="py-3 px-4">سهم وزنی (٪)</th>
                             <th class="py-3 px-4">نرخ خرید (<span class="unit-label">ریال</span>/کیلو)</th>
-                            <th class="py-3 px-4">شیوه محاسبه</th>
                             <th class="py-3 px-4">مبلغ در ۱ کیلو سیستم (<span class="unit-label">ریال</span>)</th>
-                            <th class="py-3 px-4">مقدار / ارزش کل معامله</th>
+                            <th class="py-3 px-4">مقدار کل معامله (کیلوگرم)</th>
+                            <th class="py-3 px-4">ارزش کل معامله (<span class="unit-label">ریال</span>)</th>
                         </tr>
                     </thead>
                     <tbody id="table1Body" class="divide-y divide-slate-100 text-sm">
@@ -467,26 +511,32 @@
             </div>
         </section>
 
-        <!-- جدول ۲: ساختار بهای تمام‌شده، هزینه‌ها، سود، مالیات، ارزش افزوده و بهای فروش نقدی (با نمایش ارزش افزوده در زیر آن) -->
+        <!-- جدول ۲: ساختار بهای تمام‌شده، هزینه‌ها، سود، مالیات و بهای فروش نقدی -->
         <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden print-break-avoid">
-            <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                    <h2 class="text-base font-extrabold text-slate-900">جدول ۲: ساختار بهای تمام‌شده، هزینه‌های عملیاتی، سود خالص، مالیات و بهای فروش نقدی</h2>
-                    <p class="text-xs text-slate-600 mt-0.5">بارگذاری سربار، دفتر مرکزی، سود خالص هدف و مالیات عملکرد ماده ۱۰۵ به همراه نمایش ارزش افزوده در زیر قیمت نقدی</p>
+            <div onclick="toggleAccordion('bodyTable2')" class="px-5 py-4 bg-slate-50 hover:bg-slate-100/80 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 cursor-pointer transition select-none">
+                <div class="flex items-start sm:items-center gap-3">
+                    <span id="icon-bodyTable2" class="acc-btn bg-emerald-600 text-white">−</span>
+                    <div>
+                        <h2 class="text-base font-extrabold text-slate-900">جدول ۲: ساختار بهای تمام‌شده، هزینه‌ها، سود خالص، مالیات و بهای فروش نقدی</h2>
+                        <p class="text-xs text-slate-600 mt-0.5">بارگذاری سربار، دفتر مرکزی، سود خالص هدف و مالیات عملکرد ماده ۱۰۵ با امکان مشاهده تفکیک پولیول و ایزوسیانات</p>
+                    </div>
                 </div>
-                <span id="badgeCashMargin" class="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold self-start sm:self-auto">
-                    افزایش نسبت به خرید پایه: —٪
-                </span>
+                <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                    <span id="summaryTable2" class="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-600 text-white text-xs font-bold tabular-nums">نقدی: —</span>
+                    <span id="badgeCashMargin" class="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold">
+                        افزایش نسبت به خرید پایه: —٪
+                    </span>
+                </div>
             </div>
-            <div class="overflow-x-auto">
+            <div id="bodyTable2" data-accordion-body class="overflow-x-auto">
                 <table class="w-full text-right border-collapse">
                     <thead>
                         <tr class="bg-slate-100/80 text-slate-600 text-xs font-bold border-b border-slate-200">
                             <th class="py-3 px-4">شرح لایه هزینه / سود / مالیات</th>
-                            <th class="py-3 px-4">نرخ / ضریب</th>
-                            <th class="py-3 px-4">شیوه و مبنای محاسبه</th>
-                            <th class="py-3 px-4">مبلغ به ازای هر کیلوگرم (<span class="unit-label">ریال</span>)</th>
-                            <th class="py-3 px-4">سهم از نرخ نقدی (٪)</th>
+                            <th class="py-3 px-3">نرخ / ضریب</th>
+                            <th class="py-3 px-3">شیوه و مبنای محاسبه</th>
+                            <th class="py-3 px-3 bg-indigo-50/70 text-indigo-950">۱ کیلو سیستم (<span class="unit-label">ریال</span>)</th>
+                            <th class="py-3 px-3">سهم از نقدی (٪)</th>
                         </tr>
                     </thead>
                     <tbody id="table2Body" class="divide-y divide-slate-100 text-sm">
@@ -496,17 +546,21 @@
             </div>
         </section>
 
+        <!-- جدول ۳-الف: تحلیل تهاتر خودرو -->
         <section id="sectionTable3A" class="bg-white rounded-2xl border border-rose-200/80 shadow-sm overflow-hidden print-break-avoid">
-            <div class="px-5 py-4 bg-rose-50/80 border-b border-rose-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                    <h2 id="titleTable3A" class="text-base font-extrabold text-rose-950">جدول ۳-الف: تحلیل تهاتر خودرو و محاسبه زیان و هزینه‌های نقدشوندگی</h2>
-                    <p class="text-xs text-rose-800/80 mt-0.5">محاسبه شکاف نرخ کارخانه و بازار آزاد به همراه هزینه‌های محضر، نقل‌وانتقال، کارمزد، حمل و خواب سرمایه</p>
+            <div onclick="toggleAccordion('bodyTable3A')" class="px-5 py-4 bg-rose-50/80 hover:bg-rose-100/60 border-b border-rose-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 cursor-pointer transition select-none">
+                <div class="flex items-start sm:items-center gap-3">
+                    <span id="icon-bodyTable3A" class="acc-btn bg-rose-600 text-white">+</span>
+                    <div>
+                        <h2 id="titleTable3A" class="text-base font-extrabold text-rose-950">جدول ۳-الف: تحلیل تهاتر خودرو و محاسبه زیان و هزینه‌های نقدشوندگی</h2>
+                        <p class="text-xs text-rose-800/80 mt-0.5">محاسبه شکاف نرخ کارخانه و بازار آزاد به همراه هزینه‌های محضر، نقل‌وانتقال، کارمزد، حمل و خواب سرمایه</p>
+                    </div>
                 </div>
                 <span id="badgeCarCount" class="inline-flex items-center px-3 py-1 rounded-lg bg-rose-600 text-white text-xs font-bold self-start sm:self-auto">
                     — دستگاه خودرو
                 </span>
             </div>
-            <div class="overflow-x-auto">
+            <div id="bodyTable3A" data-accordion-body class="hidden overflow-x-auto">
                 <table class="w-full text-right border-collapse">
                     <thead>
                         <tr class="bg-slate-100/80 text-slate-600 text-xs font-bold border-b border-slate-200">
@@ -526,16 +580,19 @@
 
         <!-- جدول ۳-ب: کالبدشکافی هزینه خواب پول چک مدت‌دار، برات، LC و اوراق بهادار (در صورت خاموش بودن کلید، مخفی می‌شود) -->
         <section id="sectionTable3B" class="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden print-break-avoid">
-            <div class="px-5 py-4 bg-amber-50/80 border-b border-amber-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                    <h2 class="text-base font-extrabold text-amber-950">جدول ۳-ب: تحلیل هزینه خواب پول و کارمزد چک مدت‌دار، برات الکترونیک، LC و اوراق بهادار</h2>
-                    <p class="text-xs text-amber-900/80 mt-0.5">محاسبه دقیق هزینه تامین مالی، کارمزد تنزیل/گشایش و ترکیب نهایی روش‌های تسویه کل قرارداد</p>
+            <div onclick="toggleAccordion('bodyTable3B')" class="px-5 py-4 bg-amber-50/80 hover:bg-amber-100/60 border-b border-amber-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 cursor-pointer transition select-none">
+                <div class="flex items-start sm:items-center gap-3">
+                    <span id="icon-bodyTable3B" class="acc-btn bg-amber-600 text-white">+</span>
+                    <div>
+                        <h2 class="text-base font-extrabold text-amber-950">جدول ۳-ب: تحلیل هزینه خواب پول و کارمزد چک مدت‌دار، برات الکترونیک، LC و اوراق بهادار</h2>
+                        <p class="text-xs text-amber-900/80 mt-0.5">محاسبه دقیق هزینه تامین مالی، کارمزد تنزیل/گشایش و ترکیب نهایی روش‌های تسویه کل قرارداد</p>
+                    </div>
                 </div>
                 <span id="badgeCreditSummary" class="inline-flex items-center px-3 py-1 rounded-lg bg-amber-600 text-white text-xs font-bold self-start sm:self-auto">
                     اوراق / اسناد: —
                 </span>
             </div>
-            <div class="overflow-x-auto">
+            <div id="bodyTable3B" data-accordion-body class="hidden overflow-x-auto">
                 <table class="w-full text-right border-collapse">
                     <thead>
                         <tr class="bg-slate-100/80 text-slate-600 text-xs font-bold border-b border-slate-200">
@@ -553,26 +610,30 @@
             </div>
         </section>
 
-        <!-- جدول ۴: محاسبه نهایی بهای فروش (خالص بدون ارزش افزوده + ارزش افزوده و نرخ نهایی با ارزش افزوده در زیر آن) -->
+        <!-- جدول ۴: محاسبه نهایی بهای فروش هر کیلوگرم سیستم (بدون ارزش افزوده و با ارزش افزوده) -->
         <section class="bg-white rounded-2xl border border-indigo-200 shadow-sm overflow-hidden print-break-avoid">
-            <div class="px-5 py-4 bg-indigo-50/80 border-b border-indigo-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                    <h2 class="text-base font-extrabold text-indigo-950">جدول ۴: استخراج نرخ نهایی فروش هر کیلوگرم سیستم (بدون ارزش افزوده و با ارزش افزوده)</h2>
-                    <p class="text-xs text-indigo-800/80 mt-0.5">بارگذاری دقیق هزینه‌های فعال تسویه (خودرو / اوراق و اسناد اعتباری) بر نرخ فروش جهت حفظ ۱۰۰٪ سود هدف</p>
+            <div onclick="toggleAccordion('bodyTable4')" class="px-5 py-4 bg-indigo-50/80 hover:bg-indigo-100/70 border-b border-indigo-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 cursor-pointer transition select-none">
+                <div class="flex items-start sm:items-center gap-3">
+                    <span id="icon-bodyTable4" class="acc-btn bg-indigo-600 text-white">−</span>
+                    <div>
+                        <h2 class="text-base font-extrabold text-indigo-950">جدول ۴: استخراج نرخ نهایی فروش هر کیلوگرم سیستم (بدون و با ارزش افزوده)</h2>
+                        <p class="text-xs text-indigo-800/80 mt-0.5">بارگذاری دقیق هزینه‌های فعال تسویه (خودرو / اوراق و اسناد اعتباری) با امکان مشاهده تفکیک پولیول و ایزوسیانات</p>
+                    </div>
                 </div>
-                <span id="badgeMarkupEq" class="inline-flex items-center px-3 py-1 rounded-lg bg-indigo-600 text-white text-xs font-bold self-start sm:self-auto">
-                    افزایش نسبت به نرخ نقدی: —٪
-                </span>
+                <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                    <span id="summaryTable4" class="inline-flex items-center px-3 py-1 rounded-lg bg-indigo-900 text-white text-xs font-bold tabular-nums">نهایی: —</span>
+                    <span id="badgeMarkupEq" class="inline-flex items-center px-3 py-1 rounded-lg bg-indigo-600 text-white text-xs font-bold">
+                        افزایش نسبت به نرخ نقدی: —٪
+                    </span>
+                </div>
             </div>
-            <div class="overflow-x-auto">
+            <div id="bodyTable4" data-accordion-body class="overflow-x-auto">
                 <table class="w-full text-right border-collapse">
                     <thead>
                         <tr class="bg-slate-100/80 text-slate-600 text-xs font-bold border-b border-slate-200">
                             <th class="py-3 px-4">شرح ردیف قیمت‌گذاری نهایی</th>
-                            <th class="py-3 px-4">شیوه و فرمول ریاضی</th>
-                            <th class="py-3 px-4">نرخ هر کیلوگرم (<span class="unit-label">ریال</span>)</th>
-                            <th class="py-3 px-4">نرخ معادل (تومان/کیلو)</th>
-                            <th class="py-3 px-4">تغییر نسبت به نرخ نقدی</th>
+                            <th class="py-3 px-3 bg-indigo-50/80 text-indigo-950">۱ کیلو سیستم (<span class="unit-label">ریال</span>)</th>
+                            <th class="py-3 px-3">تغییر نسبت به نقدی</th>
                         </tr>
                     </thead>
                     <tbody id="table4Body" class="divide-y divide-slate-100 text-sm">
@@ -582,30 +643,141 @@
             </div>
         </section>
 
-        <!-- نمودار آبشاری ساختار قیمت هر کیلوگرم سیستم (بدون ارزش افزوده) -->
-        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 print-break-avoid">
-            <div class="mb-4">
-                <h2 class="text-base font-extrabold text-slate-900">نمودار کالبدشکافی اجزای نرخ فروش نهایی هر کیلوگرم سیستم (بدون ارزش افزوده)</h2>
-                <p class="text-xs text-slate-500 mt-0.5">سهم دقیق هر لایه هزینه، مالیات عملکرد، سود و بارهای مالی فعال تسویه در قیمت خالص هر کیلوگرم</p>
-            </div>
-            <!-- نوار انباشته -->
-            <div id="stackedBarContainer" class="w-full h-10 rounded-xl overflow-hidden flex bg-slate-100 border border-slate-200 shadow-inner mb-4"></div>
-            <!-- راهنمای اجزای نمودار -->
-            <div id="stackedBarLegend" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3"></div>
-        </section>
-
-        <!-- جدول ۵: صورت سود و زیان تجمیعی و اثبات حسابرسی کل معامله -->
-        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden print-break-avoid">
-            <div class="px-5 py-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                    <h2 class="text-base font-extrabold text-slate-900">جدول ۵: صورت سود و زیان تجمیعی، ارزش افزوده و اثبات حسابرسی کل معامله</h2>
-                    <p class="text-xs text-slate-500 mt-0.5">تراز نهایی کل قرارداد پس از کسر بهای خرید مواد، سربار، دفتر مرکزی، هزینه‌های فعال تسویه و مالیات عملکرد + تطبیق ارزش افزوده</p>
+        <!-- جدول ۵ (جدید): مهندسی معکوس نرخ اعلامی / مورد نظر کارفرما -->
+        <section id="sectionReverseEng" class="bg-white rounded-2xl border-2 border-teal-300/90 shadow-sm overflow-hidden print-break-avoid">
+            <div onclick="toggleAccordion('bodyRevEng')" class="px-5 py-4 bg-gradient-to-l from-teal-50 via-emerald-50/70 to-white hover:from-teal-100/60 border-b border-teal-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 cursor-pointer transition select-none">
+                <div class="flex items-start sm:items-center gap-3">
+                    <span id="icon-bodyRevEng" class="acc-btn bg-teal-600 text-white">−</span>
+                    <div>
+                        <h2 class="text-base font-extrabold text-teal-950">جدول ۵: مهندسی معکوس نرخ اعلامی / مورد نظر کارفرما (وضعیت سود و نرخ تفکیکی پولیول و ایزوسیانات)</h2>
+                        <p class="text-xs text-teal-800/80 mt-0.5">ورود نرخ پیشنهادی یا مصوب کارفرما جهت محاسبه فوری سود/زیان (درصد و ریال)، نقطه سربه‌سر، نرخ تفکیکی پولیول و ایزوسیانات و سقف مجاز خرید</p>
+                    </div>
                 </div>
-                <span class="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold self-start sm:self-auto">
-                    تراز حسابرسی کل قرارداد
+                <span id="badgeRevStatus" class="inline-flex items-center px-3 py-1 rounded-lg bg-teal-600 text-white text-xs font-bold self-start sm:self-auto">
+                    وضعیت: —
                 </span>
             </div>
-            <div class="overflow-x-auto">
+
+            <div id="bodyRevEng" data-accordion-body>
+                <!-- نوار ورودی نرخ کارفرما -->
+                <div class="p-4 bg-teal-50/50 border-b border-teal-100 grid grid-cols-1 md:grid-cols-12 gap-3 items-end no-print">
+                    <div class="md:col-span-4">
+                        <label class="block text-xs font-extrabold text-teal-950 mb-1">نرخ اعلامی / مورد نظر کارفرما (ریال/کیلو سیستم)</label>
+                        <input id="inClientPrice" type="text" inputmode="numeric" dir="ltr" value="16,500,000" oninput="handleFormattedInput(this)" class="w-full px-3 py-2 rounded-xl border-2 border-teal-500 bg-white text-sm sm:text-base font-black text-teal-950 text-left focus:ring-2 focus:ring-teal-500 outline-none tabular-nums">
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-bold text-slate-600 mb-1">مبنای نرخ واردشده کارفرما</label>
+                        <select id="inClientPriceVatMode" onchange="recalculate()" class="w-full px-2.5 py-2.5 rounded-xl border border-teal-300 bg-white text-xs font-bold text-slate-800 outline-none">
+                            <option value="ex_vat" selected>بدون ارزش افزوده (خالص)</option>
+                            <option value="inc_vat">با احتساب ارزش افزوده (ناخالص)</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-bold text-slate-600 mb-1">روش تفکیک پولیول و ایزوسیانات</label>
+                        <select id="inClientAllocMode" onchange="recalculate()" class="w-full px-2.5 py-2.5 rounded-xl border border-teal-300 bg-white text-xs font-bold text-slate-800 outline-none">
+                            <option value="proportional" selected>متناسب با نرخ خرید پایه (درصد یکسان)</option>
+                            <option value="flat_adder">مابه‌التفاوت ریالی یکسان روی هر کیلو</option>
+                        </select>
+                    </div>
+                    <div class="md:col-span-2 flex flex-col gap-1.5">
+                        <button type="button" onclick="fillClientPriceFrom('proposed')" class="w-full px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-[11px] font-bold transition cursor-pointer">
+                            تنظیم روی نرخ پیشنهادی
+                        </button>
+                        <button type="button" onclick="fillClientPriceFrom('breakeven')" class="w-full px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-teal-300 text-teal-900 text-[11px] font-bold transition cursor-pointer">
+                            تنظیم روی نقطه سربه‌سر
+                        </button>
+                    </div>
+                </div>
+
+                <!-- کارت‌های خلاصه مهندسی معکوس -->
+                <div class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-white border-b border-slate-100">
+                    <div class="rounded-xl p-3.5 border border-slate-200 bg-slate-50/70">
+                        <div class="text-[11px] font-bold text-slate-500">سود / زیان خالص هر کیلو با نرخ کارفرما</div>
+                        <div id="revKpiProfitPerKg" class="text-base sm:text-lg font-black text-slate-900 mt-1 tabular-nums">—</div>
+                        <div id="revKpiProfitPerKgSub" class="text-[11px] text-slate-600 mt-1">—</div>
+                    </div>
+                    <div class="rounded-xl p-3.5 border border-slate-200 bg-slate-50/70">
+                        <div class="text-[11px] font-bold text-slate-500">سود / زیان خالص کل معامله با نرخ کارفرما</div>
+                        <div id="revKpiTotalProfit" class="text-base sm:text-lg font-black text-slate-900 mt-1 tabular-nums">—</div>
+                        <div id="revKpiTotalProfitSub" class="text-[11px] text-slate-600 mt-1">—</div>
+                    </div>
+                    <div class="rounded-xl p-3.5 border border-sky-200 bg-sky-50/60">
+                        <div class="text-[11px] font-bold text-sky-900">نرخ تفکیکی پولیول (با نرخ کارفرما)</div>
+                        <div id="revKpiPolyol" class="text-base sm:text-lg font-black text-sky-950 mt-1 tabular-nums">—</div>
+                        <div id="revKpiPolyolSub" class="text-[11px] text-sky-800 mt-1">با ارزش افزوده: —</div>
+                    </div>
+                    <div class="rounded-xl p-3.5 border border-violet-200 bg-violet-50/60">
+                        <div class="text-[11px] font-bold text-violet-900">نرخ تفکیکی ایزوسیانات (با نرخ کارفرما)</div>
+                        <div id="revKpiIso" class="text-base sm:text-lg font-black text-violet-950 mt-1 tabular-nums">—</div>
+                        <div id="revKpiIsoSub" class="text-[11px] text-violet-800 mt-1">با ارزش افزوده: —</div>
+                    </div>
+                </div>
+
+                <!-- جدول جزئیات مهندسی معکوس -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100/80 text-slate-600 text-xs font-bold border-b border-slate-200">
+                                <th class="py-3 px-4">شرح ردیف مهندسی معکوس نرخ کارفرما</th>
+                                <th class="py-3 px-3 bg-teal-50/70 text-teal-950">۱ کیلو سیستم (<span class="unit-label">ریال</span>)</th>
+                                <th class="py-3 px-3 bg-sky-50/70 text-sky-950">۱ کیلو پولیول (<span class="unit-label">ریال</span>)</th>
+                                <th class="py-3 px-3 bg-violet-50/70 text-violet-950">۱ کیلو ایزوسیانات (<span class="unit-label">ریال</span>)</th>
+                                <th class="py-3 px-3">درصد / شاخص</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableRevBody" class="divide-y divide-slate-100 text-sm">
+                            <!-- پر شده توسط جاوااسکریپت -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- نمودار آبشاری ساختار قیمت هر کیلوگرم سیستم (بدون ارزش افزوده) -->
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden print-break-avoid">
+            <div onclick="toggleAccordion('bodyWaterfall')" class="px-5 py-4 bg-slate-50 hover:bg-slate-100/80 border-b border-slate-200 flex items-center justify-between gap-2 cursor-pointer transition select-none">
+                <div class="flex items-start sm:items-center gap-3">
+                    <span id="icon-bodyWaterfall" class="acc-btn bg-slate-700 text-white">+</span>
+                    <div>
+                        <h2 class="text-base font-extrabold text-slate-900">نمودار کالبدشکافی اجزای نرخ فروش نهایی هر کیلوگرم سیستم (بدون ارزش افزوده)</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">سهم دقیق هر لایه هزینه، مالیات عملکرد، سود و بارهای مالی فعال تسویه در قیمت خالص هر کیلوگرم</p>
+                    </div>
+                </div>
+                <span class="text-xs font-bold text-slate-500 hidden sm:inline">نمایش گرافیکی</span>
+            </div>
+            <div id="bodyWaterfall" data-accordion-body class="hidden p-5">
+                <!-- نوار انباشته -->
+                <div id="stackedBarContainer" class="w-full h-10 rounded-xl overflow-hidden flex bg-slate-100 border border-slate-200 shadow-inner mb-4"></div>
+                <!-- راهنمای اجزای نمودار -->
+                <div id="stackedBarLegend" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3"></div>
+            </div>
+        </section>
+
+        <!-- جدول ۶: صورت سود و زیان تجمیعی و اثبات حسابرسی کل معامله (با انتخاب سناریو نرخ پیشنهادی یا نرخ کارفرما) -->
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden print-break-avoid">
+            <div onclick="toggleAccordion('bodyTable5')" class="px-5 py-4 bg-slate-50 hover:bg-slate-100/80 border-b border-slate-200 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 cursor-pointer transition select-none">
+                <div class="flex items-start sm:items-center gap-3">
+                    <span id="icon-bodyTable5" class="acc-btn bg-emerald-700 text-white">−</span>
+                    <div>
+                        <h2 class="text-base font-extrabold text-slate-900">جدول ۶: صورت سود و زیان تجمیعی، ارزش افزوده و اثبات حسابرسی کل معامله</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">تراز نهایی کل قرارداد پس از کسر بهای خرید مواد، سربار، دفتر مرکزی، هزینه‌های فعال تسویه و مالیات عملکرد + تطبیق ارزش افزوده</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 self-start lg:self-auto" onclick="event.stopPropagation()">
+                    <div class="inline-flex rounded-xl border border-slate-300 bg-white p-0.5 no-print">
+                        <button type="button" id="btnPnlProposed" onclick="setPnlScenario('proposed')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer">
+                            نرخ پیشنهادی ما
+                        </button>
+                        <button type="button" id="btnPnlClient" onclick="setPnlScenario('client')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer">
+                            نرخ اعلامی کارفرما
+                        </button>
+                    </div>
+                    <span id="badgePnlAudit" class="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold tabular-nums">
+                        سود خالص: —
+                    </span>
+                </div>
+            </div>
+            <div id="bodyTable5" data-accordion-body class="overflow-x-auto">
                 <table class="w-full text-right border-collapse">
                     <thead>
                         <tr class="bg-slate-100/80 text-slate-600 text-xs font-bold border-b border-slate-200">
@@ -623,13 +795,18 @@
             </div>
         </section>
 
-        <!-- جدول ۶-الف: ماتریس تحلیل حساسیت خودرو (در صورت فعال بودن خودرو نمایش داده می‌شود) -->
+        <!-- جدول ۷-الف: ماتریس تحلیل حساسیت خودرو (در صورت فعال بودن خودرو نمایش داده می‌شود) -->
         <section id="sectionSensitivityCar" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden print-break-avoid">
-            <div class="px-5 py-4 bg-rose-50/60 border-b border-rose-100">
-                <h2 id="titleSensitivityCar" class="text-base font-extrabold text-slate-900">جدول ۶-الف: ماتریس تحلیل حساسیت بهای فروش نهایی بدون ارزش افزوده (نسبت به نوسان قیمت بازار خودرو و حاشیه سود هدف)</h2>
-                <p class="text-xs text-slate-600 mt-0.5">عدد اصلی هر خانه نرخ فروش خالص <strong>بدون ارزش افزوده</strong> و خط زیر آن نرخ <strong>با ارزش افزوده</strong> است</p>
+            <div onclick="toggleAccordion('bodySensCar')" class="px-5 py-4 bg-rose-50/60 hover:bg-rose-100/50 border-b border-rose-100 flex items-center justify-between gap-2 cursor-pointer transition select-none">
+                <div class="flex items-start sm:items-center gap-3">
+                    <span id="icon-bodySensCar" class="acc-btn bg-rose-600 text-white">+</span>
+                    <div>
+                        <h2 id="titleSensitivityCar" class="text-base font-extrabold text-slate-900">جدول ۷-الف: ماتریس تحلیل حساسیت بهای فروش نهایی بدون ارزش افزوده (نسبت به نوسان قیمت بازار خودرو و حاشیه سود هدف)</h2>
+                        <p class="text-xs text-slate-600 mt-0.5">عدد اصلی هر خانه نرخ فروش خالص <strong>بدون ارزش افزوده</strong> و خط زیر آن نرخ <strong>با ارزش افزوده</strong> است</p>
+                    </div>
+                </div>
             </div>
-            <div class="overflow-x-auto">
+            <div id="bodySensCar" data-accordion-body class="hidden overflow-x-auto">
                 <table class="w-full text-center border-collapse">
                     <thead id="sensitivityHead" class="bg-slate-100 text-slate-700 text-xs font-bold border-b border-slate-200">
                         <!-- پر شده توسط جاوااسکریپت -->
@@ -641,13 +818,18 @@
             </div>
         </section>
 
-        <!-- جدول ۶-ب: ماتریس تحلیل حساسیت اوراق بهادار و اسناد اعتباری (در صورت فعال بودن اوراق/اسناد نمایش داده می‌شود) -->
+        <!-- جدول ۷-ب: ماتریس تحلیل حساسیت اوراق بهادار و اسناد اعتباری (در صورت فعال بودن اوراق/اسناد نمایش داده می‌شود) -->
         <section id="sectionSensitivityCredit" class="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden print-break-avoid">
-            <div class="px-5 py-4 bg-amber-50/60 border-b border-amber-100">
-                <h2 id="titleSensitivityCredit" class="text-base font-extrabold text-slate-900">جدول ۶-ب: ماتریس تحلیل حساسیت بهای فروش نهایی بدون ارزش افزوده برای اوراق بهادار و اسناد اعتباری (نسبت به نرخ بهره ماهانه و حاشیه سود هدف)</h2>
-                <p class="text-xs text-slate-600 mt-0.5">عدد اصلی هر خانه نرخ فروش خالص <strong>بدون ارزش افزوده</strong> و خط زیر آن نرخ <strong>با ارزش افزوده</strong> است</p>
+            <div onclick="toggleAccordion('bodySensCredit')" class="px-5 py-4 bg-amber-50/60 hover:bg-amber-100/50 border-b border-amber-100 flex items-center justify-between gap-2 cursor-pointer transition select-none">
+                <div class="flex items-start sm:items-center gap-3">
+                    <span id="icon-bodySensCredit" class="acc-btn bg-amber-600 text-white">+</span>
+                    <div>
+                        <h2 id="titleSensitivityCredit" class="text-base font-extrabold text-slate-900">جدول ۷-ب: ماتریس تحلیل حساسیت بهای فروش نهایی بدون ارزش افزوده برای اوراق بهادار و اسناد اعتباری (نسبت به نرخ بهره ماهانه و حاشیه سود هدف)</h2>
+                        <p class="text-xs text-slate-600 mt-0.5">عدد اصلی هر خانه نرخ فروش خالص <strong>بدون ارزش افزوده</strong> و خط زیر آن نرخ <strong>با ارزش افزوده</strong> است</p>
+                    </div>
+                </div>
             </div>
-            <div class="overflow-x-auto">
+            <div id="bodySensCredit" data-accordion-body class="hidden overflow-x-auto">
                 <table class="w-full text-center border-collapse">
                     <thead id="sensitivityCreditHead" class="bg-slate-100 text-slate-700 text-xs font-bold border-b border-slate-200">
                         <!-- پر شده توسط جاوااسکریپت -->
@@ -659,13 +841,18 @@
             </div>
         </section>
 
-        <!-- جدول ۶-ج: ماتریس تحلیل حساسیت حالت ترکیبی بین خودرو و اوراق بهادار (در صورت فعال بودن هر دو بخش نمایش داده می‌شود) -->
+        <!-- جدول ۷-ج: ماتریس تحلیل حساسیت حالت ترکیبی بین خودرو و اوراق بهادار (در صورت فعال بودن هر دو بخش نمایش داده می‌شود) -->
         <section id="sectionSensitivityCombined" class="bg-white rounded-2xl border border-indigo-200 shadow-sm overflow-hidden print-break-avoid">
-            <div class="px-5 py-4 bg-indigo-50/70 border-b border-indigo-100">
-                <h2 id="titleSensitivityCombined" class="text-base font-extrabold text-indigo-950">جدول ۶-ج: ماتریس تحلیل حساسیت ترکیبی (نوسان همزمان قیمت بازار خودرو و نرخ بهره ماهانه اوراق بهادار / اسناد اعتباری)</h2>
-                <p class="text-xs text-indigo-800/80 mt-0.5">بر مبنای حاشیه سود هدف فعلی — عدد اصلی نرخ خالص <strong>بدون ارزش افزوده</strong> و خط زیر آن نرخ <strong>با ارزش افزوده</strong> است</p>
+            <div onclick="toggleAccordion('bodySensCombined')" class="px-5 py-4 bg-indigo-50/70 hover:bg-indigo-100/60 border-b border-indigo-100 flex items-center justify-between gap-2 cursor-pointer transition select-none">
+                <div class="flex items-start sm:items-center gap-3">
+                    <span id="icon-bodySensCombined" class="acc-btn bg-indigo-600 text-white">+</span>
+                    <div>
+                        <h2 id="titleSensitivityCombined" class="text-base font-extrabold text-indigo-950">جدول ۷-ج: ماتریس تحلیل حساسیت ترکیبی (نوسان همزمان قیمت بازار خودرو و نرخ بهره ماهانه اوراق بهادار / اسناد اعتباری)</h2>
+                        <p class="text-xs text-indigo-800/80 mt-0.5">بر مبنای حاشیه سود هدف فعلی — عدد اصلی نرخ خالص <strong>بدون ارزش افزوده</strong> و خط زیر آن نرخ <strong>با ارزش افزوده</strong> است</p>
+                    </div>
+                </div>
             </div>
-            <div class="overflow-x-auto">
+            <div id="bodySensCombined" data-accordion-body class="hidden overflow-x-auto">
                 <table class="w-full text-center border-collapse">
                     <thead id="sensitivityCombinedHead" class="bg-slate-100 text-slate-700 text-xs font-bold border-b border-slate-200">
                         <!-- پر شده توسط جاوااسکریپت -->
@@ -688,7 +875,14 @@
          * وضعیت واحد نمایش مالی: 'rial' (پیش‌فرض) یا 'toman'
          */
         let currencyUnit = 'rial';
+        let pnlScenario = 'proposed'; // 'proposed' یا 'client'
+        let table2SplitOpen = false;  // زیرردیف تفکیک پولیول و ایزوسیانات در جدول ۲ (همیشه بسته در شروع)
+        let table4SplitOpen = false;  // زیرردیف تفکیک پولیول و ایزوسیانات در جدول ۴ (همیشه بسته در شروع)
         let lastSummaryText = '';
+        let lastComputedProposedExVat = 0;
+        let lastComputedProposedIncVat = 0;
+        let lastComputedBreakEvenExVat = 0;
+        let lastComputedBreakEvenIncVat = 0;
 
         /**
          * مقادیر پیش‌فرض مدل مالی بر اساس داده‌های دقیق کاربر
@@ -701,7 +895,8 @@
             dealTotal: 500000000000,        // ۵۰۰ میلیارد ریال = ۵۰ میلیارد تومان
             overheadPct: 4,                 // سربار، حمل، انبار و پرت (٪ از مواد مستقیم)
             hqPct: 5,                       // هزینه دفتر مرکزی، عمومی و اداری (٪ از مواد مستقیم)
-            profitPct: 10,                  // حاشیه سود خالص هدف (٪ از بهای تمام‌شده عملیاتی)
+            profitPct: 10,                  // حاشیه سود خالص هدف (٪)
+            profitBasis: 'base_material',   // مبنای محاسبه سود هدف (بهای خرید مواد مستقیم)
             incomeTaxPct: 25,               // نرخ مالیات عملکرد ماده ۱۰۵ (٪ از سود پیش از مالیات)
             vatPct: 10,                     // مالیات بر ارزش افزوده فاکتور کل (٪)
             vatMode: 'full_protection',     // سقف معامله شامل VAT است
@@ -721,53 +916,85 @@
             creditDays: 90,                 // مدت سررسید اسناد اعتباری (روز)
             creditMonthlyRate: 3.5,         // نرخ بهره ماهانه خواب پول اسناد اعتباری (٪)
             creditCommissionPct: 1,         // کارمزد تنزیل / گشایش LC / برات (٪)
-            creditCalcMethod: 'simple'      // نحوه محاسبه بهره: ساده یا مرکب
+            creditCalcMethod: 'simple',     // نحوه محاسبه بهره: ساده یا مرکب
+            clientPrice: 16500000,          // نرخ اعلامی / مورد نظر کارفرما (ریال/کیلو)
+            clientPriceVatMode: 'ex_vat',   // مبنای نرخ کارفرما: بدون یا با ارزش افزوده
+            clientAllocMode: 'proportional' // الگوی تفکیک نرخ کارفرما بین پولیول و ایزوسیانات
         };
 
         /**
-         * همگام‌سازی ظاهر دکمه‌های الگوی تسویه و وضعیت روشن/خاموش باکس‌های خودرو و اوراق
+         * باز و بسته کردن کشویی هر جدول یا پنل با کلیک روی هدر یا علامت + / −
          */
-        function syncToggleUI() {
-            const enableCar = document.getElementById('chkEnableCar').checked;
-            const enableCredit = document.getElementById('chkEnableCredit').checked;
+        function toggleAccordion(bodyId) {
+            const body = document.getElementById(bodyId);
+            const icon = document.getElementById('icon-' + bodyId);
+            if (!body) return;
+            const isHidden = body.classList.toggle('hidden');
+            if (icon) {
+                icon.textContent = isHidden ? '+' : '−';
+            }
+        }
 
-            const carBody = document.getElementById('carBoxBody');
-            const creditBody = document.getElementById('creditBoxBody');
-            const carStatus = document.getElementById('carToggleStatus');
-            const creditStatus = document.getElementById('creditToggleStatus');
-            const btnAutoCar = document.getElementById('btnAutoMaxCar');
-            const btnAutoCred = document.getElementById('btnAutoRemCredit');
+        /**
+         * باز و بسته کردن زیرردیف‌های تفکیک قیمت پولیول و ایزوسیانات در جداول ۲ و ۴
+         */
+        function togglePriceSplit(tableNum) {
+            if (tableNum === 2) {
+                table2SplitOpen = !table2SplitOpen;
+            } else if (tableNum === 4) {
+                table4SplitOpen = !table4SplitOpen;
+            }
+            recalculate();
+        }
 
-            carBody.classList.toggle('panel-disabled', !enableCar);
-            btnAutoCar.classList.toggle('panel-disabled', !enableCar);
-            carStatus.textContent = enableCar ? 'فعال در محاسبات و جداول' : 'خاموش (حذف‌شده از جداول)';
-            carStatus.className = enableCar ? 'text-[10px] font-bold text-rose-700' : 'text-[10px] font-bold text-slate-400';
-
-            creditBody.classList.toggle('panel-disabled', !enableCredit);
-            btnAutoCred.classList.toggle('panel-disabled', !enableCredit);
-            creditStatus.textContent = enableCredit ? 'فعال در محاسبات و جداول' : 'خاموش (حذف‌شده از جداول)';
-            creditStatus.className = enableCredit ? 'text-[10px] font-bold text-amber-800' : 'text-[10px] font-bold text-slate-400';
-
-            // به‌روزرسانی دکمه‌های سریع الگوی تسویه
-            const activeMode = enableCar && enableCredit ? 'combined'
-                : enableCar ? 'car'
-                : enableCredit ? 'credit'
-                : 'cash';
-
-            const btnMap = {
-                cash: { id: 'modeBtnCash', activeCls: 'bg-emerald-600 text-white border-emerald-600 shadow-sm', label: 'فقط نقدی (بدون تهاتر و اوراق)' },
-                car: { id: 'modeBtnCar', activeCls: 'bg-rose-600 text-white border-rose-600 shadow-sm', label: 'فقط تهاتر خودرو (+ مانده نقد)' },
-                credit: { id: 'modeBtnCredit', activeCls: 'bg-amber-600 text-white border-amber-600 shadow-sm', label: 'فقط اوراق / اسناد اعتباری (+ مانده نقد)' },
-                combined: { id: 'modeBtnCombined', activeCls: 'bg-indigo-600 text-white border-indigo-600 shadow-sm', label: 'حالت ترکیبی (خودرو + اوراق + مانده نقد)' }
-            };
-            const inactiveCls = 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50';
-
-            Object.keys(btnMap).forEach(k => {
-                const el = document.getElementById(btnMap[k].id);
-                el.className = `px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${k === activeMode ? btnMap[k].activeCls : inactiveCls}`;
+        /**
+         * باز یا بسته کردن همزمان تمام جداول کشویی
+         */
+        function setAllAccordions(openAll) {
+            document.querySelectorAll('[data-accordion-body]').forEach(body => {
+                body.classList.toggle('hidden', !openAll);
+                const icon = document.getElementById('icon-' + body.id);
+                if (icon) {
+                    icon.textContent = openAll ? '−' : '+';
+                }
             });
+            showToast(openAll ? 'تمامی جداول باز شدند' : 'تمامی جداول بسته شدند');
+        }
 
-            document.getElementById('activeSettlementBadge').textContent = btnMap[activeMode].label;
+        /**
+         * تغییر سناریوی نمایش صورت سود و زیان جدول ۶ (نرخ پیشنهادی ما / نرخ اعلامی کارفرما)
+         */
+        function setPnlScenario(scenario) {
+            pnlScenario = scenario === 'client' ? 'client' : 'proposed';
+            syncPnlScenarioButtons();
+            recalculate();
+        }
+
+        function syncPnlScenarioButtons() {
+            const btnProp = document.getElementById('btnPnlProposed');
+            const btnCli = document.getElementById('btnPnlClient');
+            if (!btnProp || !btnCli) return;
+            const activeCls = 'bg-slate-900 text-white shadow-sm';
+            const inactiveCls = 'text-slate-600 hover:bg-slate-100';
+            btnProp.className = `px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${pnlScenario === 'proposed' ? activeCls : inactiveCls}`;
+            btnCli.className = `px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${pnlScenario === 'client' ? 'bg-teal-600 text-white shadow-sm' : inactiveCls}`;
+        }
+
+        /**
+         * پر کردن خودکار نرخ اعلامی کارفرما از نرخ پیشنهادی یا نقطه سربه‌سر
+         */
+        function fillClientPriceFrom(source) {
+            const vatMode = document.getElementById('inClientPriceVatMode').value;
+            let val = 0;
+            if (source === 'proposed') {
+                val = vatMode === 'inc_vat' ? lastComputedProposedIncVat : lastComputedProposedExVat;
+                document.getElementById('inClientPrice').value = formatInputWithCommas(val);
+            } else {
+                val = vatMode === 'inc_vat' ? lastComputedBreakEvenIncVat : lastComputedBreakEvenExVat;
+                document.getElementById('inClientPrice').value = formatInputWithCommas(Math.ceil(val));
+            }
+            recalculate();
+            showToast(source === 'proposed' ? 'نرخ کارفرما روی نرخ پیشنهادی ما تنظیم شد' : 'نرخ کارفرما روی نقطه سربه‌سر واقعی (با احتساب مالیات مبنای ۱۰٪) تنظیم شد');
         }
 
         /**
@@ -791,6 +1018,102 @@
             }
             syncToggleUI();
             recalculate();
+        }
+
+        /**
+         * همگام‌سازی وضعیت ظاهری کلیدهای روشن/خاموش خودرو و اوراق و نوار انتخاب سریع
+         */
+        function syncToggleUI() {
+            const enableCar = document.getElementById('chkEnableCar').checked;
+            const enableCredit = document.getElementById('chkEnableCredit').checked;
+
+            const carBox = document.getElementById('carBoxBody');
+            const carStatus = document.getElementById('carToggleStatus');
+            const btnMaxCar = document.getElementById('btnAutoMaxCar');
+            if (carBox) carBox.classList.toggle('panel-disabled', !enableCar);
+            if (carStatus) {
+                carStatus.textContent = enableCar ? 'فعال در محاسبات و جداول' : 'غیرفعال (حذف‌شده از جداول)';
+                carStatus.className = enableCar ? 'text-[10px] font-bold text-rose-700' : 'text-[10px] font-bold text-slate-400';
+            }
+            if (btnMaxCar) {
+                btnMaxCar.disabled = !enableCar;
+                btnMaxCar.classList.toggle('opacity-40', !enableCar);
+            }
+
+            const creditBox = document.getElementById('creditBoxBody');
+            const creditStatus = document.getElementById('creditToggleStatus');
+            const btnRemCredit = document.getElementById('btnAutoRemCredit');
+            if (creditBox) creditBox.classList.toggle('panel-disabled', !enableCredit);
+            if (creditStatus) {
+                creditStatus.textContent = enableCredit ? 'فعال در محاسبات و جداول' : 'غیرفعال (حذف‌شده از جداول)';
+                creditStatus.className = enableCredit ? 'text-[10px] font-bold text-amber-800' : 'text-[10px] font-bold text-slate-400';
+            }
+            if (btnRemCredit) {
+                btnRemCredit.disabled = !enableCredit;
+                btnRemCredit.classList.toggle('opacity-40', !enableCredit);
+            }
+
+            const badge = document.getElementById('activeSettlementBadge');
+            let activeMode = 'cash';
+            if (enableCar && enableCredit) {
+                activeMode = 'combined';
+                if (badge) {
+                    badge.textContent = 'حالت ترکیبی (خودرو + اوراق)';
+                    badge.className = 'inline-flex items-center px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-800 text-xs font-bold';
+                }
+            } else if (enableCar) {
+                activeMode = 'car';
+                if (badge) {
+                    badge.textContent = 'فقط تهاتر خودرو';
+                    badge.className = 'inline-flex items-center px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800 text-xs font-bold';
+                }
+            } else if (enableCredit) {
+                activeMode = 'credit';
+                if (badge) {
+                    badge.textContent = 'فقط اوراق / اسناد اعتباری';
+                    badge.className = 'inline-flex items-center px-2.5 py-1 rounded-lg bg-amber-100 text-amber-900 text-xs font-bold';
+                }
+            } else {
+                activeMode = 'cash';
+                if (badge) {
+                    badge.textContent = 'فقط تسویه نقدی';
+                    badge.className = 'inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold';
+                }
+            }
+
+            const modeMap = {
+                cash: { id: 'modeBtnCash', active: 'bg-emerald-600 text-white border-emerald-600 shadow-sm' },
+                car: { id: 'modeBtnCar', active: 'bg-rose-600 text-white border-rose-600 shadow-sm' },
+                credit: { id: 'modeBtnCredit', active: 'bg-amber-600 text-white border-amber-600 shadow-sm' },
+                combined: { id: 'modeBtnCombined', active: 'bg-indigo-600 text-white border-indigo-600 shadow-sm' }
+            };
+            const inactiveStyle = 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50';
+            Object.entries(modeMap).forEach(([key, cfg]) => {
+                const btn = document.getElementById(cfg.id);
+                if (btn) {
+                    btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold border transition cursor-pointer ${key === activeMode ? cfg.active : inactiveStyle}`;
+                }
+            });
+        }
+
+        /**
+         * کپی خلاصه مدیریتی محاسبات در کلیپ‌بورد با سازگاری کامل در محیط iFrame
+         */
+        function copySummaryToClipboard() {
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = lastSummaryText || '';
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                const ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast(ok ? 'خلاصه محاسبات در کلیپ‌بورد کپی شد' : 'امکان کپی خودکار فراهم نشد', ok ? '✓' : '!');
+            } catch (err) {
+                showToast('خطا در کپی کردن خلاصه محاسبات', '!');
+            }
         }
 
         /**
@@ -899,10 +1222,7 @@
          * باز و بسته کردن پنل تنظیمات
          */
         function toggleParamsPanel() {
-            const body = document.getElementById('paramsPanelBody');
-            const btn = document.getElementById('toggleParamsBtn');
-            const isHidden = body.classList.toggle('hidden');
-            btn.textContent = isHidden ? 'باز کردن تنظیمات ▸' : 'بستن / باز کردن تنظیمات ▾';
+            toggleAccordion('paramsPanelBody');
         }
 
         /**
@@ -966,6 +1286,7 @@
             document.getElementById('inOverheadPct').value = DEFAULTS.overheadPct;
             document.getElementById('inHqPct').value = DEFAULTS.hqPct;
             document.getElementById('inProfitPct').value = DEFAULTS.profitPct;
+            document.getElementById('inProfitBasis').value = DEFAULTS.profitBasis;
             document.getElementById('inIncomeTaxPct').value = DEFAULTS.incomeTaxPct;
             document.getElementById('inVatPct').value = DEFAULTS.vatPct;
             document.getElementById('inVatMode').value = DEFAULTS.vatMode;
@@ -986,30 +1307,117 @@
             document.getElementById('inCreditMonthlyRate').value = DEFAULTS.creditMonthlyRate;
             document.getElementById('inCreditCommissionPct').value = DEFAULTS.creditCommissionPct;
             document.getElementById('inCreditCalcMethod').value = DEFAULTS.creditCalcMethod;
+            document.getElementById('inClientPrice').value = formatInputWithCommas(DEFAULTS.clientPrice);
+            document.getElementById('inClientPriceVatMode').value = DEFAULTS.clientPriceVatMode;
+            document.getElementById('inClientAllocMode').value = DEFAULTS.clientAllocMode;
+            pnlScenario = 'proposed';
+            table2SplitOpen = false;
+            table4SplitOpen = false;
 
             syncToggleUI();
+            syncPnlScenarioButtons();
             recalculate();
             showToast('تمامی مفروضات به مقادیر پیش‌فرض بازنشانی شد');
         }
 
         /**
-         * کپی خلاصه مدیریتی در کلیپ‌بورد با سازگاری کامل iFrame
+         * محاسبه حداقل مالیات عملکرد بر مبنای نرخ سود ۱۰ درصد
+         * (جهت اعمال همیشگی به عنوان کف مالیات در نقطه سربه‌سر، زیان یا سودهای پایین‌تر از آستانه ۱۰٪)
          */
-        function copySummaryToClipboard() {
-            if (!lastSummaryText) return;
-            const textarea = document.createElement('textarea');
-            textarea.value = lastSummaryText;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-                document.execCommand('copy');
-                showToast('خلاصه مدیریتی محاسبات در کلیپ‌بورد کپی شد');
-            } catch (e) {
-                showToast('خطا در کپی متن', '!');
+        function computeDeemedTaxPerKg(baseCost, overheadPct, hqPct, incomeTaxPct, profitBasis) {
+            const overhead = baseCost * (overheadPct / 100);
+            const hq = baseCost * (hqPct / 100);
+            const operatingCost = baseCost + overhead + hq;
+            const taxRate = Math.min(0.99, Math.max(0, incomeTaxPct / 100));
+            const deemedRate = 0.10; // نرخ سود ۱۰ درصد مبنای مالیات
+
+            if (profitBasis === 'net_sales') {
+                const refSales = operatingCost / (1 - deemedRate);
+                return refSales * deemedRate * taxRate;
             }
-            document.body.removeChild(textarea);
+
+            let deemedProfitBase = baseCost * deemedRate;
+            if (profitBasis === 'operating_cost') {
+                deemedProfitBase = operatingCost * deemedRate;
+            } else if (profitBasis === 'production_cost') {
+                deemedProfitBase = (baseCost + overhead) * deemedRate;
+            }
+            return deemedProfitBase * taxRate;
+        }
+
+        /**
+         * تابع یکپارچه محاسبه اجزای بهای تمام‌شده، سود خالص، مالیات عملکرد و نرخ فروش نقدی
+         * حداقل مالیات عملکرد همواره بر مبنای نرخ سود ۱۰ درصد لحاظ می‌شود تا تراز جداول کاملاً یکپارچه باشد
+         */
+        function computeCashSellingPerKg(baseCost, overheadPct, hqPct, profitPct, incomeTaxPct, profitBasis) {
+            const overhead = baseCost * (overheadPct / 100);
+            const hq = baseCost * (hqPct / 100);
+            const operatingCost = baseCost + overhead + hq;
+            const taxRate = Math.min(0.99, Math.max(0, incomeTaxPct / 100));
+            const pRate = Math.max(0, profitPct / 100);
+            const deemedTax = computeDeemedTaxPerKg(baseCost, overheadPct, hqPct, incomeTaxPct, profitBasis);
+
+            let netProfit = 0;
+            let corpTax = 0;
+            let preTaxProfit = 0;
+            let cashSellingExVat = operatingCost;
+            let isDeemedTax = false;
+
+            if (pRate <= 0) {
+                // سود هدف صفر است؛ اما مالیات عملکرد بر مبنای سود ۱۰ درصد در بها لحاظ می‌گردد
+                netProfit = 0;
+                corpTax = deemedTax;
+                preTaxProfit = corpTax;
+                cashSellingExVat = operatingCost + corpTax;
+                isDeemedTax = deemedTax > 0;
+            } else if (profitBasis === 'net_sales') {
+                const preTaxOnSales = Math.min(0.95, pRate / (1 - taxRate));
+                const normSales = operatingCost / (1 - preTaxOnSales);
+                const normPreTax = normSales - operatingCost;
+                const normTax = normPreTax * taxRate;
+                if (normTax < deemedTax) {
+                    cashSellingExVat = (operatingCost + deemedTax) / Math.max(0.05, 1 - pRate);
+                    netProfit = cashSellingExVat * pRate;
+                    corpTax = deemedTax;
+                    preTaxProfit = netProfit + corpTax;
+                    isDeemedTax = deemedTax > 0;
+                } else {
+                    cashSellingExVat = normSales;
+                    preTaxProfit = normPreTax;
+                    netProfit = preTaxProfit - normTax;
+                    corpTax = normTax;
+                }
+            } else {
+                if (profitBasis === 'operating_cost') {
+                    netProfit = operatingCost * pRate;
+                } else if (profitBasis === 'production_cost') {
+                    netProfit = (baseCost + overhead) * pRate;
+                } else {
+                    // حالت پیش‌فرض: درصد از بهای خرید مواد مستقیم
+                    netProfit = baseCost * pRate;
+                }
+                const normTax = (netProfit / (1 - taxRate)) - netProfit;
+                if (normTax < deemedTax) {
+                    corpTax = deemedTax;
+                    isDeemedTax = deemedTax > 0;
+                } else {
+                    corpTax = normTax;
+                }
+                preTaxProfit = netProfit + corpTax;
+                cashSellingExVat = operatingCost + preTaxProfit;
+            }
+
+            return {
+                baseCost,
+                overhead,
+                hq,
+                operatingCost,
+                netProfit,
+                corpTax,
+                preTaxProfit,
+                cashSellingExVat,
+                isDeemedTax
+            };
         }
 
         /**
@@ -1085,6 +1493,7 @@
             const overheadPct = Math.max(0, parseFloat(document.getElementById('inOverheadPct').value) || 0);
             const hqPct = Math.max(0, parseFloat(document.getElementById('inHqPct').value) || 0);
             const profitPct = Math.max(0, parseFloat(document.getElementById('inProfitPct').value) || 0);
+            const profitBasis = document.getElementById('inProfitBasis').value;
             const incomeTaxPct = Math.min(99, Math.max(0, parseFloat(document.getElementById('inIncomeTaxPct').value) || 0));
             const vatPct = Math.max(0, parseFloat(document.getElementById('inVatPct').value) || 0);
             const vatMode = document.getElementById('inVatMode').value;
@@ -1114,8 +1523,8 @@
             // به‌روزرسانی عناوین پویا با نام خودرو
             document.getElementById('headerMainTitle').textContent = `آنالیز بهای تمام‌شده و تعیین نرخ فروش تهاتری (${carName} و اوراق / اسناد اعتباری)`;
             document.getElementById('titleTable3A').textContent = `جدول ۳-الف: تحلیل تهاتر ${carName} و محاسبه زیان و هزینه‌های نقدشوندگی`;
-            document.getElementById('titleSensitivityCar').textContent = `جدول ۶-الف: ماتریس تحلیل حساسیت بهای فروش نهایی بدون ارزش افزوده (نسبت به نوسان قیمت بازار ${carName} و حاشیه سود هدف)`;
-            document.getElementById('titleSensitivityCombined').textContent = `جدول ۶-ج: ماتریس تحلیل حساسیت ترکیبی (نوسان همزمان قیمت بازار ${carName} و نرخ بهره ماهانه اوراق بهادار / اسناد اعتباری)`;
+            document.getElementById('titleSensitivityCar').textContent = `جدول ۷-الف: ماتریس تحلیل حساسیت بهای فروش نهایی بدون ارزش افزوده (نسبت به نوسان قیمت بازار ${carName} و حاشیه سود هدف)`;
+            document.getElementById('titleSensitivityCombined').textContent = `جدول ۷-ج: ماتریس تحلیل حساسیت ترکیبی (نوسان همزمان قیمت بازار ${carName} و نرخ بهره ماهانه اوراق بهادار / اسناد اعتباری)`;
 
             // ۵. محاسبه بهای خرید پایه سیستم (جدول ۱)
             const polyolShare = polyolRatio / totalRatio;
@@ -1126,16 +1535,33 @@
             const baseInputVat = baseCostExVat * (vatPct / 100);
             const baseCostIncVat = baseCostExVat + baseInputVat;
 
-            // ۶. محاسبه بهای تمام‌شده، سود، مالیات عملکرد و نرخ فروش نقدی (جدول ۲)
-            const overheadPerKg = baseCostExVat * (overheadPct / 100);
-            const hqPerKg = baseCostExVat * (hqPct / 100);
-            const operatingCostPerKg = baseCostExVat + overheadPerKg + hqPerKg;
-            const netProfitTargetPerKg = operatingCostPerKg * (profitPct / 100);
-            const preTaxProfitPerKg = netProfitTargetPerKg / (1 - incomeTaxPct / 100);
-            const corpTaxPerKg = preTaxProfitPerKg - netProfitTargetPerKg;
-            const cashSellingExVat = operatingCostPerKg + preTaxProfitPerKg;
+            // ۶. محاسبه بهای تمام‌شده، سود، مالیات عملکرد و نرخ فروش نقدی به تفکیک سیستم، پولیول و ایزوسیانات (جدول ۲)
+            const sysCash = computeCashSellingPerKg(baseCostExVat, overheadPct, hqPct, profitPct, incomeTaxPct, profitBasis);
+            const polCash = computeCashSellingPerKg(polyolPrice, overheadPct, hqPct, profitPct, incomeTaxPct, profitBasis);
+            const isoCash = computeCashSellingPerKg(isoPrice, overheadPct, hqPct, profitPct, incomeTaxPct, profitBasis);
+
+            const overheadPerKg = sysCash.overhead;
+            const hqPerKg = sysCash.hq;
+            const operatingCostPerKg = sysCash.operatingCost;
+            const netProfitTargetPerKg = sysCash.netProfit;
+            const preTaxProfitPerKg = sysCash.preTaxProfit;
+            const corpTaxPerKg = sysCash.corpTax;
+            const cashSellingExVat = sysCash.cashSellingExVat;
+
             const cashVatPerKg = cashSellingExVat * (vatPct / 100);
             const cashSellingIncVat = cashSellingExVat + cashVatPerKg;
+            const polCashVat = polCash.cashSellingExVat * (vatPct / 100);
+            const polCashIncVat = polCash.cashSellingExVat + polCashVat;
+            const isoCashVat = isoCash.cashSellingExVat * (vatPct / 100);
+            const isoCashIncVat = isoCash.cashSellingExVat + isoCashVat;
+
+            const profitBasisFormulaLabel = profitBasis === 'operating_cost'
+                ? `بهای تمام‌شده عملیاتی × ${fmtNum(profitPct, 1)}٪`
+                : profitBasis === 'production_cost'
+                ? `(مواد مستقیم + سربار) × ${fmtNum(profitPct, 1)}٪`
+                : profitBasis === 'net_sales'
+                ? `نرخ فروش نقدی × ${fmtNum(profitPct, 1)}٪`
+                : `بهای خرید مواد مستقیم × ${fmtNum(profitPct, 1)}٪`;
 
             // ۷. تعیین درآمد خالص و ناخالص کل معامله بر مبنای مدل VAT
             const netDealRevenue = vatMode === 'full_protection'
@@ -1169,25 +1595,59 @@
                 : 0;
             const creditTotalBurden = creditInterestCost + creditCommCost;
 
-            // ۱۰. تسویه نقدی باقیمانده و ناخالص‌سازی نهایی (جدول ۴)
+            // ۱۰. تسویه نقدی باقیمانده و ناخالص‌سازی نهایی به تفکیک سیستم، پولیول و ایزوسیانات (جدول ۴)
             const cashRemainder = grossDealInvoice - carFactoryTotal - creditPrincipal;
-            document.getElementById('badgeCashRemainderPreview').textContent = `${fmtMoney(cashRemainder)} ${unitText}`;
+            const remPreviewEl = document.getElementById('badgeCashRemainderPreview');
+            remPreviewEl.textContent = cashRemainder < 0
+                ? `${fmtMoney(cashRemainder)} ${unitText} (مازاد بر سقف!)`
+                : `${fmtMoney(cashRemainder)} ${unitText}`;
+            remPreviewEl.className = cashRemainder < 0
+                ? 'text-xs font-extrabold text-rose-600 tabular-nums'
+                : 'text-xs font-extrabold text-emerald-700 tabular-nums';
 
             const totalSettlementBurden = carTotalBurden + creditTotalBurden;
             const burdenRatio = netDealRevenue > 0 ? Math.min(0.95, totalSettlementBurden / netDealRevenue) : 0;
-            const finalSellingExVat = burdenRatio > 0 ? cashSellingExVat / (1 - burdenRatio) : cashSellingExVat;
+            const grossUpMultiplier = 1 / (1 - burdenRatio);
+
+            const finalSellingExVat = cashSellingExVat * grossUpMultiplier;
             const finalVatPerKg = finalSellingExVat * (vatPct / 100);
             const finalSellingIncVat = finalSellingExVat + finalVatPerKg;
 
-            const totalPriceDeltaExVat = finalSellingExVat - cashSellingExVat;
-            const carPriceAdderExVat = totalSettlementBurden > 0
-                ? totalPriceDeltaExVat * (carTotalBurden / totalSettlementBurden)
-                : 0;
-            const creditPriceAdderExVat = totalSettlementBurden > 0
-                ? totalPriceDeltaExVat * (creditTotalBurden / totalSettlementBurden)
-                : 0;
+            const polFinalExVat = polCash.cashSellingExVat * grossUpMultiplier;
+            const polFinalVat = polFinalExVat * (vatPct / 100);
+            const polFinalIncVat = polFinalExVat + polFinalVat;
 
-            // ۱۱. وزن کل سیستم و اجزای تحویلی
+            const isoFinalExVat = isoCash.cashSellingExVat * grossUpMultiplier;
+            const isoFinalVat = isoFinalExVat * (vatPct / 100);
+            const isoFinalIncVat = isoFinalExVat + isoFinalVat;
+
+            const totalPriceDeltaExVat = finalSellingExVat - cashSellingExVat;
+            const carShareOfBurden = totalSettlementBurden > 0 ? (carTotalBurden / totalSettlementBurden) : 0;
+            const creditShareOfBurden = totalSettlementBurden > 0 ? (creditTotalBurden / totalSettlementBurden) : 0;
+
+            const carPriceAdderExVat = totalPriceDeltaExVat * carShareOfBurden;
+            const creditPriceAdderExVat = totalPriceDeltaExVat * creditShareOfBurden;
+            const polCarAdder = (polFinalExVat - polCash.cashSellingExVat) * carShareOfBurden;
+            const polCreditAdder = (polFinalExVat - polCash.cashSellingExVat) * creditShareOfBurden;
+            const isoCarAdder = (isoFinalExVat - isoCash.cashSellingExVat) * carShareOfBurden;
+            const isoCreditAdder = (isoFinalExVat - isoCash.cashSellingExVat) * creditShareOfBurden;
+
+            // ذخیره نرخ پیشنهادی و نقطه سربه‌سر واقعی (همواره با احتساب حداقل مالیات مبنای سود ۱۰٪ در بهای تمام‌شده)
+            const sysDeemedTax10 = computeDeemedTaxPerKg(baseCostExVat, overheadPct, hqPct, incomeTaxPct, profitBasis);
+            const polDeemedTax10 = computeDeemedTaxPerKg(polyolPrice, overheadPct, hqPct, incomeTaxPct, profitBasis);
+            const isoDeemedTax10 = computeDeemedTaxPerKg(isoPrice, overheadPct, hqPct, incomeTaxPct, profitBasis);
+
+            const breakEvenExVat = (operatingCostPerKg + sysDeemedTax10) * grossUpMultiplier;
+            const breakEvenIncVat = breakEvenExVat * (1 + vatPct / 100);
+            const polBreakEvenExVat = (polCash.operatingCost + polDeemedTax10) * grossUpMultiplier;
+            const isoBreakEvenExVat = (isoCash.operatingCost + isoDeemedTax10) * grossUpMultiplier;
+
+            lastComputedProposedExVat = finalSellingExVat;
+            lastComputedProposedIncVat = finalSellingIncVat;
+            lastComputedBreakEvenExVat = breakEvenExVat;
+            lastComputedBreakEvenIncVat = breakEvenIncVat;
+
+            // ۱۱. وزن کل سیستم و اجزای تحویلی (در نرخ پیشنهادی ما)
             const totalSystemKg = finalSellingExVat > 0 ? netDealRevenue / finalSellingExVat : 0;
             const totalPolyolKg = totalSystemKg * polyolShare;
             const totalIsoKg = totalSystemKg * isoShare;
@@ -1206,6 +1666,7 @@
             document.getElementById('kpiTotalLossSub').textContent = `کل بار مالی تسویه: ${fmtMoney(totalSettlementBurden)} ${unitText} (${fmtPct(burdenRatio * 100)})`;
 
             // ۱۳. رندر جدول ۱
+            document.getElementById('summaryTable1').textContent = `بهای پایه: ${fmtMoney(baseCostExVat)} ${unitText}`;
             document.getElementById('badgeMixRatio').textContent = `نسبت ${fmtNum(polyolRatio, 1)} : ${fmtNum(isoRatio, 1)} (مجموع ${fmtNum(totalRatio, 1)} واحد)`;
             document.getElementById('table1Body').innerHTML = `
                 <tr class="hover:bg-slate-50/80">
@@ -1213,114 +1674,120 @@
                     <td class="py-3 px-4 tabular-nums">${fmtNum(polyolRatio, 1)}</td>
                     <td class="py-3 px-4 tabular-nums">${fmtPct(polyolShare * 100)}</td>
                     <td class="py-3 px-4 tabular-nums font-semibold">${fmtMoney(polyolPrice)}</td>
-                    <td class="py-3 px-4 text-xs text-slate-500">(${fmtNum(polyolRatio, 1)} ÷ ${fmtNum(totalRatio, 1)}) × نرخ خرید</td>
                     <td class="py-3 px-4 tabular-nums font-bold text-slate-900">${fmtMoney(polyolContrib)}</td>
-                    <td class="py-3 px-4 tabular-nums text-xs text-slate-600">${fmtNum(totalPolyolKg, 0)} کیلوگرم (${fmtMoney(totalPolyolKg * polyolPrice)} ${unitText})</td>
+                    <td class="py-3 px-4 tabular-nums font-semibold text-slate-700">${fmtNum(totalPolyolKg, 0)}</td>
+                    <td class="py-3 px-4 tabular-nums font-semibold text-slate-700">${fmtMoney(totalPolyolKg * polyolPrice)}</td>
                 </tr>
                 <tr class="hover:bg-slate-50/80">
                     <td class="py-3 px-4 font-bold text-slate-800">ایزوسیانات (Isocyanate / MDI)</td>
                     <td class="py-3 px-4 tabular-nums">${fmtNum(isoRatio, 1)}</td>
                     <td class="py-3 px-4 tabular-nums">${fmtPct(isoShare * 100)}</td>
                     <td class="py-3 px-4 tabular-nums font-semibold">${fmtMoney(isoPrice)}</td>
-                    <td class="py-3 px-4 text-xs text-slate-500">(${fmtNum(isoRatio, 1)} ÷ ${fmtNum(totalRatio, 1)}) × نرخ خرید</td>
                     <td class="py-3 px-4 tabular-nums font-bold text-slate-900">${fmtMoney(isoContrib)}</td>
-                    <td class="py-3 px-4 tabular-nums text-xs text-slate-600">${fmtNum(totalIsoKg, 0)} کیلوگرم (${fmtMoney(totalIsoKg * isoPrice)} ${unitText})</td>
+                    <td class="py-3 px-4 tabular-nums font-semibold text-slate-700">${fmtNum(totalIsoKg, 0)}</td>
+                    <td class="py-3 px-4 tabular-nums font-semibold text-slate-700">${fmtMoney(totalIsoKg * isoPrice)}</td>
                 </tr>
                 <tr class="bg-slate-100 font-extrabold text-slate-900 border-t-2 border-slate-300">
                     <td class="py-3 px-4">بهای خرید پایه هر کیلوگرم سیستم (بدون ارزش افزوده)</td>
                     <td class="py-3 px-4 tabular-nums">${fmtNum(totalRatio, 1)}</td>
                     <td class="py-3 px-4 tabular-nums">۱۰۰٫۰۰٪</td>
                     <td class="py-3 px-4 text-xs text-slate-500">میانگین وزنی</td>
-                    <td class="py-3 px-4 text-xs font-medium text-slate-600">مجموع سهم پولیول و ایزوسیانات</td>
                     <td class="py-3 px-4 tabular-nums text-indigo-800">${fmtMoney(baseCostExVat)}</td>
-                    <td class="py-3 px-4 tabular-nums text-xs font-bold">${fmtNum(totalSystemKg, 0)} کیلوگرم (${fmtMoney(totalSystemKg * baseCostExVat)} ${unitText})</td>
+                    <td class="py-3 px-4 tabular-nums font-bold">${fmtNum(totalSystemKg, 0)}</td>
+                    <td class="py-3 px-4 tabular-nums font-bold">${fmtMoney(totalSystemKg * baseCostExVat)}</td>
                 </tr>
                 <tr class="bg-indigo-50/50 text-xs text-indigo-950">
-                    <td class="py-2.5 px-4 font-bold">مالیات بر ارزش افزوده خرید مواد (${fmtNum(vatPct, 1)}٪)</td>
-                    <td class="py-2.5 px-4">—</td>
-                    <td class="py-2.5 px-4 tabular-nums">${fmtPct(vatPct)}</td>
-                    <td class="py-2.5 px-4 text-slate-500">اعتبار مالیاتی خرید</td>
-                    <td class="py-2.5 px-4 text-slate-600">بهای پایه × ${fmtNum(vatPct, 1)}٪</td>
+                    <td colspan="4" class="py-2.5 px-4 font-bold">مالیات بر ارزش افزوده خرید مواد (${fmtNum(vatPct, 1)}٪)</td>
                     <td class="py-2.5 px-4 tabular-nums font-bold">${fmtMoney(baseInputVat)}</td>
-                    <td class="py-2.5 px-4 tabular-nums font-semibold">${fmtMoney(totalSystemKg * baseInputVat)} ${unitText}</td>
+                    <td class="py-2.5 px-4 tabular-nums text-slate-400">—</td>
+                    <td class="py-2.5 px-4 tabular-nums font-semibold">${fmtMoney(totalSystemKg * baseInputVat)}</td>
                 </tr>
-                <tr class="bg-indigo-100/60 font-extrabold text-xs text-indigo-950">
-                    <td class="py-2.5 px-4">بهای خرید پایه هر کیلوگرم سیستم (با ارزش افزوده)</td>
-                    <td class="py-2.5 px-4">—</td>
-                    <td class="py-2.5 px-4">—</td>
-                    <td class="py-2.5 px-4">—</td>
-                    <td class="py-2.5 px-4 text-slate-600">جمع بهای پایه + ارزش افزوده خرید</td>
+                <tr class="bg-slate-800 text-white font-extrabold text-xs">
+                    <td colspan="4" class="py-2.5 px-4">جمع کل بهای خرید پایه سیستم (با ارزش افزوده)</td>
                     <td class="py-2.5 px-4 tabular-nums">${fmtMoney(baseCostIncVat)}</td>
-                    <td class="py-2.5 px-4 tabular-nums">${fmtMoney(totalSystemKg * baseCostIncVat)} ${unitText}</td>
+                    <td class="py-2.5 px-4 tabular-nums">${fmtNum(totalSystemKg, 0)}</td>
+                    <td class="py-2.5 px-4 tabular-nums">${fmtMoney(totalSystemKg * baseCostIncVat)}</td>
                 </tr>
             `;
 
-            // ۱۴. رندر جدول ۲
+            // ۱۴. رندر جدول ۲ (با مرج ردیف‌های جمع و زیرردیف‌های کشویی پولیول و ایزوسیانات)
             const cashMarkupOverBasePct = baseCostExVat > 0 ? ((cashSellingExVat - baseCostExVat) / baseCostExVat) * 100 : 0;
+            const table2TaxFormula = sysCash.isDeemedTax
+                ? `حداقل مالیات بر مبنای سود ۱۰٪ × ${fmtNum(incomeTaxPct, 0)}٪`
+                : `[سود خالص ÷ (۱ − ${fmtNum(incomeTaxPct, 0)}٪)] − سود خالص`;
+            document.getElementById('summaryTable2').textContent = `نقدی: ${fmtMoney(cashSellingExVat)} ${unitText}`;
             document.getElementById('badgeCashMargin').textContent = `افزایش نسبت به خرید پایه: ${fmtPct(cashMarkupOverBasePct)}`;
             document.getElementById('table2Body').innerHTML = `
                 <tr class="hover:bg-slate-50/80">
-                    <td class="py-3 px-4 font-bold text-slate-800">۱. بهای خرید مواد مستقیم سیستم</td>
-                    <td class="py-3 px-4 tabular-nums text-xs">نسبت ${fmtNum(polyolRatio, 1)}:${fmtNum(isoRatio, 1)}</td>
-                    <td class="py-3 px-4 text-xs text-slate-500">خروجی جدول ۱ (بدون VAT)</td>
-                    <td class="py-3 px-4 tabular-nums font-bold">${fmtMoney(baseCostExVat)}</td>
-                    <td class="py-3 px-4 tabular-nums">${fmtPct((baseCostExVat / cashSellingExVat) * 100)}</td>
+                    <td class="py-3 px-4 font-bold text-slate-800">۱. بهای خرید مواد مستقیم</td>
+                    <td class="py-3 px-3 tabular-nums text-xs">نسبت ${fmtNum(polyolRatio, 1)}:${fmtNum(isoRatio, 1)}</td>
+                    <td class="py-3 px-3 text-xs text-slate-500">نرخ خرید خالص (بدون VAT)</td>
+                    <td class="py-3 px-3 tabular-nums font-bold bg-indigo-50/30">${fmtMoney(baseCostExVat)}</td>
+                    <td class="py-3 px-3 tabular-nums">${fmtPct(cashSellingExVat > 0 ? (baseCostExVat / cashSellingExVat) * 100 : 0)}</td>
                 </tr>
                 <tr class="hover:bg-slate-50/80">
                     <td class="py-3 px-4 font-semibold text-slate-700">۲. سربار تولید، حمل، انبار و پرت</td>
-                    <td class="py-3 px-4 tabular-nums">${fmtPct(overheadPct)}</td>
-                    <td class="py-3 px-4 text-xs text-slate-500">بهای مواد مستقیم × ${fmtNum(overheadPct, 1)}٪</td>
-                    <td class="py-3 px-4 tabular-nums font-semibold">${fmtMoney(overheadPerKg)}</td>
-                    <td class="py-3 px-4 tabular-nums">${fmtPct((overheadPerKg / cashSellingExVat) * 100)}</td>
+                    <td class="py-3 px-3 tabular-nums">${fmtPct(overheadPct)}</td>
+                    <td class="py-3 px-3 text-xs text-slate-500">بهای مواد مستقیم × ${fmtNum(overheadPct, 1)}٪</td>
+                    <td class="py-3 px-3 tabular-nums font-semibold bg-indigo-50/30">${fmtMoney(overheadPerKg)}</td>
+                    <td class="py-3 px-3 tabular-nums">${fmtPct(cashSellingExVat > 0 ? (overheadPerKg / cashSellingExVat) * 100 : 0)}</td>
                 </tr>
                 <tr class="hover:bg-slate-50/80">
                     <td class="py-3 px-4 font-semibold text-slate-700">۳. هزینه دفتر مرکزی، عمومی و اداری</td>
-                    <td class="py-3 px-4 tabular-nums">${fmtPct(hqPct)}</td>
-                    <td class="py-3 px-4 text-xs text-slate-500">بهای مواد مستقیم × ${fmtNum(hqPct, 1)}٪</td>
-                    <td class="py-3 px-4 tabular-nums font-semibold">${fmtMoney(hqPerKg)}</td>
-                    <td class="py-3 px-4 tabular-nums">${fmtPct((hqPerKg / cashSellingExVat) * 100)}</td>
+                    <td class="py-3 px-3 tabular-nums">${fmtPct(hqPct)}</td>
+                    <td class="py-3 px-3 text-xs text-slate-500">بهای مواد مستقیم × ${fmtNum(hqPct, 1)}٪</td>
+                    <td class="py-3 px-3 tabular-nums font-semibold bg-indigo-50/30">${fmtMoney(hqPerKg)}</td>
+                    <td class="py-3 px-3 tabular-nums">${fmtPct(cashSellingExVat > 0 ? (hqPerKg / cashSellingExVat) * 100 : 0)}</td>
                 </tr>
                 <tr class="bg-slate-50 font-bold text-slate-900">
-                    <td class="py-3 px-4">جمع بهای تمام‌شده عملیاتی (Cost of Goods Sold)</td>
-                    <td class="py-3 px-4 tabular-nums">${fmtPct(overheadPct + hqPct)} بارگذاری</td>
-                    <td class="py-3 px-4 text-xs text-slate-500">مواد مستقیم + سربار + دفتر مرکزی</td>
-                    <td class="py-3 px-4 tabular-nums">${fmtMoney(operatingCostPerKg)}</td>
-                    <td class="py-3 px-4 tabular-nums">${fmtPct((operatingCostPerKg / cashSellingExVat) * 100)}</td>
+                    <td colspan="3" class="py-3 px-4">جمع بهای تمام‌شده عملیاتی (COGS + HQ)</td>
+                    <td class="py-3 px-3 tabular-nums bg-indigo-50/50">${fmtMoney(operatingCostPerKg)}</td>
+                    <td class="py-3 px-3 tabular-nums">${fmtPct(cashSellingExVat > 0 ? (operatingCostPerKg / cashSellingExVat) * 100 : 0)}</td>
                 </tr>
                 <tr class="hover:bg-emerald-50/40">
-                    <td class="py-3 px-4 font-bold text-emerald-800">۴. سود خالص هدف (پس از کسر مالیات عملکرد)</td>
-                    <td class="py-3 px-4 tabular-nums font-bold text-emerald-700">${fmtPct(profitPct)}</td>
-                    <td class="py-3 px-4 text-xs text-slate-500">بهای تمام‌شده عملیاتی × ${fmtNum(profitPct, 1)}٪</td>
-                    <td class="py-3 px-4 tabular-nums font-bold text-emerald-700">${fmtMoney(netProfitTargetPerKg)}</td>
-                    <td class="py-3 px-4 tabular-nums text-emerald-700">${fmtPct((netProfitTargetPerKg / cashSellingExVat) * 100)}</td>
+                    <td class="py-3 px-4 font-bold text-emerald-800">۴. سود خالص هدف (پس از مالیات عملکرد)</td>
+                    <td class="py-3 px-3 tabular-nums font-bold text-emerald-700">${fmtPct(profitPct)}</td>
+                    <td class="py-3 px-3 text-xs text-slate-500">${profitBasisFormulaLabel}</td>
+                    <td class="py-3 px-3 tabular-nums font-bold text-emerald-700 bg-indigo-50/30">${fmtMoney(netProfitTargetPerKg)}</td>
+                    <td class="py-3 px-3 tabular-nums text-emerald-700">${fmtPct(cashSellingExVat > 0 ? (netProfitTargetPerKg / cashSellingExVat) * 100 : 0)}</td>
                 </tr>
                 <tr class="hover:bg-slate-50/80">
                     <td class="py-3 px-4 font-semibold text-slate-700">۵. ذخیره مالیات عملکرد (ماده ۱۰۵ ق.م.م)</td>
-                    <td class="py-3 px-4 tabular-nums">${fmtPct(incomeTaxPct)}</td>
-                    <td class="py-3 px-4 text-xs text-slate-500">[سود خالص ÷ (۱ − ${fmtNum(incomeTaxPct, 0)}٪)] − سود خالص</td>
-                    <td class="py-3 px-4 tabular-nums font-semibold">${fmtMoney(corpTaxPerKg)}</td>
-                    <td class="py-3 px-4 tabular-nums">${fmtPct((corpTaxPerKg / cashSellingExVat) * 100)}</td>
+                    <td class="py-3 px-3 tabular-nums">${fmtPct(incomeTaxPct)}</td>
+                    <td class="py-3 px-3 text-xs text-slate-500">${table2TaxFormula}</td>
+                    <td class="py-3 px-3 tabular-nums font-semibold bg-indigo-50/30">${fmtMoney(corpTaxPerKg)}</td>
+                    <td class="py-3 px-3 tabular-nums">${fmtPct(cashSellingExVat > 0 ? (corpTaxPerKg / cashSellingExVat) * 100 : 0)}</td>
                 </tr>
-                <tr class="bg-emerald-50 font-extrabold text-emerald-950 border-t-2 border-emerald-300">
-                    <td class="py-3 px-4">بهای فروش نقدی هر کیلوگرم سیستم (بدون ارزش افزوده)</td>
-                    <td class="py-3 px-4 tabular-nums">نرخ پایه نقد</td>
-                    <td class="py-3 px-4 text-xs font-medium text-emerald-800">بهای تمام‌شده عملیاتی + سود خالص + مالیات عملکرد</td>
-                    <td class="py-3 px-4 tabular-nums text-base">${fmtMoney(cashSellingExVat)}</td>
-                    <td class="py-3 px-4 tabular-nums">۱۰۰٫۰۰٪</td>
+                <tr onclick="togglePriceSplit(2)" class="bg-emerald-50 hover:bg-emerald-100/70 font-extrabold text-emerald-950 border-t-2 border-emerald-300 cursor-pointer transition select-none">
+                    <td colspan="3" class="py-3 px-4">
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-emerald-600 text-white text-xs font-black leading-none">${table2SplitOpen ? '−' : '+'}</span>
+                            <span>بهای فروش نقدی هر کیلوگرم (بدون ارزش افزوده)</span>
+                            <span class="text-[11px] font-medium text-emerald-700 no-print">(تفکیک پولیول و ایزوسیانات)</span>
+                        </div>
+                    </td>
+                    <td class="py-3 px-3 tabular-nums text-base text-emerald-950">${fmtMoney(cashSellingExVat)}</td>
+                    <td class="py-3 px-3 tabular-nums">۱۰۰٫۰۰٪</td>
+                </tr>
+                <tr class="${table2SplitOpen ? '' : 'hidden'} bg-sky-50/70 text-xs text-sky-950">
+                    <td colspan="3" class="py-2.5 pr-10 pl-4 font-bold">↳ قیمت فروش نقدی هر کیلوگرم پولیول (بدون ارزش افزوده)</td>
+                    <td class="py-2.5 px-3 tabular-nums font-extrabold">${fmtMoney(polCash.cashSellingExVat)}</td>
+                    <td class="py-2.5 px-3 tabular-nums text-sky-800">سهم وزنی: ${fmtPct(polyolShare * 100)}</td>
+                </tr>
+                <tr class="${table2SplitOpen ? '' : 'hidden'} bg-violet-50/70 text-xs text-violet-950">
+                    <td colspan="3" class="py-2.5 pr-10 pl-4 font-bold">↳ قیمت فروش نقدی هر کیلوگرم ایزوسیانات (بدون ارزش افزوده)</td>
+                    <td class="py-2.5 px-3 tabular-nums font-extrabold">${fmtMoney(isoCash.cashSellingExVat)}</td>
+                    <td class="py-2.5 px-3 tabular-nums text-violet-800">سهم وزنی: ${fmtPct(isoShare * 100)}</td>
                 </tr>
                 <tr class="bg-slate-50/90 text-xs text-slate-700">
-                    <td class="py-2.5 px-4 font-bold">مالیات بر ارزش افزوده فروش نقدی (${fmtNum(vatPct, 1)}٪)</td>
-                    <td class="py-2.5 px-4 tabular-nums">${fmtPct(vatPct)}</td>
-                    <td class="py-2.5 px-4 text-slate-500">بهای فروش نقدی بدون VAT × ${fmtNum(vatPct, 1)}٪</td>
-                    <td class="py-2.5 px-4 tabular-nums font-bold">${fmtMoney(cashVatPerKg)}</td>
-                    <td class="py-2.5 px-4 tabular-nums">+${fmtPct(vatPct)}</td>
+                    <td colspan="3" class="py-2.5 px-4 font-bold">مالیات بر ارزش افزوده فروش نقدی (${fmtNum(vatPct, 1)}٪)</td>
+                    <td class="py-2.5 px-3 tabular-nums font-bold">${fmtMoney(cashVatPerKg)}</td>
+                    <td class="py-2.5 px-3 tabular-nums">+${fmtPct(vatPct)}</td>
                 </tr>
                 <tr class="bg-emerald-100/70 font-extrabold text-xs text-emerald-950">
-                    <td class="py-2.5 px-4">بهای فروش نقدی هر کیلوگرم سیستم (با ارزش افزوده)</td>
-                    <td class="py-2.5 px-4 tabular-nums">فاکتور نقدی</td>
-                    <td class="py-2.5 px-4 text-emerald-800">بهای فروش نقدی بدون VAT + مالیات بر ارزش افزوده</td>
-                    <td class="py-2.5 px-4 tabular-nums">${fmtMoney(cashSellingIncVat)}</td>
-                    <td class="py-2.5 px-4 tabular-nums">${fmtPct(100 + vatPct)}</td>
+                    <td colspan="3" class="py-2.5 px-4">بهای فروش نقدی هر کیلوگرم (با ارزش افزوده)</td>
+                    <td class="py-2.5 px-3 tabular-nums text-sm">${fmtMoney(cashSellingIncVat)}</td>
+                    <td class="py-2.5 px-3 tabular-nums">${fmtPct(100 + vatPct)}</td>
                 </tr>
             `;
 
@@ -1330,132 +1797,133 @@
                 sec3A.classList.add('hidden');
             } else {
                 sec3A.classList.remove('hidden');
-                document.getElementById('badgeCarCount').textContent = `${fmtNum(carCount, 0)} دستگاه ${carName} (${fmtPct(grossDealInvoice > 0 ? (carFactoryTotal / grossDealInvoice) * 100 : 0)} معامله)`;
+                document.getElementById('badgeCarCount').textContent = `${fmtNum(carCount, 0)} دستگاه ${carName} (${fmtMoney(carFactoryTotal)} ${unitText})`;
+                const carNetCashPerUnit = carMarket - carDirectExpPerUnit - carCarryCostPerUnit;
                 document.getElementById('table3Body').innerHTML = `
                     <tr class="hover:bg-slate-50/80">
-                        <td class="py-3 px-4 font-bold text-slate-800">نرخ فاکتوری / کارخانه هر دستگاه ${carName} (با VAT)</td>
+                        <td class="py-3 px-4 font-bold text-slate-800">۱. نرخ کارخانه / فاکتوری ${carName} (با ارزش افزوده)</td>
                         <td class="py-3 px-4 tabular-nums font-bold">${fmtMoney(carFactory)}</td>
                         <td class="py-3 px-4 tabular-nums">۱۰۰٫۰۰٪</td>
-                        <td class="py-3 px-4 text-xs text-slate-500">مبنای تهاتر در فاکتور (شامل ${fmtMoney(carEmbeddedVatPerUnit)} ${unitText} VAT)</td>
+                        <td class="py-3 px-4 text-xs text-slate-500">مبلغ تهاتر ثبت‌شده در حساب کارفرما</td>
                         <td class="py-3 px-4 tabular-nums font-bold">${fmtMoney(carFactoryTotal)}</td>
                     </tr>
                     <tr class="hover:bg-slate-50/80">
-                        <td class="py-3 px-4 font-semibold text-slate-700">نرخ نقدشوندگی بازار آزاد هر دستگاه ${carName}</td>
+                        <td class="py-3 px-4 font-semibold text-slate-700">۲. نرخ فروش نقدی ${carName} در بازار آزاد</td>
                         <td class="py-3 px-4 tabular-nums font-semibold text-emerald-700">${fmtMoney(carMarket)}</td>
                         <td class="py-3 px-4 tabular-nums">${fmtPct(carFactory > 0 ? (carMarket / carFactory) * 100 : 0)}</td>
-                        <td class="py-3 px-4 text-xs text-slate-500">قیمت واقعی فروش نقدی در بازار آزاد</td>
+                        <td class="py-3 px-4 text-xs text-slate-500">قیمت واقعی نقدشوندگی در بازار</td>
                         <td class="py-3 px-4 tabular-nums font-semibold text-emerald-700">${fmtMoney(carMarketTotal)}</td>
                     </tr>
                     <tr class="hover:bg-rose-50/40">
-                        <td class="py-3 px-4 font-bold text-rose-800">۱. زیان اختلاف نرخ کارخانه و بازار آزاد</td>
+                        <td class="py-3 px-4 font-bold text-rose-800">۳. زیان مستقیم شکاف نرخ کارخانه و بازار</td>
                         <td class="py-3 px-4 tabular-nums font-bold text-rose-700">${fmtMoney(carPriceGapPerUnit)}</td>
                         <td class="py-3 px-4 tabular-nums text-rose-700">${fmtPct(carFactory > 0 ? (carPriceGapPerUnit / carFactory) * 100 : 0)}</td>
                         <td class="py-3 px-4 text-xs text-slate-500">نرخ کارخانه − نرخ بازار آزاد</td>
-                        <td class="py-3 px-4 tabular-nums font-bold text-rose-700">${fmtMoney(carPriceGapPerUnit * carCount)}</td>
+                        <td class="py-3 px-4 tabular-nums font-bold text-rose-700">${fmtMoney(carCount * carPriceGapPerUnit)}</td>
                     </tr>
-                    <tr class="hover:bg-slate-50/80">
-                        <td class="py-3 px-4 font-semibold text-slate-700">۲. هزینه محضر، مالیات نقل‌وانتقال و فک پلاک</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtMoney(transferCost)}</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtPct(carFactory > 0 ? (transferCost / carFactory) * 100 : 0)}</td>
-                        <td class="py-3 px-4 text-xs text-slate-500">هزینه ثابت اسناد و نقل‌وانتقال هر دستگاه</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtMoney(transferCost * carCount)}</td>
+                    <tr class="hover:bg-rose-50/40">
+                        <td class="py-3 px-4 font-semibold text-rose-800">۴. هزینه‌های محضر، کارمزد فروش و حمل‌ونقل</td>
+                        <td class="py-3 px-4 tabular-nums text-rose-700">${fmtMoney(carDirectExpPerUnit)}</td>
+                        <td class="py-3 px-4 tabular-nums text-rose-700">${fmtPct(carFactory > 0 ? (carDirectExpPerUnit / carFactory) * 100 : 0)}</td>
+                        <td class="py-3 px-4 text-xs text-slate-500">محضر (${fmtMoney(transferCost)}) + کارمزد (${fmtMoney(commissionCost)}) + حمل (${fmtMoney(logisticsCost)})</td>
+                        <td class="py-3 px-4 tabular-nums text-rose-700">${fmtMoney(carCount * carDirectExpPerUnit)}</td>
                     </tr>
-                    <tr class="hover:bg-slate-50/80">
-                        <td class="py-3 px-4 font-semibold text-slate-700">۳. کارمزد فروش و حق‌الزحمه معاملات</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtMoney(commissionCost)}</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtPct(carFactory > 0 ? (commissionCost / carFactory) * 100 : 0)}</td>
-                        <td class="py-3 px-4 text-xs text-slate-500">کارمزد فروش در شبکه بازار</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtMoney(commissionCost * carCount)}</td>
-                    </tr>
-                    <tr class="hover:bg-slate-50/80">
-                        <td class="py-3 px-4 font-semibold text-slate-700">۴. هزینه حمل، پارکینگ و نگهداری</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtMoney(logisticsCost)}</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtPct(carFactory > 0 ? (logisticsCost / carFactory) * 100 : 0)}</td>
-                        <td class="py-3 px-4 text-xs text-slate-500">لجستیک از مبدا تا محل تحویل</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtMoney(logisticsCost * carCount)}</td>
-                    </tr>
-                    <tr class="hover:bg-slate-50/80">
-                        <td class="py-3 px-4 font-semibold text-slate-700">۵. هزینه خواب سرمایه فروش ${carName} (${fmtNum(carryDays, 0)} روز)</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtMoney(carCarryCostPerUnit)}</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtPct(carFactory > 0 ? (carCarryCostPerUnit / carFactory) * 100 : 0)}</td>
-                        <td class="py-3 px-4 text-xs text-slate-500">نرخ بازار × ${fmtNum(padraMonthlyRate, 2)}٪ ماهانه × (${fmtNum(carryDays, 0)} ÷ ۳۰)</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtMoney(carCarryCostPerUnit * carCount)}</td>
+                    <tr class="hover:bg-rose-50/40">
+                        <td class="py-3 px-4 font-semibold text-rose-800">۵. هزینه خواب پول دوران تحویل و فروش ${carName}</td>
+                        <td class="py-3 px-4 tabular-nums text-rose-700">${fmtMoney(carCarryCostPerUnit)}</td>
+                        <td class="py-3 px-4 tabular-nums text-rose-700">${fmtPct(carFactory > 0 ? (carCarryCostPerUnit / carFactory) * 100 : 0)}</td>
+                        <td class="py-3 px-4 text-xs text-slate-500">${fmtNum(carryDays, 0)} روز به نرخ ${fmtNum(padraMonthlyRate, 2)}٪ ماهانه روی نرخ بازار</td>
+                        <td class="py-3 px-4 tabular-nums text-rose-700">${fmtMoney(carCount * carCarryCostPerUnit)}</td>
                     </tr>
                     <tr class="bg-rose-50 font-extrabold text-rose-950 border-t-2 border-rose-300">
-                        <td class="py-3 px-4">جمع کل زیان و هزینه‌های تهاتر ${carName}</td>
-                        <td class="py-3 px-4 tabular-nums text-base">${fmtMoney(carTotalBurdenPerUnit)}</td>
+                        <td class="py-3 px-4">جمع کل زیان و هزینه‌های نقدشوندگی تهاتر ${carName}</td>
+                        <td class="py-3 px-4 tabular-nums">${fmtMoney(carTotalBurdenPerUnit)}</td>
                         <td class="py-3 px-4 tabular-nums">${fmtPct(carFactory > 0 ? (carTotalBurdenPerUnit / carFactory) * 100 : 0)}</td>
-                        <td class="py-3 px-4 text-xs font-medium text-rose-800">مجموع زیان قیمتی + هزینه‌های انتقال و خواب پول</td>
+                        <td class="py-3 px-4 text-xs font-medium text-rose-800">شکاف قیمت + هزینه‌های مستقیم + خواب پول</td>
                         <td class="py-3 px-4 tabular-nums text-base">${fmtMoney(carTotalBurden)}</td>
                     </tr>
+                    <tr class="bg-emerald-50/60 text-xs font-bold text-emerald-950">
+                        <td class="py-2.5 px-4">خالص نقدینگی حاصل از فروش ${carName} پس از کسر هزینه‌ها</td>
+                        <td class="py-2.5 px-4 tabular-nums">${fmtMoney(carNetCashPerUnit)}</td>
+                        <td class="py-2.5 px-4 tabular-nums">${fmtPct(carFactory > 0 ? (carNetCashPerUnit / carFactory) * 100 : 0)}</td>
+                        <td class="py-2.5 px-4 text-emerald-800">نرخ بازار − هزینه‌های مستقیم − خواب پول</td>
+                        <td class="py-2.5 px-4 tabular-nums">${fmtMoney(carCount * carNetCashPerUnit)}</td>
+                    </tr>
                     <tr class="bg-slate-50 text-xs text-slate-600">
-                        <td class="py-2.5 px-4 font-bold">ارزش افزوده نهفته در فاکتور ${carName} (${fmtNum(vatPct, 1)}٪)</td>
+                        <td class="py-2.5 px-4 font-bold">ارزش افزوده نهفته در فاکتور کارخانه (${fmtNum(vatPct, 1)}٪)</td>
                         <td class="py-2.5 px-4 tabular-nums font-semibold">${fmtMoney(carEmbeddedVatPerUnit)}</td>
                         <td class="py-2.5 px-4 tabular-nums">${fmtPct(carFactory > 0 ? (carEmbeddedVatPerUnit / carFactory) * 100 : 0)}</td>
-                        <td class="py-2.5 px-4">بخش ارزش افزوده قابل تهاتر در فاکتور رسمی خرید خودرو</td>
-                        <td class="py-2.5 px-4 tabular-nums font-bold">${fmtMoney(carEmbeddedVatPerUnit * carCount)}</td>
+                        <td class="py-2.5 px-4">نرخ کارخانه − [نرخ کارخانه ÷ (۱ + ${fmtNum(vatPct, 1)}٪)]</td>
+                        <td class="py-2.5 px-4 tabular-nums font-semibold">${fmtMoney(carCount * carEmbeddedVatPerUnit)}</td>
                     </tr>
                 `;
             }
 
-            // ۱۶. رندر یا مخفی‌سازی جدول ۳-ب (اوراق بهادار / اسناد اعتباری)
+            // ۱۶. رندر یا مخفی‌سازی جدول ۳-ب (چک، برات، LC و اوراق بهادار)
             const sec3B = document.getElementById('sectionTable3B');
             if (!enableCredit) {
                 sec3B.classList.add('hidden');
             } else {
                 sec3B.classList.remove('hidden');
-                const methodLabel = creditCalcMethod === 'compound' ? 'بهره مرکب ماهانه' : 'بهره ساده روزشمار';
-                document.getElementById('badgeCreditSummary').textContent = `${creditType}: ${fmtMoney(creditPrincipal)} ${unitText}`;
+                document.getElementById('badgeCreditSummary').textContent = `${creditType}: ${fmtMoney(creditPrincipal)} ${unitText} (${fmtNum(creditDays, 0)} روز)`;
+                const creditNetPresentVal = creditPrincipal - creditTotalBurden;
+                const creditMethodLabel = creditCalcMethod === 'compound' ? 'بهره مرکب ماهانه' : 'بهره ساده روزشمار';
                 document.getElementById('table3BBody').innerHTML = `
                     <tr class="hover:bg-slate-50/80">
-                        <td class="py-3 px-4 font-bold text-slate-800">اصل مبلغ ${creditType}</td>
+                        <td class="py-3 px-4 font-bold text-slate-800">۱. مبلغ اسمی ${creditType}</td>
                         <td class="py-3 px-4 tabular-nums">${fmtNum(creditDays, 0)} روز (${fmtNum(creditMonths, 2)} ماه)</td>
-                        <td class="py-3 px-4 text-xs text-slate-500">سهم ${fmtPct(grossDealInvoice > 0 ? (creditPrincipal / grossDealInvoice) * 100 : 0)} از کل مبلغ قرارداد</td>
+                        <td class="py-3 px-4 text-xs text-slate-500">سهم از کل فاکتور رسمی: ${fmtPct(grossDealInvoice > 0 ? (creditPrincipal / grossDealInvoice) * 100 : 0)}</td>
                         <td class="py-3 px-4 tabular-nums">۱۰۰٫۰۰٪</td>
                         <td class="py-3 px-4 tabular-nums font-bold">${fmtMoney(creditPrincipal)}</td>
                     </tr>
-                    <tr class="hover:bg-amber-50/40">
-                        <td class="py-3 px-4 font-semibold text-amber-950">۱. هزینه خواب پول / تامین مالی اسناد</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtPct(creditMonthlyRate)} / ماه</td>
-                        <td class="py-3 px-4 text-xs text-slate-500">${methodLabel} برای ${fmtNum(creditDays, 0)} روز</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtPct(creditPrincipal > 0 ? (creditInterestCost / creditPrincipal) * 100 : 0)}</td>
-                        <td class="py-3 px-4 tabular-nums font-bold text-amber-900">${fmtMoney(creditInterestCost)}</td>
+                    <tr class="hover:bg-amber-50/50">
+                        <td class="py-3 px-4 font-bold text-amber-900">۲. هزینه خواب پول / تامین مالی (${creditMethodLabel})</td>
+                        <td class="py-3 px-4 tabular-nums">${fmtPct(creditMonthlyRate, 2)} ماهانه</td>
+                        <td class="py-3 px-4 text-xs text-slate-500">${creditCalcMethod === 'compound' ? `اصل مبلغ × [(۱ + ${fmtNum(creditMonthlyRate, 2)}٪)^${fmtNum(creditMonths, 2)} − ۱]` : `اصل مبلغ × ${fmtNum(creditMonthlyRate, 2)}٪ × (${fmtNum(creditDays, 0)} ÷ ۳۰)`}</td>
+                        <td class="py-3 px-4 tabular-nums text-amber-800">${fmtPct(creditPrincipal > 0 ? (creditInterestCost / creditPrincipal) * 100 : 0)}</td>
+                        <td class="py-3 px-4 tabular-nums font-bold text-amber-800">${fmtMoney(creditInterestCost)}</td>
                     </tr>
-                    <tr class="hover:bg-slate-50/80">
-                        <td class="py-3 px-4 font-semibold text-slate-700">۲. کارمزد تنزیل، گشایش اعتبار یا صدور اوراق</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtPct(creditCommissionPct)}</td>
-                        <td class="py-3 px-4 text-xs text-slate-500">مبلغ اسناد × ${fmtNum(creditCommissionPct, 2)}٪</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtPct(creditCommissionPct)}</td>
-                        <td class="py-3 px-4 tabular-nums font-semibold">${fmtMoney(creditCommCost)}</td>
+                    <tr class="hover:bg-amber-50/50">
+                        <td class="py-3 px-4 font-semibold text-amber-900">۳. کارمزد تنزیل / گشایش LC / برات</td>
+                        <td class="py-3 px-4 tabular-nums">${fmtPct(creditCommissionPct, 2)}</td>
+                        <td class="py-3 px-4 text-xs text-slate-500">اصل مبلغ سند × ${fmtNum(creditCommissionPct, 2)}٪</td>
+                        <td class="py-3 px-4 tabular-nums text-amber-800">${fmtPct(creditPrincipal > 0 ? (creditCommCost / creditPrincipal) * 100 : 0)}</td>
+                        <td class="py-3 px-4 tabular-nums font-semibold text-amber-800">${fmtMoney(creditCommCost)}</td>
                     </tr>
                     <tr class="bg-amber-50 font-extrabold text-amber-950 border-t-2 border-amber-300">
-                        <td class="py-3 px-4">جمع کل هزینه مالی ${creditType}</td>
-                        <td class="py-3 px-4 tabular-nums">${fmtNum(creditDays, 0)} روز</td>
-                        <td class="py-3 px-4 text-xs font-medium text-amber-900">هزینه خواب سرمایه + کارمزد تنزیل / گشایش</td>
+                        <td class="py-3 px-4">جمع کل بار مالی خواب پول و کارمزد اسناد اعتباری</td>
+                        <td class="py-3 px-4 tabular-nums">${fmtPct(netDealRevenue > 0 ? (creditTotalBurden / netDealRevenue) * 100 : 0)} از فروش خالص</td>
+                        <td class="py-3 px-4 text-xs font-medium text-amber-800">هزینه خواب پول + کارمزد تنزیل/گشایش</td>
                         <td class="py-3 px-4 tabular-nums">${fmtPct(creditPrincipal > 0 ? (creditTotalBurden / creditPrincipal) * 100 : 0)}</td>
                         <td class="py-3 px-4 tabular-nums text-base">${fmtMoney(creditTotalBurden)}</td>
                     </tr>
+                    <tr class="bg-emerald-50/60 text-xs font-bold text-emerald-950">
+                        <td class="py-2.5 px-4">ارزش فعلی نقدی خالص اسناد دریافتی</td>
+                        <td class="py-2.5 px-4 tabular-nums">معادل نقدی روز</td>
+                        <td class="py-2.5 px-4 text-emerald-800">مبلغ اسمی اسناد − جمع کل هزینه مالی</td>
+                        <td class="py-2.5 px-4 tabular-nums">${fmtPct(creditPrincipal > 0 ? (creditNetPresentVal / creditPrincipal) * 100 : 0)}</td>
+                        <td class="py-2.5 px-4 tabular-nums">${fmtMoney(creditNetPresentVal)}</td>
+                    </tr>
                     <tr class="bg-slate-50 text-xs text-slate-700">
-                        <td class="py-2.5 px-4 font-bold">ترکیب تسویه کل قرارداد (خودرو + اوراق + نقد)</td>
-                        <td class="py-2.5 px-4 tabular-nums">${fmtNum(vatPct, 1)}٪ VAT</td>
-                        <td class="py-2.5 px-4">خودرو: ${fmtMoney(carFactoryTotal)} | اوراق: ${fmtMoney(creditPrincipal)} | مانده نقد: ${fmtMoney(cashRemainder)}</td>
+                        <td class="py-2.5 px-4 font-bold">تراز ترکیب تسویه کل فاکتور قرارداد</td>
+                        <td class="py-2.5 px-4">${enableCar ? `${carName} + اسناد + نقد` : 'اسناد + نقد'}</td>
+                        <td class="py-2.5 px-4">${enableCar ? `${carName}: ${fmtMoney(carFactoryTotal)} | ` : ''}اسناد: ${fmtMoney(creditPrincipal)} | نقد: ${fmtMoney(cashRemainder)}</td>
                         <td class="py-2.5 px-4 tabular-nums">۱۰۰٫۰۰٪</td>
                         <td class="py-2.5 px-4 tabular-nums font-bold">${fmtMoney(grossDealInvoice)}</td>
                     </tr>
                 `;
             }
 
-            // ۱۷. رندر جدول ۴ (استخراج نرخ نهایی بدون VAT و با VAT در زیر آن)
+            // ۱۷. رندر جدول ۴ (استخراج نرخ نهایی هر کیلوگرم سیستم با زیرردیف‌های کشویی پولیول و ایزوسیانات)
             const totalIncreaseOverCashPct = cashSellingExVat > 0 ? ((finalSellingExVat - cashSellingExVat) / cashSellingExVat) * 100 : 0;
+            document.getElementById('summaryTable4').textContent = `نهایی: ${fmtMoney(finalSellingExVat)} ${unitText}`;
             document.getElementById('badgeMarkupEq').textContent = `افزایش نسبت به نرخ نقدی: ${fmtPct(totalIncreaseOverCashPct)}`;
 
             let table4Rows = `
                 <tr class="hover:bg-slate-50/80">
                     <td class="py-3 px-4 font-bold text-slate-800">۱. نرخ فروش نقدی پایه (بدون ارزش افزوده)</td>
-                    <td class="py-3 px-4 text-xs text-slate-500">خروجی جدول ۲ (شامل سود هدف و مالیات عملکرد)</td>
-                    <td class="py-3 px-4 tabular-nums font-bold">${fmtMoney(cashSellingExVat)}</td>
-                    <td class="py-3 px-4 tabular-nums text-slate-600">${fmtToman(cashSellingExVat)}</td>
-                    <td class="py-3 px-4 tabular-nums">۰٫۰۰٪ (مبنا)</td>
+                    <td class="py-3 px-3 tabular-nums font-bold bg-indigo-50/30">${fmtMoney(cashSellingExVat)}</td>
+                    <td class="py-3 px-3 tabular-nums">۰٫۰۰٪ (مبنا)</td>
                 </tr>
             `;
 
@@ -1463,10 +1931,8 @@
                 table4Rows += `
                     <tr class="hover:bg-rose-50/40">
                         <td class="py-3 px-4 font-bold text-rose-800">۲. بارگذاری زیان و هزینه‌های تهاتر ${carName}</td>
-                        <td class="py-3 px-4 text-xs text-slate-500">جبران ${fmtMoney(carTotalBurden)} ${unitText} بار تهاتر ${carName}</td>
-                        <td class="py-3 px-4 tabular-nums font-bold text-rose-700">+${fmtMoney(carPriceAdderExVat)}</td>
-                        <td class="py-3 px-4 tabular-nums text-rose-700">+${fmtToman(carPriceAdderExVat)}</td>
-                        <td class="py-3 px-4 tabular-nums text-rose-700">+${fmtPct(cashSellingExVat > 0 ? (carPriceAdderExVat / cashSellingExVat) * 100 : 0)}</td>
+                        <td class="py-3 px-3 tabular-nums font-bold text-rose-700 bg-indigo-50/30">+${fmtMoney(carPriceAdderExVat)}</td>
+                        <td class="py-3 px-3 tabular-nums text-rose-700">+${fmtPct(cashSellingExVat > 0 ? (carPriceAdderExVat / cashSellingExVat) * 100 : 0)}</td>
                     </tr>
                 `;
             }
@@ -1475,38 +1941,254 @@
                 table4Rows += `
                     <tr class="hover:bg-amber-50/40">
                         <td class="py-3 px-4 font-bold text-amber-900">${enableCar ? '۳' : '۲'}. بارگذاری هزینه خواب پول ${creditType}</td>
-                        <td class="py-3 px-4 text-xs text-slate-500">جبران ${fmtMoney(creditTotalBurden)} ${unitText} هزینه مالی اسناد</td>
-                        <td class="py-3 px-4 tabular-nums font-bold text-amber-800">+${fmtMoney(creditPriceAdderExVat)}</td>
-                        <td class="py-3 px-4 tabular-nums text-amber-800">+${fmtToman(creditPriceAdderExVat)}</td>
-                        <td class="py-3 px-4 tabular-nums text-amber-800">+${fmtPct(cashSellingExVat > 0 ? (creditPriceAdderExVat / cashSellingExVat) * 100 : 0)}</td>
+                        <td class="py-3 px-3 tabular-nums font-bold text-amber-800 bg-indigo-50/30">+${fmtMoney(creditPriceAdderExVat)}</td>
+                        <td class="py-3 px-3 tabular-nums text-amber-800">+${fmtPct(cashSellingExVat > 0 ? (creditPriceAdderExVat / cashSellingExVat) * 100 : 0)}</td>
                     </tr>
                 `;
             }
 
             table4Rows += `
-                <tr class="bg-indigo-50 font-extrabold text-indigo-950 border-t-2 border-indigo-300">
-                    <td class="py-3.5 px-4">بهای فروش نهایی هر کیلوگرم سیستم (بدون ارزش افزوده)</td>
-                    <td class="py-3.5 px-4 text-xs font-medium text-indigo-800">نرخ نقدی ÷ (۱ − ${fmtPct(burdenRatio * 100)})</td>
-                    <td class="py-3.5 px-4 tabular-nums text-base text-indigo-900">${fmtMoney(finalSellingExVat)}</td>
-                    <td class="py-3.5 px-4 tabular-nums font-bold text-indigo-900">${fmtToman(finalSellingExVat)}</td>
-                    <td class="py-3.5 px-4 tabular-nums text-indigo-900">+${fmtPct(totalIncreaseOverCashPct)}</td>
+                <tr onclick="togglePriceSplit(4)" class="bg-indigo-50 hover:bg-indigo-100/70 font-extrabold text-indigo-950 border-t-2 border-indigo-300 cursor-pointer transition select-none">
+                    <td class="py-3.5 px-4">
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-indigo-600 text-white text-xs font-black leading-none">${table4SplitOpen ? '−' : '+'}</span>
+                            <span>بهای فروش نهایی هر کیلوگرم (بدون ارزش افزوده)</span>
+                            <span class="text-[11px] font-medium text-indigo-700 no-print">(تفکیک پولیول و ایزوسیانات)</span>
+                        </div>
+                    </td>
+                    <td class="py-3.5 px-3 tabular-nums text-base text-indigo-950">${fmtMoney(finalSellingExVat)}</td>
+                    <td class="py-3.5 px-3 tabular-nums text-indigo-900">+${fmtPct(totalIncreaseOverCashPct)}</td>
+                </tr>
+                <tr class="${table4SplitOpen ? '' : 'hidden'} bg-sky-50/70 text-xs text-sky-950">
+                    <td class="py-2.5 pr-10 pl-4 font-bold">↳ قیمت فروش نهایی هر کیلوگرم پولیول (بدون ارزش افزوده)</td>
+                    <td class="py-2.5 px-3 tabular-nums font-extrabold">${fmtMoney(polFinalExVat)}</td>
+                    <td class="py-2.5 px-3 tabular-nums text-sky-800">+${fmtPct(polCash.cashSellingExVat > 0 ? ((polFinalExVat - polCash.cashSellingExVat) / polCash.cashSellingExVat) * 100 : 0)}</td>
+                </tr>
+                <tr class="${table4SplitOpen ? '' : 'hidden'} bg-violet-50/70 text-xs text-violet-950">
+                    <td class="py-2.5 pr-10 pl-4 font-bold">↳ قیمت فروش نهایی هر کیلوگرم ایزوسیانات (بدون ارزش افزوده)</td>
+                    <td class="py-2.5 px-3 tabular-nums font-extrabold">${fmtMoney(isoFinalExVat)}</td>
+                    <td class="py-2.5 px-3 tabular-nums text-violet-800">+${fmtPct(isoCash.cashSellingExVat > 0 ? ((isoFinalExVat - isoCash.cashSellingExVat) / isoCash.cashSellingExVat) * 100 : 0)}</td>
                 </tr>
                 <tr class="bg-slate-50 text-xs text-slate-700">
                     <td class="py-2.5 px-4 font-bold">مالیات بر ارزش افزوده فروش (${fmtNum(vatPct, 1)}٪)</td>
-                    <td class="py-2.5 px-4 text-slate-500">بهای فروش نهایی بدون VAT × ${fmtNum(vatPct, 1)}٪</td>
-                    <td class="py-2.5 px-4 tabular-nums font-bold">${fmtMoney(finalVatPerKg)}</td>
-                    <td class="py-2.5 px-4 tabular-nums">${fmtToman(finalVatPerKg)}</td>
-                    <td class="py-2.5 px-4 tabular-nums">+${fmtPct(vatPct)}</td>
+                    <td class="py-2.5 px-3 tabular-nums font-bold">${fmtMoney(finalVatPerKg)}</td>
+                    <td class="py-2.5 px-3 tabular-nums">+${fmtPct(vatPct)}</td>
                 </tr>
                 <tr class="bg-indigo-900 text-white font-extrabold text-xs">
-                    <td class="py-3 px-4">بهای فروش نهایی هر کیلوگرم سیستم (با ارزش افزوده)</td>
-                    <td class="py-3 px-4 text-indigo-200">نرخ نهایی فاکتور رسمی با احتساب ${fmtNum(vatPct, 1)}٪ VAT</td>
-                    <td class="py-3 px-4 tabular-nums text-sm">${fmtMoney(finalSellingIncVat)}</td>
-                    <td class="py-3 px-4 tabular-nums">${fmtToman(finalSellingIncVat)}</td>
-                    <td class="py-3 px-4 tabular-nums">+${fmtPct(cashSellingIncVat > 0 ? ((finalSellingIncVat - cashSellingIncVat) / cashSellingIncVat) * 100 : 0)}</td>
+                    <td class="py-3 px-4">بهای فروش نهایی هر کیلوگرم (با ارزش افزوده)</td>
+                    <td class="py-3 px-3 tabular-nums text-sm">${fmtMoney(finalSellingIncVat)}</td>
+                    <td class="py-3 px-3 tabular-nums">+${fmtPct(cashSellingIncVat > 0 ? ((finalSellingIncVat - cashSellingIncVat) / cashSellingIncVat) * 100 : 0)}</td>
                 </tr>
             `;
             document.getElementById('table4Body').innerHTML = table4Rows;
+
+            // ۱۷-ب. رندر جدول ۵ (مهندسی معکوس نرخ اعلامی / مورد نظر کارفرما)
+            const clientInputRaw = Math.max(1, parseFormattedNumber(document.getElementById('inClientPrice').value));
+            const clientPriceVatMode = document.getElementById('inClientPriceVatMode').value;
+            const clientAllocMode = document.getElementById('inClientAllocMode').value;
+
+            const clientSysExVat = clientPriceVatMode === 'inc_vat'
+                ? clientInputRaw / (1 + vatPct / 100)
+                : clientInputRaw;
+            const clientSysVat = clientSysExVat * (vatPct / 100);
+            const clientSysIncVat = clientSysExVat + clientSysVat;
+
+            // تفکیک نرخ کارفرما به پولیول و ایزوسیانات
+            let clientPolExVat = 0;
+            let clientIsoExVat = 0;
+            if (clientAllocMode === 'flat_adder') {
+                const flatDiff = clientSysExVat - baseCostExVat;
+                clientPolExVat = Math.max(0, polyolPrice + flatDiff);
+                clientIsoExVat = Math.max(0, isoPrice + flatDiff);
+            } else {
+                const ratioK = baseCostExVat > 0 ? clientSysExVat / baseCostExVat : 1;
+                clientPolExVat = polyolPrice * ratioK;
+                clientIsoExVat = isoPrice * ratioK;
+            }
+            const clientPolIncVat = clientPolExVat * (1 + vatPct / 100);
+            const clientIsoIncVat = clientIsoExVat * (1 + vatPct / 100);
+
+            // وزن تحویلی، بار مالی و سود/زیان با نرخ کارفرما
+            const clientSystemKg = clientSysExVat > 0 ? netDealRevenue / clientSysExVat : 0;
+            const clientCarBurdenPerKg = clientSystemKg > 0 ? carTotalBurden / clientSystemKg : 0;
+            const clientCreditBurdenPerKg = clientSystemKg > 0 ? creditTotalBurden / clientSystemKg : 0;
+            const clientTotalBurdenPerKg = clientCarBurdenPerKg + clientCreditBurdenPerKg;
+
+            const clientEffectiveCashSys = clientSysExVat - clientTotalBurdenPerKg;
+            const clientEffectiveCashPol = clientPolExVat * (1 - burdenRatio);
+            const clientEffectiveCashIso = clientIsoExVat * (1 - burdenRatio);
+
+            const clientEbtPerKg = clientEffectiveCashSys - operatingCostPerKg;
+            const clientPolEbt = clientEffectiveCashPol - polCash.operatingCost;
+            const clientIsoEbt = clientEffectiveCashIso - isoCash.operatingCost;
+
+            // محاسبه مالیات عملکرد در جدول ۵ با کف حداقل مالیات بر مبنای سود ۱۰ درصد:
+            // در حالت زیان، نقطه سربه‌سر یا سود کمتر از آستانه، مالیات معادل مالیات سود ۱۰٪ و در سودهای بالاتر بر مبنای EBT واقعی لحاظ می‌شود
+            const taxRateDecimal = incomeTaxPct / 100;
+            const calcClientTax = (ebtVal, deemedTaxVal) => {
+                return Math.max(ebtVal * taxRateDecimal, deemedTaxVal);
+            };
+            const clientTaxPerKg = calcClientTax(clientEbtPerKg, sysDeemedTax10);
+            const clientPolTax = calcClientTax(clientPolEbt, polDeemedTax10);
+            const clientIsoTax = calcClientTax(clientIsoEbt, isoDeemedTax10);
+            const isClientDeemedTaxApplied = sysDeemedTax10 > 0 && (clientEbtPerKg * taxRateDecimal) < sysDeemedTax10;
+
+            const rawClientNetProfitPerKg = clientEbtPerKg - clientTaxPerKg;
+            const isBreakEven = Math.abs(rawClientNetProfitPerKg) < 2;
+            const clientNetProfitPerKg = isBreakEven ? 0 : rawClientNetProfitPerKg;
+            const clientPolNetProfit = Math.abs(clientPolEbt - clientPolTax) < 2 ? 0 : (clientPolEbt - clientPolTax);
+            const clientIsoNetProfit = Math.abs(clientIsoEbt - clientIsoTax) < 2 ? 0 : (clientIsoEbt - clientIsoTax);
+
+            const clientProfitPctOnBase = baseCostExVat > 0 ? (clientNetProfitPerKg / baseCostExVat) * 100 : 0;
+            const clientProfitPctOnOp = operatingCostPerKg > 0 ? (clientNetProfitPerKg / operatingCostPerKg) * 100 : 0;
+            const clientProfitPctOnSales = clientSysExVat > 0 ? (clientNetProfitPerKg / clientSysExVat) * 100 : 0;
+
+            const clientTotalEbt = clientEbtPerKg * clientSystemKg;
+            const clientTotalTax = clientTaxPerKg * clientSystemKg;
+            const clientTotalNetProfit = isBreakEven ? 0 : (rawClientNetProfitPerKg * clientSystemKg);
+
+            // سقف مجاز خرید مواد اولیه برای حفظ سود هدف در نرخ کارفرما
+            const cashFactorOverBase = baseCostExVat > 0 ? (cashSellingExVat / baseCostExVat) : 1;
+            const maxAllowableBaseCost = cashFactorOverBase > 0 ? (clientEffectiveCashSys / cashFactorOverBase) : 0;
+            const buyDiscountRatio = baseCostExVat > 0 ? (maxAllowableBaseCost / baseCostExVat) : 1;
+            const maxAllowablePolyolBuy = polyolPrice * buyDiscountRatio;
+            const maxAllowableIsoBuy = isoPrice * buyDiscountRatio;
+            const requiredBuyDiscountPct = (1 - buyDiscountRatio) * 100;
+
+            const toBillionToman = (rial) => {
+                const safeRial = Math.abs(rial) < 1 ? 0 : rial;
+                return (safeRial / 1e10).toLocaleString('fa-IR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            };
+
+            // وضعیت رنگی سودده / سربه‌سر / زیان‌ده
+            const isLoss = !isBreakEven && clientNetProfitPerKg < 0;
+            const isBelowTarget = !isLoss && !isBreakEven && (clientSysExVat < finalSellingExVat - 2);
+            const revStatusEl = document.getElementById('badgeRevStatus');
+            if (isBreakEven) {
+                revStatusEl.textContent = `نقطه سربه‌سر واقعی (سود و زیان خالص ۰٫۰۰٪)`;
+                revStatusEl.className = 'inline-flex items-center px-3 py-1 rounded-lg bg-slate-700 text-white text-xs font-bold self-start sm:self-auto';
+            } else if (isLoss) {
+                revStatusEl.textContent = `زیان‌ده (${fmtPct(clientProfitPctOnBase)} روی مواد پایه)`;
+                revStatusEl.className = 'inline-flex items-center px-3 py-1 rounded-lg bg-rose-600 text-white text-xs font-bold self-start sm:self-auto';
+            } else if (isBelowTarget) {
+                revStatusEl.textContent = `سودده اما کمتر از هدف (${fmtPct(clientProfitPctOnBase)})`;
+                revStatusEl.className = 'inline-flex items-center px-3 py-1 rounded-lg bg-amber-500 text-white text-xs font-bold self-start sm:self-auto';
+            } else {
+                revStatusEl.textContent = `سودده و مطابق/بالاتر از هدف (${fmtPct(clientProfitPctOnBase)})`;
+                revStatusEl.className = 'inline-flex items-center px-3 py-1 rounded-lg bg-emerald-600 text-white text-xs font-bold self-start sm:self-auto';
+            }
+
+            const profitTextColor = isBreakEven ? 'text-slate-800' : isLoss ? 'text-rose-700' : isBelowTarget ? 'text-amber-700' : 'text-emerald-700';
+            const kpiProfitPerKgEl = document.getElementById('revKpiProfitPerKg');
+            kpiProfitPerKgEl.textContent = `${fmtMoney(clientNetProfitPerKg)} ${unitText}`;
+            kpiProfitPerKgEl.className = `text-base sm:text-lg font-black mt-1 tabular-nums ${profitTextColor}`;
+            document.getElementById('revKpiProfitPerKgSub').textContent = `مواد: ${fmtPct(clientProfitPctOnBase)} | فروش: ${fmtPct(clientProfitPctOnSales)}`;
+
+            const kpiTotalProfitEl = document.getElementById('revKpiTotalProfit');
+            kpiTotalProfitEl.textContent = `${toBillionToman(clientTotalNetProfit)} میلیارد تومان`;
+            kpiTotalProfitEl.className = `text-base sm:text-lg font-black mt-1 tabular-nums ${profitTextColor}`;
+            document.getElementById('revKpiTotalProfitSub').textContent = `معادل ${fmtMoney(clientTotalNetProfit)} ${unitText} (وزن: ${fmtNum(clientSystemKg, 0)} کیلو)`;
+
+            document.getElementById('revKpiPolyol').textContent = `${fmtMoney(clientPolExVat)} ${unitText}`;
+            document.getElementById('revKpiPolyolSub').textContent = `با VAT: ${fmtMoney(clientPolIncVat)} ${unitText}`;
+
+            document.getElementById('revKpiIso').textContent = `${fmtMoney(clientIsoExVat)} ${unitText}`;
+            document.getElementById('revKpiIsoSub').textContent = `با VAT: ${fmtMoney(clientIsoIncVat)} ${unitText}`;
+
+            const diffVsProposed = clientSysExVat - finalSellingExVat;
+            const diffVsProposedPct = finalSellingExVat > 0 ? (diffVsProposed / finalSellingExVat) * 100 : 0;
+
+            let revRows = `
+                <tr class="bg-teal-50/60 font-extrabold text-teal-950">
+                    <td class="py-3 px-4">۱. نرخ اعلامی کارفرما (بدون ارزش افزوده)</td>
+                    <td class="py-3 px-3 tabular-nums bg-teal-100/50">${fmtMoney(clientSysExVat)}</td>
+                    <td class="py-3 px-3 tabular-nums bg-sky-50/70 text-sky-950">${fmtMoney(clientPolExVat)}</td>
+                    <td class="py-3 px-3 tabular-nums bg-violet-50/70 text-violet-950">${fmtMoney(clientIsoExVat)}</td>
+                    <td class="py-3 px-3 tabular-nums text-xs ${diffVsProposed < 0 ? 'text-rose-700' : 'text-emerald-700'}">${diffVsProposed >= 0 ? '+' : ''}${fmtPct(diffVsProposedPct)} نسبت به نرخ ما</td>
+                </tr>
+            `;
+
+            if (enableCar) {
+                revRows += `
+                    <tr class="hover:bg-rose-50/40">
+                        <td class="py-3 px-4 font-semibold text-rose-800">۲. کسر می‌شود: بار مالی تهاتر ${carName} در هر کیلو</td>
+                        <td class="py-3 px-3 tabular-nums text-rose-700">(${fmtMoney(clientCarBurdenPerKg)})</td>
+                        <td class="py-3 px-3 tabular-nums text-rose-700">(${fmtMoney(clientPolExVat * (netDealRevenue > 0 ? carTotalBurden / netDealRevenue : 0))})</td>
+                        <td class="py-3 px-3 tabular-nums text-rose-700">(${fmtMoney(clientIsoExVat * (netDealRevenue > 0 ? carTotalBurden / netDealRevenue : 0))})</td>
+                        <td class="py-3 px-3 tabular-nums text-xs">${fmtPct(netDealRevenue > 0 ? (carTotalBurden / netDealRevenue) * 100 : 0)} از فروش</td>
+                    </tr>
+                `;
+            }
+
+            if (enableCredit) {
+                revRows += `
+                    <tr class="hover:bg-amber-50/40">
+                        <td class="py-3 px-4 font-semibold text-amber-900">${enableCar ? '۳' : '۲'}. کسر می‌شود: هزینه خواب پول ${creditType} در هر کیلو</td>
+                        <td class="py-3 px-3 tabular-nums text-amber-800">(${fmtMoney(clientCreditBurdenPerKg)})</td>
+                        <td class="py-3 px-3 tabular-nums text-amber-800">(${fmtMoney(clientPolExVat * (netDealRevenue > 0 ? creditTotalBurden / netDealRevenue : 0))})</td>
+                        <td class="py-3 px-3 tabular-nums text-amber-800">(${fmtMoney(clientIsoExVat * (netDealRevenue > 0 ? creditTotalBurden / netDealRevenue : 0))})</td>
+                        <td class="py-3 px-3 tabular-nums text-xs">${fmtPct(netDealRevenue > 0 ? (creditTotalBurden / netDealRevenue) * 100 : 0)} از فروش</td>
+                    </tr>
+                `;
+            }
+
+            revRows += `
+                <tr class="bg-slate-50 font-bold text-slate-800">
+                    <td class="py-3 px-4">دریافتی خالص نقدی موثر پس از هزینه‌های تسویه</td>
+                    <td class="py-3 px-3 tabular-nums">${fmtMoney(clientEffectiveCashSys)}</td>
+                    <td class="py-3 px-3 tabular-nums">${fmtMoney(clientEffectiveCashPol)}</td>
+                    <td class="py-3 px-3 tabular-nums">${fmtMoney(clientEffectiveCashIso)}</td>
+                    <td class="py-3 px-3 tabular-nums text-xs">${fmtPct((1 - burdenRatio) * 100)} نقدشوندگی</td>
+                </tr>
+                <tr class="hover:bg-slate-50/80">
+                    <td class="py-3 px-4 font-semibold text-slate-700">کسر می‌شود: بهای تمام‌شده عملیاتی (مواد + ${fmtNum(overheadPct, 1)}٪ سربار + ${fmtNum(hqPct, 1)}٪ دفتر مرکزی)</td>
+                    <td class="py-3 px-3 tabular-nums text-rose-700">(${fmtMoney(operatingCostPerKg)})</td>
+                    <td class="py-3 px-3 tabular-nums text-rose-700">(${fmtMoney(polCash.operatingCost)})</td>
+                    <td class="py-3 px-3 tabular-nums text-rose-700">(${fmtMoney(isoCash.operatingCost)})</td>
+                    <td class="py-3 px-3 tabular-nums text-xs">${fmtPct(clientSysExVat > 0 ? (operatingCostPerKg / clientSysExVat) * 100 : 0)} از فروش</td>
+                </tr>
+                <tr class="hover:bg-slate-50/80 font-semibold">
+                    <td class="py-3 px-4 text-slate-800">سود / زیان عملیاتی پیش از کسر مالیات (EBT)</td>
+                    <td class="py-3 px-3 tabular-nums">${fmtMoney(clientEbtPerKg)}</td>
+                    <td class="py-3 px-3 tabular-nums">${fmtMoney(clientPolEbt)}</td>
+                    <td class="py-3 px-3 tabular-nums">${fmtMoney(clientIsoEbt)}</td>
+                    <td class="py-3 px-3 tabular-nums text-xs">${fmtPct(clientSysExVat > 0 ? (clientEbtPerKg / clientSysExVat) * 100 : 0)} حاشیه EBT</td>
+                </tr>
+                <tr class="hover:bg-rose-50/30 font-semibold">
+                    <td class="py-3 px-4 text-slate-700">کسر می‌شود: مالیات عملکرد ماده ۱۰۵ (${fmtNum(incomeTaxPct, 0)}٪)</td>
+                    <td class="py-3 px-3 tabular-nums text-rose-700">(${fmtMoney(clientTaxPerKg)})</td>
+                    <td class="py-3 px-3 tabular-nums text-rose-700">(${fmtMoney(clientPolTax)})</td>
+                    <td class="py-3 px-3 tabular-nums text-rose-700">(${fmtMoney(clientIsoTax)})</td>
+                    <td class="py-3 px-3 text-xs ${isClientDeemedTaxApplied ? 'text-rose-700 font-bold' : 'text-slate-500'}">${isClientDeemedTaxApplied ? 'حداقل مالیات بر مبنای سود ۱۰٪' : `${fmtNum(incomeTaxPct, 0)}٪ از سود مشمول مالیات`}</td>
+                </tr>
+                <tr class="${isBreakEven ? 'bg-slate-100 text-slate-900 border-slate-400' : isLoss ? 'bg-rose-50 text-rose-950 border-rose-300' : 'bg-emerald-50 text-emerald-950 border-emerald-300'} font-extrabold border-t-2">
+                    <td class="py-3.5 px-4">نتیجه نهایی: سود / زیان خالص واقعی با نرخ کارفرما</td>
+                    <td class="py-3.5 px-3 tabular-nums text-base">${fmtMoney(clientNetProfitPerKg)}</td>
+                    <td class="py-3.5 px-3 tabular-nums">${fmtMoney(clientPolNetProfit)}</td>
+                    <td class="py-3.5 px-3 tabular-nums">${fmtMoney(clientIsoNetProfit)}</td>
+                    <td class="py-3.5 px-3 tabular-nums text-xs leading-relaxed">
+                        <div>روی مواد: <strong>${fmtPct(clientProfitPctOnBase)}</strong></div>
+                        <div>روی عملیاتی: ${fmtPct(clientProfitPctOnOp)} | فروش: ${fmtPct(clientProfitPctOnSales)}</div>
+                    </td>
+                </tr>
+                <tr class="bg-amber-50/60 text-xs text-amber-950">
+                    <td class="py-2.5 px-4 font-bold">نقطه سربه‌سر واقعی فروش (سود خالص صفر با احتساب مالیات مبنای ۱۰٪ — بدون ارزش افزوده)</td>
+                    <td class="py-2.5 px-3 tabular-nums font-extrabold">${fmtMoney(breakEvenExVat)}</td>
+                    <td class="py-2.5 px-3 tabular-nums font-bold">${fmtMoney(polBreakEvenExVat)}</td>
+                    <td class="py-2.5 px-3 tabular-nums font-bold">${fmtMoney(isoBreakEvenExVat)}</td>
+                    <td class="py-2.5 px-3">بهای عملیاتی + مالیات مبنای ۱۰٪ (با VAT: ${fmtMoney(breakEvenIncVat)})</td>
+                </tr>
+                <tr class="bg-indigo-50/60 text-xs text-indigo-950">
+                    <td class="py-2.5 px-4 font-bold">سقف مجاز خرید مواد اولیه (برای حفظ دقیق سود هدف ${fmtNum(profitPct, 1)}٪ در نرخ کارفرما)</td>
+                    <td class="py-2.5 px-3 tabular-nums font-extrabold">${fmtMoney(maxAllowableBaseCost)}</td>
+                    <td class="py-2.5 px-3 tabular-nums font-bold text-sky-900">${fmtMoney(maxAllowablePolyolBuy)}</td>
+                    <td class="py-2.5 px-3 tabular-nums font-bold text-violet-900">${fmtMoney(maxAllowableIsoBuy)}</td>
+                    <td class="py-2.5 px-3 font-bold ${requiredBuyDiscountPct > 0 ? 'text-rose-700' : 'text-emerald-700'}">
+                        ${requiredBuyDiscountPct > 0 ? `نیاز به ${fmtPct(requiredBuyDiscountPct)} تخفیف خرید` : `حاشیه امن ${fmtPct(Math.abs(requiredBuyDiscountPct))} خرید`}
+                    </td>
+                </tr>
+            `;
+            document.getElementById('tableRevBody').innerHTML = revRows;
 
             // ۱۸. نمودار آبشاری انباشته ساختار قیمت نهایی بدون ارزش افزوده
             const barSegments = [
@@ -1535,34 +2217,52 @@
                 return `
                     <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
                         <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-                            <span class="w-2.5 h-2.5 rounded-full ${seg.dot}"></span>
-                            <span>${seg.label}</span>
+                            <span class="w-2.5 h-2.5 rounded-full ${seg.dot} flex-shrink-0"></span>
+                            <span class="truncate">${seg.label}</span>
                         </div>
-                        <div class="text-xs font-extrabold text-slate-900 mt-1 tabular-nums">${fmtMoney(seg.val)} ${unitText}</div>
-                        <div class="text-[11px] text-slate-500 tabular-nums">${fmtPct(pct)} از قیمت خالص</div>
+                        <div class="text-sm font-black text-slate-900 mt-1 tabular-nums">${fmtMoney(seg.val)} ${unitText}</div>
+                        <div class="text-[11px] font-semibold text-slate-500 tabular-nums">${fmtPct(pct)}</div>
                     </div>
                 `;
             }).join('');
 
-            // ۱۹. رندر جدول ۵ (صورت سود و زیان تجمیعی و تراز ارزش افزوده کل قرارداد)
-            const totalMaterialCost = totalSystemKg * baseCostExVat;
-            const totalOverheadCost = totalSystemKg * overheadPerKg;
-            const totalHqCost = totalSystemKg * hqPerKg;
-            const totalEbt = netDealRevenue - totalMaterialCost - totalOverheadCost - totalHqCost - carTotalBurden - creditTotalBurden;
-            const totalCorpTax = totalEbt * (incomeTaxPct / 100);
-            const totalNetProfit = totalEbt - totalCorpTax;
-            const totalInputVat = totalSystemKg * baseInputVat;
-            const netVatPayable = totalOutputVat - totalInputVat;
+            // ۱۹. رندر جدول ۶ (صورت سود و زیان تجمیعی و تراز ارزش افزوده کل قرارداد — نرخ پیشنهادی ما یا نرخ کارفرما)
+            const useClientPnl = pnlScenario === 'client';
+            const pnlPriceExVat = useClientPnl ? clientSysExVat : finalSellingExVat;
+            const pnlKg = useClientPnl ? clientSystemKg : totalSystemKg;
 
-            const toBillionToman = (rial) => (rial / 1e10).toLocaleString('fa-IR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const totalMaterialCost = pnlKg * baseCostExVat;
+            const totalOverheadCost = pnlKg * overheadPerKg;
+            const totalHqCost = pnlKg * hqPerKg;
+            const totalEbt = netDealRevenue - totalMaterialCost - totalOverheadCost - totalHqCost - carTotalBurden - creditTotalBurden;
+            const totalDeemedTax10 = pnlKg * sysDeemedTax10;
+            const actualPnlTax = totalEbt * (incomeTaxPct / 100);
+            const totalCorpTax = Math.max(actualPnlTax, totalDeemedTax10);
+            const isPnlDeemedTax = totalDeemedTax10 > 0 && actualPnlTax < totalDeemedTax10;
+            const rawTotalNetProfit = totalEbt - totalCorpTax;
+            const isPnlBreakEven = Math.abs(rawTotalNetProfit) < Math.max(100000, pnlKg * 2);
+            const totalNetProfit = isPnlBreakEven ? 0 : rawTotalNetProfit;
+            const totalInputVat = pnlKg * baseInputVat;
+            const netVatPayable = totalOutputVat - totalInputVat;
+            const realizedProfitPctOnBase = totalMaterialCost > 0 ? (totalNetProfit / totalMaterialCost) * 100 : 0;
+
+            const badgePnl = document.getElementById('badgePnlAudit');
+            badgePnl.textContent = isPnlBreakEven
+                ? `نقطه سربه‌سر: ۰٫۰۰ م.ت (۰٫۰۰٪)`
+                : `${totalNetProfit < 0 ? 'زیان خالص' : 'سود خالص'}: ${toBillionToman(totalNetProfit)} م.ت (${fmtPct(realizedProfitPctOnBase)} مواد)`;
+            badgePnl.className = isPnlBreakEven
+                ? 'inline-flex items-center px-3 py-1 rounded-lg bg-slate-200 text-slate-800 text-xs font-bold tabular-nums'
+                : totalNetProfit < 0
+                ? 'inline-flex items-center px-3 py-1 rounded-lg bg-rose-100 text-rose-800 text-xs font-bold tabular-nums'
+                : 'inline-flex items-center px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold tabular-nums';
 
             let table5Rows = `
                 <tr class="bg-slate-50 font-extrabold text-slate-900">
-                    <td class="py-3 px-4">۱. درآمد خالص فروش سیستم (بدون ارزش افزوده)</td>
+                    <td class="py-3 px-4">۱. درآمد خالص فروش سیستم (بدون ارزش افزوده — ${useClientPnl ? 'بر مبنای نرخ کارفرما' : 'بر مبنای نرخ پیشنهادی ما'})</td>
                     <td class="py-3 px-4 tabular-nums">${fmtMoney(netDealRevenue)}</td>
                     <td class="py-3 px-4 tabular-nums">${toBillionToman(netDealRevenue)}</td>
                     <td class="py-3 px-4 tabular-nums">۱۰۰٫۰۰٪</td>
-                    <td class="py-3 px-4 text-xs text-slate-500">${fmtNum(totalSystemKg, 0)} کیلوگرم × ${fmtMoney(finalSellingExVat)} ${unitText}</td>
+                    <td class="py-3 px-4 text-xs text-slate-500">${fmtNum(pnlKg, 0)} کیلوگرم × ${fmtMoney(pnlPriceExVat)} ${unitText}</td>
                 </tr>
                 <tr class="hover:bg-slate-50/80">
                     <td class="py-3 px-4 font-semibold text-rose-800">۲. کسر می‌شود: بهای خرید مواد مستقیم (پولیول و ایزوسیانات)</td>
@@ -1624,14 +2324,14 @@
                     <td class="py-3 px-4 tabular-nums text-rose-700">(${fmtMoney(totalCorpTax)})</td>
                     <td class="py-3 px-4 tabular-nums text-rose-700">(${toBillionToman(totalCorpTax)})</td>
                     <td class="py-3 px-4 tabular-nums">${fmtPct(netDealRevenue > 0 ? (totalCorpTax / netDealRevenue) * 100 : 0)}</td>
-                    <td class="py-3 px-4 text-xs text-slate-500">${fmtNum(incomeTaxPct, 0)}٪ × سود مشمول مالیات</td>
+                    <td class="py-3 px-4 text-xs text-slate-500">${isPnlDeemedTax ? 'محاسبه حداقل مالیات عملکرد بر مبنای نرخ سود ۱۰٪' : `${fmtNum(incomeTaxPct, 0)}٪ × سود مشمول مالیات`}</td>
                 </tr>
-                <tr class="bg-emerald-50 font-extrabold text-emerald-950 border-t-2 border-emerald-300">
-                    <td class="py-3.5 px-4">سود خالص قطعی معامله (محقق‌شده طبق هدف ${fmtNum(profitPct, 1)}٪)</td>
+                <tr class="${isPnlBreakEven ? 'bg-slate-100 text-slate-900 border-slate-400' : totalNetProfit < 0 ? 'bg-rose-50 text-rose-950 border-rose-300' : 'bg-emerald-50 text-emerald-950 border-emerald-300'} font-extrabold border-t-2">
+                    <td class="py-3.5 px-4">${isPnlBreakEven ? 'نقطه سربه‌سر واقعی معامله (سود و زیان خالص صفر)' : totalNetProfit < 0 ? 'زیان خالص قطعی معامله' : 'سود خالص قطعی معامله'}</td>
                     <td class="py-3.5 px-4 tabular-nums text-base">${fmtMoney(totalNetProfit)}</td>
                     <td class="py-3.5 px-4 tabular-nums text-base">${toBillionToman(totalNetProfit)}</td>
                     <td class="py-3.5 px-4 tabular-nums">${fmtPct(netDealRevenue > 0 ? (totalNetProfit / netDealRevenue) * 100 : 0)}</td>
-                    <td class="py-3.5 px-4 text-xs font-medium text-emerald-800">دقیقاً برابر با ${fmtNum(profitPct, 1)}٪ بهای تمام‌شده عملیاتی</td>
+                    <td class="py-3.5 px-4 text-xs font-medium">${fmtPct(realizedProfitPctOnBase)} نسبت به مواد مستقیم | ${fmtPct((totalMaterialCost + totalOverheadCost + totalHqCost) > 0 ? (totalNetProfit / (totalMaterialCost + totalOverheadCost + totalHqCost)) * 100 : 0)} نسبت به بهای عملیاتی</td>
                 </tr>
                 <tr class="bg-indigo-50/60 text-xs text-indigo-950">
                     <td class="py-2.5 px-4 font-bold">مالیات بر ارزش افزوده فروش کل قرارداد (${fmtNum(vatPct, 1)}٪)</td>
@@ -1650,7 +2350,7 @@
             `;
             document.getElementById('table5Body').innerHTML = table5Rows;
 
-            // ۲۰. ماتریس‌های تحلیل حساسیت (جدول ۶-الف، ۶-ب و ۶-ج)
+            // ۲۰. ماتریس‌های تحلیل حساسیت (جدول ۷-الف، ۷-ب و ۷-ج)
             const profitSteps = [
                 Math.max(0, profitPct - 5),
                 Math.max(0, profitPct - 2.5),
@@ -1683,11 +2383,9 @@
                 document.getElementById('sensitivityBody').innerHTML = marketSteps.map(mPrice => {
                     const isBaseMarket = mPrice === carMarket;
                     const cells = profitSteps.map(pStep => {
-                        const stepNetProfit = operatingCostPerKg * (pStep / 100);
-                        const stepPreTax = stepNetProfit / (1 - incomeTaxPct / 100);
-                        const stepCashExVat = operatingCostPerKg + stepPreTax;
+                        const stepCash = computeCashSellingPerKg(baseCostExVat, overheadPct, hqPct, pStep, incomeTaxPct, profitBasis);
                         const res = computeScenarioPrice({
-                            cashSellingExVat: stepCashExVat,
+                            cashSellingExVat: stepCash.cashSellingExVat,
                             netDealRevenue,
                             enableCar,
                             carCount,
@@ -1746,11 +2444,9 @@
                 document.getElementById('sensitivityCreditBody').innerHTML = rateSteps.map(rStep => {
                     const isBaseRate = rStep === creditMonthlyRate;
                     const cells = profitSteps.map(pStep => {
-                        const stepNetProfit = operatingCostPerKg * (pStep / 100);
-                        const stepPreTax = stepNetProfit / (1 - incomeTaxPct / 100);
-                        const stepCashExVat = operatingCostPerKg + stepPreTax;
+                        const stepCash = computeCashSellingPerKg(baseCostExVat, overheadPct, hqPct, pStep, incomeTaxPct, profitBasis);
                         const res = computeScenarioPrice({
-                            cashSellingExVat: stepCashExVat,
+                            cashSellingExVat: stepCash.cashSellingExVat,
                             netDealRevenue,
                             enableCar,
                             carCount,
@@ -1856,16 +2552,18 @@
             lastSummaryText = [
                 `خلاصه محاسبات سیستم فوم (نسبت ${polyolRatio}:${isoRatio})`,
                 `- نرخ خرید پایه سیستم (بدون VAT): ${fmtMoney(baseCostExVat)} ${unitText}/کیلو`,
-                `- بهای فروش نقدی (بدون VAT): ${fmtMoney(cashSellingExVat)} ${unitText}/کیلو | با VAT: ${fmtMoney(cashSellingIncVat)} ${unitText}/کیلو`,
-                `- بهای فروش نهایی (بدون VAT): ${fmtMoney(finalSellingExVat)} ${unitText}/کیلو | با VAT: ${fmtMoney(finalSellingIncVat)} ${unitText}/کیلو`,
-                `- حجم کل تحویلی سیستم: ${fmtNum(totalSystemKg, 0)} کیلوگرم (پولیول: ${fmtNum(totalPolyolKg, 0)} کیلو | ایزوسیانات: ${fmtNum(totalIsoKg, 0)} کیلو)`,
-                `- سقف کل قرارداد: ${fmtMoney(grossDealInvoice)} ${unitText} | سود خالص هدف محقق‌شده: ${fmtMoney(totalNetProfit)} ${unitText}`
+                `- بهای فروش نقدی (بدون VAT): سیستم ${fmtMoney(cashSellingExVat)} | پولیول ${fmtMoney(polCash.cashSellingExVat)} | ایزوسیانات ${fmtMoney(isoCash.cashSellingExVat)} ${unitText}`,
+                `- بهای فروش نهایی پیشنهادی (بدون VAT): سیستم ${fmtMoney(finalSellingExVat)} | پولیول ${fmtMoney(polFinalExVat)} | ایزوسیانات ${fmtMoney(isoFinalExVat)} ${unitText}`,
+                `- بهای فروش نهایی پیشنهادی (با VAT): سیستم ${fmtMoney(finalSellingIncVat)} | پولیول ${fmtMoney(polFinalIncVat)} | ایزوسیانات ${fmtMoney(isoFinalIncVat)} ${unitText}`,
+                `- مهندسی معکوس نرخ کارفرما (${fmtMoney(clientSysExVat)} ${unitText} بدون VAT): پولیول ${fmtMoney(clientPolExVat)} | ایزوسیانات ${fmtMoney(clientIsoExVat)} | سود/زیان خالص کل: ${toBillionToman(clientTotalNetProfit)} میلیارد تومان (${fmtPct(clientProfitPctOnBase)} روی مواد)`,
+                `- حجم کل تحویلی سیستم (نرخ پیشنهادی): ${fmtNum(totalSystemKg, 0)} کیلوگرم (پولیول: ${fmtNum(totalPolyolKg, 0)} | ایزوسیانات: ${fmtNum(totalIsoKg, 0)})`
             ].join('\n');
         }
 
         // اجرای اولیه به محض بارگذاری کامل صفحه
         window.addEventListener('DOMContentLoaded', () => {
             syncToggleUI();
+            syncPnlScenarioButtons();
             recalculate();
         });
     </script>
